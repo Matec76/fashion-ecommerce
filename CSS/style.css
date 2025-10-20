@@ -1,0 +1,249 @@
+* {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+body{
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url("./76ccec8c24b1d1417590cc176bf381c4181228_shopping\ \(1\).jpg");
+    background-repeat: no-repeat;
+    flex-direction: column;
+    background-size: cover;          /* ✅ giúp ảnh tự co giãn theo kích thước màn hình */
+    background-position: center;     /* ✅ căn giữa ảnh khi zoom */
+    background-attachment: fixed;    /* ✅ giữ nền cố định khi cuộn */
+    overflow-y: auto;
+}
+h1{
+    text-align: center;
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-top: 20px;   /* ✅ giảm từ mặc định (thường ~40px) xuống nhỏ hơn */
+  margin-bottom: 0px; /* ✅ giảm khoảng cách dưới */
+  color: black;
+}
+.glass-container{
+    position: relative;
+    width: 400px;
+    padding: 30px;
+    border-radius: 20px;
+    backdrop-filter: blur(110px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1 solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 25px 45px rgba(16, 15, 15, 0.4);
+    z-index: 10;
+    overflow: hidden;
+    margin: 30px 0;
+    height: 550px;
+}
+.glass-container::before{
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    transform: skewX(-15deg);
+    transition: 0.5s;
+    pointer-events: none;
+}
+.glass-container:hover::before{
+    left: 120%;
+}
+.glass-container h2{
+    color: black;
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 1px;
+    margin-bottom: 40px;
+
+}
+.input__group{
+    position: relative;
+    margin-bottom: 30px;
+
+}
+.input__group input{
+    width: 100%;
+    padding: 15px 20px;
+    background :rgba(255, 255, 255, 0.2);
+    border: none;
+    outline: none;
+    border-radius: 10px;
+    font-size: 16px;
+    color: black;
+    transition: all .3s ease;
+}
+.input__group input::placeholder{
+    color: rgba(255, 255, 255, 0.7);
+}
+.input__group input:focus{
+    background: rgba(255, 255, 255, 0.3);
+    box-shadow:0 8px 20px rgba(0,0,0,0.1) ;
+}
+.input__group label{
+    position: absolute;
+    top:50%;
+    left: 20px;
+    transform: translateY(-50%);
+    color: black;
+    font-size: 16px;
+    pointer-events:none; 
+    transition: all .3s ease;    
+}
+.input__group input:focus +label,
+.input__group input:valid +label{
+    top: 0;
+    left: 15px;
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+    color: black;
+}
+.remember-forget{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+    color: black;
+    margin-bottom: 25px;
+}
+.remember-forget label{
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+.remember-forget input{
+    margin-right: 8px;
+    accent-color: black;
+}
+.remember-forget a{
+    color: black;
+    text-decoration: none;
+    transition: all .3s ease;
+}
+.remember-forget a:hover{
+    text-decoration: underline;
+}
+.login-btn{
+    width: 100%;
+    padding: 15px;
+    background: black;
+    border: node;
+    outline: node;
+    border-radius: 35px;
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .3s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.login-btn:hover{
+    background: rgba(255, 255, 255, 0.4);
+    transform: translateY(-3p);
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.2);
+}
+.sign_up{
+    text-align: center;
+    margin-top: 25px;
+    color: black;
+    font-size: 14px;
+}
+.sign_up a{
+    color:black;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all .3s ease;
+}
+.sign_up a:hover{
+    text-decoration: underline;
+}
+
+/* ĐĂNG KÍ */
+.glass-container1{
+    position: relative;
+    width: 30rem;
+    padding: 30px;
+    border-radius: 20px;
+    backdrop-filter: blur(110px);
+    background: rgba(255, 255, 255, 0.1);
+    border: 1 solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 25px 45px rgba(16, 15, 15, 0.4);
+    z-index: 10;
+    overflow: hidden;
+    margin: 20px 0;
+    height: 50rem;
+    
+}
+.glass-container1::before{
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    transform: skewX(-15deg);
+    transition: 0.5s;
+    pointer-events: none;
+}
+.glass-container1:hover::before{
+    left: 120%;
+}
+.glass-container1 h3{
+    color: black;
+    font-size: 28px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 1px;
+    border-bottom: 1px solid gray;
+    padding-bottom: 1rem;
+}
+.container1{
+    display: flex;
+    gap :1rem;
+}
+.signup-container {
+  margin-bottom: 25px;
+}
+
+.signup-container label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+  color: black;
+}
+
+.birthdate {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.birthdate select {
+  flex: 1;
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  font-size: 16px;
+  color: black;
+  transition: all 0.3s ease;
+  appearance: none; /* ẩn mũi tên mặc định cho đẹp */
+  text-align: center;
+}
+
+.birthdate select:focus {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+.birthdate select::-webkit-scrollbar {
+  display: none;
+}
+
