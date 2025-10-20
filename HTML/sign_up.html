@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="./style.css">
+    </head>
+    <body>
+        <h1>STYLEX</h1>
+        <div class="glass-container1">
+            <h3>Tạo Tài Khoản Mới</h3>
+            <form>
+                <div class="container1">
+                    <div class="input__group">
+                        <input type="text" required>
+                        <label >Họ</label>
+                    </div>
+                    <div class="input__group">
+                        <input type="text" required>
+                        <label >Tên</label>
+                    </div>
+                </div>
+
+                <div class="signup-container">
+                    <label>Ngày sinh <span class="help" title="Chọn ngày, tháng và năm sinh của bạn">?</span></label>
+                    <div class="birthdate">
+                        <select id="day"></select>
+                        <select id="month"></select>
+                        <select id="year"></select>
+                    </div>
+                </div>
+
+                <div class="input__group">
+                    <input type="text" required>
+                    <label >Email</label>
+                </div>
+                <div class="input__group">
+                    <input type="password" required>
+                    <label >Mật khẩu</label>
+                </div>
+                <div class="remember-forget">
+                    <a href="#">Quên mật khẩu?</a>
+                </div>
+                
+                <button type="submit" class="login-btn">Đăng ký</button>
+                <div class="sign_up">
+                    <a href="./login.html">Bạn đã có tài khoản?</a>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            const daySelect = document.getElementById("day");
+            const monthSelect = document.getElementById("month");
+            const yearSelect = document.getElementById("year");
+            const warning = document.getElementById("warning");
+
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonth = today.getMonth() + 1;
+            const currentDate = today.getDate();
+
+            // --- Tạo danh sách năm ---
+            for (let y = currentYear; y >= 1900; y--) {
+                const option = document.createElement("option");
+                option.value = y;
+                option.textContent = y;
+                yearSelect.appendChild(option);
+            }
+
+            // --- Tạo danh sách tháng ---
+            const monthNames = [
+                "Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6",
+                "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"
+            ];
+
+            function renderMonths(selectedYear, selectedMonth) {
+                monthSelect.innerHTML = "";
+                monthNames.forEach((m, i) => {
+                const monthValue = i + 1;
+                if (selectedYear === currentYear && monthValue > currentMonth) return;
+                const option = document.createElement("option");
+                option.value = monthValue;
+                option.textContent = m;
+                if (monthValue === selectedMonth) option.selected = true;
+                monthSelect.appendChild(option);
+                });
+            }
+
+            // --- Cập nhật danh sách ngày ---
+            function updateDays(keepValue = true) {
+                const selectedDay = parseInt(daySelect.value) || 1;
+                const year = parseInt(yearSelect.value);
+                const month = parseInt(monthSelect.value);
+                const daysInMonth = new Date(year, month, 0).getDate(); // Tự xử lý năm nhuận
+
+                daySelect.innerHTML = "";
+
+                for (let d = 1; d <= daysInMonth; d++) {
+                if (year === currentYear && month === currentMonth && d > currentDate) break;
+                const option = document.createElement("option");
+                option.value = d;
+                option.textContent = d;
+                daySelect.appendChild(option);
+                }
+
+                // Giữ lại giá trị ngày cũ nếu còn hợp lệ
+                if (keepValue) {
+                if (selectedDay <= daySelect.options.length) {
+                    daySelect.value = selectedDay;
+                } else {
+                    daySelect.value = daySelect.options.length;
+                }
+                }
+            }
+
+            // --- Khi đổi năm ---
+            yearSelect.addEventListener("change", () => {
+                const selectedMonth = parseInt(monthSelect.value);
+                const selectedYear = parseInt(yearSelect.value);
+                renderMonths(selectedYear, selectedMonth > currentMonth && selectedYear === currentYear ? currentMonth : selectedMonth);
+                updateDays();
+            });
+
+            // --- Khi đổi tháng ---
+            monthSelect.addEventListener("change", () => {
+                updateDays();
+            });
+
+            // --- Khởi tạo ---
+            yearSelect.value = currentYear;
+            renderMonths(currentYear, currentMonth);
+            monthSelect.value = currentMonth;
+            updateDays(false);
+            daySelect.value = currentDate;
+
+            // --- Cho phép cuộn bằng chuột và Enter ---
+            ["day", "month", "year"].forEach(id => {
+                const el = document.getElementById(id);
+
+                // Cuộn bằng con lăn chuột
+                el.addEventListener("wheel", (e) => {
+                e.preventDefault();
+                const dir = e.deltaY > 0 ? 1 : -1;
+                const currentIndex = el.selectedIndex;
+                const nextIndex = Math.min(Math.max(currentIndex + dir, 0), el.options.length - 1);
+                el.selectedIndex = nextIndex;
+                });
+
+                // Ấn Enter để xác nhận và blur
+                el.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    el.blur();
+                }
+                });
+
+                // --- Giới hạn chiều cao menu khi mở (menu ngắn) ---
+                el.addEventListener("mousedown", function (e) {
+                    e.preventDefault(); // ngăn hành vi chọn option ngay lập tức
+                    if (this.size === 0) {
+                        this.size = Math.min(2, this.options.length); // hiển thị tối đa 6 dòng
+                        this.focus(); // giữ focus để cuộn được
+                    } else {
+                        this.size = 0; // nếu đang mở thì đóng lại
+                    }
+                });
+
+                el.addEventListener("blur", function() {
+                this.size = 0;
+                });
+                el.addEventListener("change", function() {
+                this.size = 0;
+                this.blur();
+                });
+            });
+
+        </script>
+    </body>
+    
+    
+</html>
