@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date, timezone
 from typing import TYPE_CHECKING, Optional, List
 
 from sqlmodel import Field, Relationship, SQLModel, Column, TIMESTAMP, Text
@@ -32,8 +32,8 @@ class Role(RoleBase, table=True):
 
     role_id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
-        sa_column=Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
 
     users: List["User"] = Relationship(back_populates="role")
@@ -43,7 +43,7 @@ class Role(RoleBase, table=True):
     )
 
 
-class RolePublic(RoleBase):
+class RoleResponse(RoleBase):
     role_id: int
     created_at: datetime
 
@@ -58,8 +58,8 @@ class RoleUpdate(SQLModel):
     is_active: Optional[bool] = None
 
 
-class RolesPublic(SQLModel):
-    data: List[RolePublic]
+class RolesResponse(SQLModel):
+    data: List[RoleResponse]
     count: int
 
 
@@ -76,8 +76,8 @@ class Permission(PermissionBase, table=True):
 
     permission_id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
-        sa_column=Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
 
     role_permissions: List["RolePermission"] = Relationship(
@@ -86,7 +86,7 @@ class Permission(PermissionBase, table=True):
     )
 
 
-class PermissionPublic(PermissionBase):
+class PermissionResponse(PermissionBase):
     permission_id: int
     created_at: datetime
 
@@ -103,8 +103,8 @@ class PermissionUpdate(SQLModel):
     action: Optional[str] = Field(default=None, max_length=50)
 
 
-class PermissionsPublic(SQLModel):
-    data: List[PermissionPublic]
+class PermissionsResponse(SQLModel):
+    data: List[PermissionResponse]
     count: int
 
 
@@ -118,15 +118,15 @@ class RolePermission(RolePermissionBase, table=True):
 
     role_permission_id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
-        sa_column=Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
 
     role: Optional["Role"] = Relationship(back_populates="role_permissions")
     permission: Optional["Permission"] = Relationship(back_populates="role_permissions")
 
 
-class RolePermissionPublic(RolePermissionBase):
+class RolePermissionResponse(RolePermissionBase):
     role_permission_id: int
     created_at: datetime
 
@@ -140,7 +140,7 @@ class UserBase(SQLModel):
     first_name: Optional[str] = Field(default=None, max_length=100)
     last_name: Optional[str] = Field(default=None, max_length=100)
     phone_number: Optional[str] = Field(default=None, max_length=20)
-    date_of_birth: Optional[datetime] = None
+    date_of_birth: Optional[date] = None
     gender: Optional[GenderEnum] = Field(
         default=None,
         sa_column=Column(PgEnum(GenderEnum, name="gender_enum", create_type=False), nullable=True)
@@ -160,20 +160,27 @@ class User(UserBase, table=True):
     email_verified_at: Optional[datetime] = None
     last_login: Optional[datetime] = None
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
-        sa_column=Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
     updated_at: datetime = Field(
-        default_factory=datetime.utcnow,
-        sa_column=Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))
     )
 
     role: Optional["Role"] = Relationship(back_populates="users")
     addresses: List["Address"] = Relationship(back_populates="user", cascade_delete=True)
+    
     orders: List["Order"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"foreign_keys": "[Order.user_id]"}
     )
+
+    cancelled_orders: List["Order"] = Relationship(
+        back_populates="cancelled_user",
+        sa_relationship_kwargs={"primaryjoin": "Order.cancelled_by==User.user_id"}
+    )
+
     carts: List["Cart"] = Relationship(back_populates="user", cascade_delete=True)
     reviews: List["Review"] = Relationship(back_populates="user", cascade_delete=True)
     wishlists: List["Wishlist"] = Relationship(back_populates="user", cascade_delete=True)
@@ -211,10 +218,17 @@ class User(UserBase, table=True):
     )
 
 
-class UserPublic(UserBase):
+class UserResponse(UserBase):
     user_id: int
     created_at: datetime
     updated_at: datetime
+
+
+class UserDetailResponse(UserBase):
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+    role: Optional[RoleResponse] = None
 
 
 class UserCreate(SQLModel):
@@ -238,7 +252,7 @@ class UserUpdate(SQLModel):
     first_name: Optional[str] = Field(default=None, max_length=100)
     last_name: Optional[str] = Field(default=None, max_length=100)
     phone_number: Optional[str] = Field(default=None, max_length=20)
-    date_of_birth: Optional[datetime] = None
+    date_of_birth: Optional[date] = None
     gender: Optional[GenderEnum] = None
     avatar_url: Optional[str] = Field(default=None, max_length=500)
 
@@ -247,7 +261,7 @@ class UserUpdateMe(SQLModel):
     first_name: Optional[str] = Field(default=None, max_length=100)
     last_name: Optional[str] = Field(default=None, max_length=100)
     phone_number: Optional[str] = Field(default=None, max_length=20)
-    date_of_birth: Optional[datetime] = None
+    date_of_birth: Optional[date] = None
     gender: Optional[GenderEnum] = None
 
 
@@ -256,8 +270,8 @@ class UpdatePassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=40)
 
 
-class UsersPublic(SQLModel):
-    data: List[UserPublic]
+class UsersResponse(SQLModel):
+    data: List[UserResponse]
     count: int
 
 
@@ -283,18 +297,18 @@ class Address(AddressBase, table=True):
 
     address_id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default_factory=datetime.utcnow,
-        sa_column=Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"))
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
     updated_at: datetime = Field(
-        default_factory=datetime.utcnow,
-        sa_column=Column(TIMESTAMP, server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))
     )
 
     user: Optional["User"] = Relationship(back_populates="addresses")
 
 
-class AddressPublic(AddressBase):
+class AddressResponse(AddressBase):
     address_id: int
     created_at: datetime
     updated_at: datetime
@@ -317,6 +331,6 @@ class AddressUpdate(SQLModel):
     is_default: Optional[bool] = None
 
 
-class AddressesPublic(SQLModel):
-    data: List[AddressPublic]
+class AddressesResponse(SQLModel):
+    data: List[AddressResponse]
     count: int
