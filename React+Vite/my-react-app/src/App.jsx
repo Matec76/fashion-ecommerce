@@ -9,7 +9,7 @@ import SignUp from './pages/auth/SignUp';
 import HomePage from './pages/home/TrangChu';
 import ProductPage from './pages/home/SanPham';
 import ProductDetail from './pages/home/ProductDetail';
-import Cart from './pages/Cart';
+import Cart from './pages/home/Cart';
 
 // Support pages
 import TrungTamHoTro from './pages/support/TrungTamHoTro';
