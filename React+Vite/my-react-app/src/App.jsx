@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Auth pages
@@ -26,19 +26,24 @@ import Layout from './components/Layout';
 import { CartProvider } from './context/CartContext';
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-
-  // Check authentication on mount
-  useEffect(() => {
+  // Lazy state initializer - chỉ chạy 1 lần khi component mount
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
     const token = localStorage.getItem('authToken');
     const savedUser = localStorage.getItem('user');
+    return !!(token && savedUser);
+  });
 
-    if (token && savedUser) {
-      setIsAuthenticated(true);
-      setUser(JSON.parse(savedUser));
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    if (savedUser) {
+      try {
+        return JSON.parse(savedUser);
+      } catch {
+        return null;
+      }
     }
-  }, []);
+    return null;
+  });
 
   const handleLoginSuccess = (userData) => {
     setIsAuthenticated(true);

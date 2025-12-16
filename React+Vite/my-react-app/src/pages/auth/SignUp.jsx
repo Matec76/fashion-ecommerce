@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../config/api.config'; // Đảm bảo đường dẫn import đúng
 import '/src/style/style.css';
@@ -42,33 +42,33 @@ const SignUp = () => {
 
     // Payload gửi lên server
     const payload = {
-        email: formData.email,
-        password: formData.password,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      first_name: formData.firstName,
+      last_name: formData.lastName,
     };
 
     try {
-        console.log('Registering with:', API_ENDPOINTS.AUTH.REGISTER);
-        const response = await fetch('http://localhost:8000/api/v1/auth/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-        
-        const data = await response.json();
-        
-        if (response.ok) {
-            alert("Đăng ký thành công! Vui lòng kiểm tra email.");
-            navigate('/login');
-        } else {
-            setError(data.detail || 'Đăng ký thất bại.');
-        }
+      console.log('Registering with:', API_ENDPOINTS.AUTH.REGISTER);
+      const response = await fetch('http://localhost:8000/api/v1/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Đăng ký thành công! Vui lòng kiểm tra email.");
+        navigate('/login');
+      } else {
+        setError(data.detail || 'Đăng ký thất bại.');
+      }
     } catch (err) {
-        console.error(err);
-        setError('Lỗi kết nối server.');
+      console.error(err);
+      setError('Lỗi kết nối server.');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -78,7 +78,7 @@ const SignUp = () => {
       <div className="login-glass-container" style={{ maxWidth: '500px' }}>
         <h2>ĐĂNG KÝ</h2>
         <form onSubmit={handleSubmit}>
-          
+
           <div style={{ display: 'flex', gap: '10px' }}>
             <div className="input__group">
               <input type="text" name="firstName" value={formData.firstName} onChange={handleChange} required />

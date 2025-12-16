@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../context/useCart';
 import '/src/style/main.css';
 
 const Header = ({
@@ -14,7 +14,7 @@ const Header = ({
   const { itemCount } = useCart();
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
-  const closeMenu = () => setIsMenuOpen(false);
+  const closeMenu = useCallback(() => setIsMenuOpen(false), []);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -26,11 +26,7 @@ const Header = ({
     document.addEventListener('mousedown', handleClickOutside);
 
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    closeMenu();
-  }, [user]);
+  }, [closeMenu]);
 
   return (
     <header className="header">

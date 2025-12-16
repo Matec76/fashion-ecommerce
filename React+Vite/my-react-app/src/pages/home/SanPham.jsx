@@ -58,11 +58,31 @@ const ProductCard = memo(({ product }) => {
 // ==========================================
 function SanPham() {
   const location = useLocation();
-  
-  // --- STATE ---
-  const [selectedTypes, setSelectedTypes] = useState([]);
+
+  // --- TÍNH TOÁN GIÁ TRỊ KHỞI TẠO TỪ URL PARAMS ---
+  const getInitialFilters = () => {
+    const params = new URLSearchParams(location.search);
+    const gender = params.get('gender');
+    const type = params.get('type');
+
+    const genders = [];
+    const types = [];
+
+    if (gender) {
+      const mapGender = { 'MEN': 'Nam', 'WOMEN': 'Nữ', 'KIDS': 'Trẻ em' };
+      genders.push(mapGender[gender?.toUpperCase()] || gender);
+    }
+    if (type) types.push(type);
+
+    return { genders, types };
+  };
+
+  const initialFilters = getInitialFilters();
+
+  // --- STATE (khởi tạo từ URL params) ---
+  const [selectedTypes, setSelectedTypes] = useState(initialFilters.types);
   const [selectedSizes, setSelectedSizes] = useState([]);
-  const [selectedGenders, setSelectedGenders] = useState([]);
+  const [selectedGenders, setSelectedGenders] = useState(initialFilters.genders);
   const [categories, setCategories] = useState([]); // Dùng để map ID -> Tên danh mục
 
   // --- API 1: LẤY DANH MỤC (Để lấy tên loại sản phẩm) ---
@@ -93,26 +113,13 @@ function SanPham() {
     const params = new URLSearchParams(location.search);
     // Tối ưu: Nếu lọc "Hàng mới", gọi API chuyên biệt sẽ nhanh hơn
     if (params.get('new') === 'true') {
-        return API_ENDPOINTS.PRODUCTS.NEW_ARRIVALS || '/api/v1/products/new-arrivals';
+      return API_ENDPOINTS.PRODUCTS.NEW_ARRIVALS || '/api/v1/products/new-arrivals';
     }
     // Mặc định gọi List
     return API_ENDPOINTS.PRODUCTS.LIST;
   };
 
   const { data, loading, error } = useFetch(buildApiUrl());
-
-  // --- XỬ LÝ URL PARAMS (Đồng bộ URL với bộ lọc) ---
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const gender = params.get('gender');
-    const type = params.get('type');
-    
-    if (gender) {
-        const mapGender = { 'MEN': 'Nam', 'WOMEN': 'Nữ', 'KIDS': 'Trẻ em' };
-        setSelectedGenders([mapGender[gender?.toUpperCase()] || gender]);
-    }
-    if (type) setSelectedTypes([type]);
-  }, [location.search]);
 
   // --- LOGIC LỌC SẢN PHẨM (Dùng useMemo để tối ưu hiệu năng) ---
   const filteredProducts = useMemo(() => {
@@ -127,12 +134,12 @@ function SanPham() {
     // 1. Chuẩn hóa dữ liệu (Mapping)
     const normalized = rawProducts.map(p => {
       // --- SỬA DÒNG NÀY (Ép kiểu về String để so sánh chính xác) ---
-      const catObj = categories.find(c => 
-          String(c.category_id) === String(p.category_id) || 
-          String(c.id) === String(p.category_id)
+      const catObj = categories.find(c =>
+        String(c.category_id) === String(p.category_id) ||
+        String(c.id) === String(p.category_id)
       );
       // -------------------------------------------------------------
-      
+
       // Debug: Bật lên xem nó tìm thấy tên gì (F12 Console)
       // console.log(`SP: ${p.product_name}, ID Loại: ${p.category_id}, Tìm thấy: ${catObj?.category_name}`);
 
@@ -143,12 +150,12 @@ function SanPham() {
         price: typeof p.base_price === 'string' ? parseFloat(p.base_price) : (p.base_price || 0),
         isNew: p.is_new_arrival || false,
         gender: (() => {
-           const g = (p.gender || '').toUpperCase();
-           return g === 'MEN' ? 'Nam' : g === 'WOMEN' ? 'Nữ' : g === 'KIDS' ? 'Trẻ em' : 'Unisex';
+          const g = (p.gender || '').toUpperCase();
+          return g === 'MEN' ? 'Nam' : g === 'WOMEN' ? 'Nữ' : g === 'KIDS' ? 'Trẻ em' : 'Unisex';
         })(),
         // Lấy tên loại (Ưu tiên tên tìm được trong bảng Category)
         type: catObj?.category_name || p.category_name || 'Khác',
-        sizes: p.variants ? p.variants.map(v => v.size) : [] 
+        sizes: p.variants ? p.variants.map(v => v.size) : []
       };
     });
 
@@ -156,28 +163,28 @@ function SanPham() {
     return normalized.filter(product => {
       // Lọc Giới tính
       if (selectedGenders.length > 0 && !selectedGenders.includes(product.gender)) return false;
-      
+
       // Lọc Loại
       if (selectedTypes.length > 0) {
-          // 1. Lấy tên loại của sản phẩm (ví dụ: "Giày Dép") và chuyển về chữ thường
-          const productTypeLower = (product.type || '').toLowerCase();
-          
-          // 2. Kiểm tra xem tên loại sản phẩm có CHỨA từ khóa bạn chọn không (ví dụ chọn "Giày")
-          // Logic: "giày dép" có chứa chữ "giày" -> ĐÚNG
-          const isMatch = selectedTypes.some(selectedFilter => 
-              productTypeLower.includes(selectedFilter.toLowerCase())
-          );
-          
-          // 3. Nếu không khớp bất kỳ từ khóa nào thì ẩn sản phẩm đi
-          if (!isMatch) return false;
+        // 1. Lấy tên loại của sản phẩm (ví dụ: "Giày Dép") và chuyển về chữ thường
+        const productTypeLower = (product.type || '').toLowerCase();
+
+        // 2. Kiểm tra xem tên loại sản phẩm có CHỨA từ khóa bạn chọn không (ví dụ chọn "Giày")
+        // Logic: "giày dép" có chứa chữ "giày" -> ĐÚNG
+        const isMatch = selectedTypes.some(selectedFilter =>
+          productTypeLower.includes(selectedFilter.toLowerCase())
+        );
+
+        // 3. Nếu không khớp bất kỳ từ khóa nào thì ẩn sản phẩm đi
+        if (!isMatch) return false;
       }
-      
+
       // Lọc Size 
       // (Thêm check length để tránh ẩn hết sản phẩm khi API thiếu data size)
       if (selectedSizes.length > 0 && product.sizes.length > 0) {
-          if (!product.sizes.some(s => selectedSizes.includes(s))) return false;
+        if (!product.sizes.some(s => selectedSizes.includes(s))) return false;
       }
-      
+
       return true;
     });
   }, [data, categories, selectedGenders, selectedTypes, selectedSizes]);
@@ -196,9 +203,9 @@ function SanPham() {
       {/* Hero Header */}
       <div className="hero-header">
         {/* Có thể thêm ảnh banner tĩnh ở đây thay vì lấy ảnh sp đầu tiên */}
-        <div className="hero-product-image" style={{backgroundColor: '#1a1a2e'}}>
-            <div className="hero-overlay"></div>
-            <h1 style={{position:'absolute', color:'white', bottom: 20, left: 40}}>SẢN PHẨM</h1>
+        <div className="hero-product-image" style={{ backgroundColor: '#1a1a2e' }}>
+          <div className="hero-overlay"></div>
+          <h1 style={{ position: 'absolute', color: 'white', bottom: 20, left: 40 }}>SẢN PHẨM</h1>
         </div>
       </div>
 
@@ -210,59 +217,59 @@ function SanPham() {
 
             {/* Giới tính */}
             <div className="filter-group">
-                <h4>Đối tượng</h4>
-                {['Nam', 'Nữ', 'Trẻ em'].map(g => (
-                    <label key={g} className="filter-checkbox">
-                        <input 
-                            type="checkbox" 
-                            checked={selectedGenders.includes(g)}
-                            onChange={() => toggleFilter(selectedGenders, setSelectedGenders, g)}
-                        />
-                        <span>{g}</span>
-                    </label>
-                ))}
+              <h4>Đối tượng</h4>
+              {['Nam', 'Nữ', 'Trẻ em'].map(g => (
+                <label key={g} className="filter-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedGenders.includes(g)}
+                    onChange={() => toggleFilter(selectedGenders, setSelectedGenders, g)}
+                  />
+                  <span>{g}</span>
+                </label>
+              ))}
             </div>
             {/* Loại sản phẩm */}
             <div className="filter-group">
-                <h4>Loại sản phẩm</h4>
-                <div className="filter-options">
-                    {/* Danh sách các loại sản phẩm phổ biến */}
-                    {['Giày', 'Quần', 'Áo', 'Đầm', 'Váy', 'Phụ kiện'].map(type => (
-                        <label key={type} className="filter-checkbox">
-                            <input 
-                                type="checkbox" 
-                                checked={selectedTypes.includes(type)}
-                                onChange={() => toggleFilter(selectedTypes, setSelectedTypes, type)}
-                            />
-                            <span>{type}</span>
-                        </label>
-                    ))}
-                </div>
+              <h4>Loại sản phẩm</h4>
+              <div className="filter-options">
+                {/* Danh sách các loại sản phẩm phổ biến */}
+                {['Giày', 'Quần', 'Áo', 'Đầm', 'Váy', 'Phụ kiện'].map(type => (
+                  <label key={type} className="filter-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={selectedTypes.includes(type)}
+                      onChange={() => toggleFilter(selectedTypes, setSelectedTypes, type)}
+                    />
+                    <span>{type}</span>
+                  </label>
+                ))}
+              </div>
             </div>
             {/* Kích cỡ (Cảnh báo: Hiện tại API chưa hỗ trợ lọc cái này) */}
             <div className="filter-group">
-                <h4>Kích cỡ</h4>
-                <div className="size-options">
-                    {['S', 'M', 'L', 'XL', '39', '40', '41', '42'].map(s => (
-                        <button 
-                            key={s} 
-                            className={`size-button ${selectedSizes.includes(s) ? 'active' : ''}`}
-                            onClick={() => toggleFilter(selectedSizes, setSelectedSizes, s)}
-                        >
-                            {s}
-                        </button>
-                    ))}
-                </div>
+              <h4>Kích cỡ</h4>
+              <div className="size-options">
+                {['S', 'M', 'L', 'XL', '39', '40', '41', '42'].map(s => (
+                  <button
+                    key={s}
+                    className={`size-button ${selectedSizes.includes(s) ? 'active' : ''}`}
+                    onClick={() => toggleFilter(selectedSizes, setSelectedSizes, s)}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Nút xóa */}
             {(selectedGenders.length > 0 || selectedSizes.length > 0 || selectedTypes.length > 0) && (
-                <button 
-                    className="clear-filters-btn"
-                    onClick={() => { setSelectedGenders([]); setSelectedSizes([]); setSelectedTypes([]); }}
-                >
-                    Xóa bộ lọc
-                </button>
+              <button
+                className="clear-filters-btn"
+                onClick={() => { setSelectedGenders([]); setSelectedSizes([]); setSelectedTypes([]); }}
+              >
+                Xóa bộ lọc
+              </button>
             )}
           </div>
         </aside>
@@ -274,13 +281,13 @@ function SanPham() {
           </div>
 
           {filteredProducts.length === 0 ? (
-             <div className="no-products"><p>Không tìm thấy sản phẩm phù hợp.</p></div>
+            <div className="no-products"><p>Không tìm thấy sản phẩm phù hợp.</p></div>
           ) : (
-             <div className="products-grid">
-               {filteredProducts.map(p => (
-                 <ProductCard key={p.id} product={p} />
-               ))}
-             </div>
+            <div className="products-grid">
+              {filteredProducts.map(p => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
           )}
         </main>
       </div>

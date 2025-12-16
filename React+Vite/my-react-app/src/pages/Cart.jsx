@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../context/useCart';
 import './style/Cart.css';
 
 const Cart = () => {
@@ -18,7 +18,7 @@ const Cart = () => {
 
     useEffect(() => {
         fetchCart();
-    }, []);
+    }, [fetchCart]);
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('vi-VN', {

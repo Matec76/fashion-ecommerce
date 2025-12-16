@@ -1,15 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useCallback } from 'react';
 import API_ENDPOINTS, { getAuthToken } from '../config/api.config';
 
 const CartContext = createContext();
-
-export const useCart = () => {
-    const context = useContext(CartContext);
-    if (!context) {
-        throw new Error('useCart must be used within CartProvider');
-    }
-    return context;
-};
 
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);

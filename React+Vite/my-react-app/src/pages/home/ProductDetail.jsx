@@ -2,22 +2,23 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import useFetch from '../../components/useFetch';
 import { API_ENDPOINTS } from '../../config/api.config';
-import { useCart } from '../../context/CartContext';
+import { useCart } from '../../context/useCart';
 import '../../style/ProductDetail.css';
 
 // ==========================================
 // SUB-COMPONENT: IMAGE GALLERY
 // ==========================================
 const ImageGallery = ({ images, loading, productName }) => {
-    const [selectedIndex, setSelectedIndex] = useState(0);
-
-    // Tìm ảnh primary hoặc dùng ảnh đầu tiên
-    useEffect(() => {
+    // Tính initial index từ useMemo thay vì useEffect
+    const initialIndex = useMemo(() => {
         if (images && images.length > 0) {
             const primaryIndex = images.findIndex(img => img.is_primary);
-            setSelectedIndex(primaryIndex >= 0 ? primaryIndex : 0);
+            return primaryIndex >= 0 ? primaryIndex : 0;
         }
+        return 0;
     }, [images]);
+
+    const [selectedIndex, setSelectedIndex] = useState(initialIndex);
 
     // Loading state
     if (loading) {
@@ -371,7 +372,7 @@ const ReviewSection = ({ reviews, reviewSummary, productRating, reviewCount, pro
 const ProductDetail = () => {
     const { identifier } = useParams();
     const navigate = useNavigate();
-    const { addToCart, loading: cartLoading } = useCart();
+    const { addToCart } = useCart();
     const [selectedVariant, setSelectedVariant] = useState(null);
     const [quantity, setQuantity] = useState(1);
 
