@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>STYLEX | Quản lý Nội dung</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        .page-breadcrumb { font-size: 14px; color: #7f8c8d; margin-bottom: 10px; }
+        .topbar { justify-content: flex-start; padding: 20px 0; border-bottom: none; }
+        .topbar h2 { font-size: 28px; font-weight: 700; color: #0f1b2c; }
+        .dashboard-body { padding: 0 40px 40px 40px; background-color: #fff; }
+        
+        .content-header { display: flex; justify-content: flex-end; margin-bottom: 20px; padding: 20px; background: #fff; }
+        
+        .btn-black {
+            background-color: #1e293b; color: white; padding: 10px 20px;
+            border: none; border-radius: 6px; cursor: pointer;
+            font-weight: 600; font-size: 14px; transition: 0.3s;
+        }
+        .btn-black:hover { background-color: #0f1b2c; transform: translateY(-2px); }
+
+        .data-table-container { box-shadow: none; border: 1px solid #eee; }
+        .data-table th { background-color: #fff; color: #7f8c8d; font-size: 12px; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid #eee; padding: 15px 20px; text-align: left; }
+        .data-table td { padding: 15px 20px; border-bottom: 1px solid #eee; color: #0f1b2c; font-size: 14px; font-weight: 500; vertical-align: middle; }
+
+        .badge-news { background: #e3f2fd; color: #1976d2; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        .badge-promo { background: #fce4ec; color: #c2185b; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+        
+        /* Modal Style */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(2px); }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 30px; border-radius: 12px; width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from {transform: translateY(-50px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
+        
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; color: #64748b; text-transform: uppercase; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 30px; }
+        .btn-cancel { background: #f1f5f9; color: #64748b; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h1>STYLEX</h1></div>
+        <nav class="main-menu">
+            <ul>
+                <li><a href="{{ url_for('auth.tongquan') }}"><span class="material-symbols-outlined">home</span> Tổng quan</a></li>
+                <li><a href="{{ url_for('sanpham.index') }}"><span class="material-symbols-outlined">inventory_2</span> Sản phẩm</a></li>
+                <li><a href="{{ url_for('donhang.index') }}"><span class="material-symbols-outlined">receipt_long</span> Đơn hàng</a></li>
+                <li><a href="{{ url_for('khachhang.index') }}"><span class="material-symbols-outlined">group</span> Khách hàng</a></li>
+                <li><a href="{{ url_for('khac.marketing') }}"><span class="material-symbols-outlined">campaign</span> Marketing</a></li>
+                <li class="active"><a href="{{ url_for('khac.noidung') }}"><span class="material-symbols-outlined">article</span> Nội dung</a></li>
+                <li><a href="{{ url_for('khac.baocao') }}"><span class="material-symbols-outlined">bar_chart</span> Báo cáo</a></li>
+                <li><a href="{{ url_for('khac.phanquyen') }}"><span class="material-symbols-outlined">settings</span> Cấu hình</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="content-area" style="background-color: #fff;">
+        <div style="padding: 20px 40px 0 40px;">
+            <div class="page-breadcrumb">Quản trị</div>
+            <header class="topbar">
+                <h2>Bài viết & Tin tức</h2>
+            </header>
+        </div>
+
+        <div class="dashboard-body">
+            <div class="content-header" style="background: #fff; padding: 0 0 20px 0;">
+                <button id="btnAddPost" class="btn-black">Viết bài mới</button>
+            </div>  
+            
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%;">ẢNH</th>
+                            <th style="width: 40%;">TIÊU ĐỀ BÀI VIẾT</th>
+                            <th style="width: 15%;">CHUYÊN MỤC</th>
+                            <th style="width: 15%;">NGÀY ĐĂNG</th>
+                            <th style="width: 10%;">TRẠNG THÁI</th>
+                            <th style="width: 10%;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in posts %}
+                        <tr>
+                            <td><img src="{{ p.hinh_anh }}" width="60" style="border-radius: 4px; object-fit: cover; aspect-ratio: 16/9;"></td>
+                            <td style="font-weight: 600;">{{ p.tieu_de }}</td>
+                            <td>
+                                {% if p.chuyen_muc == 'Tin tức' %}
+                                    <span class="badge-news">Tin tức</span>
+                                {% else %}
+                                    <span class="badge-promo">Khuyến mãi</span>
+                                {% endif %}
+                            </td>
+                            <td style="color: #666;">{{ p.ngay_dang }}</td>
+                            <td style="color: green; font-weight: 500;">Hiển thị</td>
+                            <td style="text-align: right;">
+                                <a href="#" class="btn-delete-post" 
+                                   data-name="{{ p.tieu_de }}" 
+                                   data-url="{{ url_for('khac.xoa_baiviet', id_bv=p.id) }}" 
+                                   style="color: #e74c3c; opacity: 0.7; cursor: pointer;">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div> 
+    </main>
+
+    <div id="postModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0; font-size: 20px; color: #1e293b;">Soạn bài viết mới</h3>
+            <form id="createPostForm" method="POST" action="{{ url_for('khac.them_baiviet') }}">
+                <div class="form-group">
+                    <label>Tiêu đề bài viết</label>
+                    <input type="text" name="tieu_de" placeholder="Nhập tiêu đề..." required>
+                </div>
+                
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Chuyên mục</label>
+                        <select name="chuyen_muc">
+                            <option value="Tin tức">Tin tức & Sự kiện</option>
+                            <option value="Khuyến mãi">Chương trình Khuyến mãi</option>
+                            <option value="Hướng dẫn">Hướng dẫn sử dụng</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label>Ngày đăng</label>
+                        <input type="date" name="ngay_dang" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Link ảnh bìa (URL)</label>
+                    <input type="text" name="hinh_anh" placeholder="https://..." required>
+                </div>
+
+                <div class="form-group">
+                    <label>Nội dung tóm tắt</label>
+                    <textarea name="noi_dung" rows="4" placeholder="Nhập nội dung ngắn..."></textarea>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn-cancel" id="btnCloseModal">Hủy bỏ</button>
+                    <button type="submit" class="btn-black">Đăng bài</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/noidung.js') }}"></script>
+</body>
+</html>

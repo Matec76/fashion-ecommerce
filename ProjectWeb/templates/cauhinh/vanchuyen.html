@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>STYLEX | Cấu hình Vận chuyển</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .page-breadcrumb { font-size: 14px; color: #7f8c8d; margin-bottom: 10px; }
+        .topbar h2 { font-size: 28px; font-weight: 700; color: #0f1b2c; margin: 0; }
+        .dashboard-body { padding: 40px; background-color: #fff; max-width: 800px; }
+        .btn-back { text-decoration: none; color: #666; margin-right: 20px; display: inline-flex; align-items: center; }
+        .btn-back:hover { color: #000; }
+        
+        .shipping-zone { border: 1px solid #ddd; padding: 25px; border-radius: 8px; margin-bottom: 20px; transition: 0.3s; }
+        .shipping-zone:hover { border-color: #1e293b; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #34495e; }
+        .form-group input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        
+        .btn-save { background: #1e293b; color: white; padding: 12px 30px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.3s; }
+        .btn-save:hover { background: #0f1b2c; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h1>STYLEX</h1></div>
+        <nav class="main-menu">
+            <ul>
+                <li><a href="{{ url_for('auth.tongquan') }}"><span class="material-symbols-outlined">home</span> Tổng quan</a></li>
+                <li><a href="{{ url_for('sanpham.index') }}"><span class="material-symbols-outlined">inventory_2</span> Sản phẩm</a></li>
+                <li><a href="{{ url_for('donhang.index') }}"><span class="material-symbols-outlined">receipt_long</span> Đơn hàng</a></li>
+                <li><a href="{{ url_for('khachhang.index') }}"><span class="material-symbols-outlined">group</span> Khách hàng</a></li>
+                <li><a href="{{ url_for('khac.cauhinh') }}" class="active"><span class="material-symbols-outlined">settings</span> Cấu hình</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="content-area" style="background-color: #fff;">
+        <div style="padding: 20px 40px 0 40px;">
+            <div class="page-breadcrumb">
+                <a href="{{ url_for('khac.cauhinh') }}" class="btn-back"><span class="material-symbols-outlined">arrow_back</span> Quay lại</a>
+                Cấu hình / Vận chuyển
+            </div>
+            <header class="topbar">
+                <h2>Phí vận chuyển</h2>
+                <div class="user-info">
+                    <span>Admin | <a href="{{ url_for('auth.logout') }}">Thoát</a></span>
+                </div>
+            </header>
+        </div>
+
+        <div class="dashboard-body">
+            <form id="shippingForm">
+                <div class="shipping-zone">
+                    <h3 style="margin-top: 0; font-size: 18px; color: #1e293b;">Khu vực Nội thành</h3>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Áp dụng cho các quận trung tâm thành phố.</p>
+                    <div class="form-group">
+                        <label>Phí vận chuyển cố định (VNĐ)</label>
+                        <input type="text" id="inner_city_fee" value="25,000" placeholder="VD: 25000">
+                    </div>
+                </div>
+
+                <div class="shipping-zone">
+                    <h3 style="margin-top: 0; font-size: 18px; color: #1e293b;">Khu vực Ngoại thành & Tỉnh khác</h3>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Áp dụng cho tất cả các khu vực còn lại.</p>
+                    <div class="form-group">
+                        <label>Phí vận chuyển cố định (VNĐ)</label>
+                        <input type="text" id="outer_city_fee" value="35,000" placeholder="VD: 35000">
+                    </div>
+                </div>
+                
+                <div class="shipping-zone">
+                    <h3 style="margin-top: 0; font-size: 18px; color: #1e293b;">Freeship (Miễn phí vận chuyển)</h3>
+                    <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Miễn phí vận chuyển cho đơn hàng có giá trị cao.</p>
+                    <div class="form-group">
+                        <label>Áp dụng cho đơn hàng trên (VNĐ)</label>
+                        <input type="text" id="freeship_threshold" value="1,000,000" placeholder="VD: 1000000">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-save">Lưu cấu hình</button>
+            </form>
+        </div>
+    </main>
+
+    <script>
+        // Xử lý gửi form với hiệu ứng SweetAlert2
+        document.getElementById('shippingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            Swal.fire({
+                title: 'Đang cập nhật...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Giả lập lưu dữ liệu vào hệ thống
+            setTimeout(() => {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Đã cập nhật!',
+                    text: 'Cấu hình phí vận chuyển đã được lưu thành công.',
+                    confirmButtonColor: '#1e293b'
+                });
+            }, 800);
+        });
+    </script>
+</body>
+</html>

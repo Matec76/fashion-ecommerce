@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>STYLEX | Cấu hình hệ thống</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        .page-breadcrumb { font-size: 14px; color: #7f8c8d; margin-bottom: 10px; }
+        .topbar { justify-content: flex-start; padding: 20px 0; border-bottom: none; }
+        .topbar h2 { font-size: 28px; font-weight: 700; color: #0f1b2c; }
+        .dashboard-body { padding: 0 40px 40px 40px; background-color: #fff; }
+        
+        /* Grid Menu Cấu hình */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .setting-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: #0f1b2c;
+            display: block;
+        }
+
+        .setting-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            border-color: #0f1b2c;
+        }
+
+        .setting-icon {
+            font-size: 40px;
+            color: #1e293b;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .setting-card h3 { margin: 0 0 10px 0; font-size: 18px; }
+        .setting-card p { margin: 0; color: #7f8c8d; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo"><h1>STYLEX</h1></div>
+        <nav class="main-menu">
+            <ul>
+                <li><a href="{{ url_for('auth.tongquan') }}"><span class="material-symbols-outlined">home</span> Tổng quan</a></li>
+                <li><a href="{{ url_for('sanpham.index') }}"><span class="material-symbols-outlined">inventory_2</span> Sản phẩm</a></li>
+                <li><a href="{{ url_for('donhang.index') }}"><span class="material-symbols-outlined">receipt_long</span> Đơn hàng</a></li>
+                <li><a href="{{ url_for('khachhang.index') }}"><span class="material-symbols-outlined">group</span> Khách hàng</a></li>
+                <li><a href="{{ url_for('khac.marketing') }}"><span class="material-symbols-outlined">campaign</span> Marketing</a></li>
+                <li><a href="{{ url_for('khac.noidung') }}"><span class="material-symbols-outlined">article</span> Nội dung</a></li>
+                <li><a href="{{ url_for('khac.baocao') }}"><span class="material-symbols-outlined">bar_chart</span> Báo cáo</a></li>
+                <li class="active"><a href="{{ url_for('khac.cauhinh') }}"><span class="material-symbols-outlined">settings</span> Cấu hình</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <main class="content-area" style="background-color: #fff;">
+        <div style="padding: 20px 40px 0 40px;">
+            <div class="page-breadcrumb">Hệ thống</div>
+            <header class="topbar">
+                <h2>Cài đặt cửa hàng</h2>
+                <div class="user-info" style="margin-left: auto;">
+                    <span>Admin | <a href="{{ url_for('auth.logout') }}">Thoát</a></span>
+                </div>
+            </header>
+        </div>
+
+        <div class="dashboard-body">
+            <div class="settings-grid">
+                <a href="{{ url_for('khac.thongtin') }}" class="setting-card">
+                    <span class="material-symbols-outlined setting-icon">store</span>
+                    <h3>Thông tin cửa hàng</h3>
+                    <p>Logo, tên shop, địa chỉ, hotline...</p>
+                </a>
+
+                <a href="{{ url_for('khac.phanquyen') }}" class="setting-card">
+                    <span class="material-symbols-outlined setting-icon">manage_accounts</span>
+                    <h3>Quản lý nhân viên</h3>
+                    <p>Thêm tài khoản, phân quyền truy cập</p>
+                </a>
+
+                <a href="{{ url_for('khac.thanhtoan') }}" class="setting-card">
+                    <span class="material-symbols-outlined setting-icon">payments</span>
+                    <h3>Thanh toán</h3>
+                    <p>Ngân hàng, ví điện tử, COD</p>
+                </a>
+
+                <a href="{{ url_for('khac.vanchuyen') }}" class="setting-card">
+                    <span class="material-symbols-outlined setting-icon">local_shipping</span>
+                    <h3>Vận chuyển</h3>
+                    <p>Phí ship, đơn vị vận chuyển</p>
+                </a>
+            </div>
+        </div> 
+    </main>
+    <script src="{{ url_for('static', filename='js/cauhinh.js') }}"></script>
+</body>
+</html>
