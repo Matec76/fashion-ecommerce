@@ -34,7 +34,7 @@
 .content-wrapper {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: 100px 20px;
     display: grid;
     grid-template-columns: 280px 1fr;
     gap: 40px;
@@ -483,8 +483,9 @@
     justify-content: center;
     align-items: center;
     gap: 8px;
-    margin-top: 50px;
+    margin-top: 150px;
     padding-top: 20px;
+    padding-bottom: 60px;
     border-top: 1px solid #eee;
 }
 

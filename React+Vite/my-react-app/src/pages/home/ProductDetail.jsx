@@ -627,8 +627,8 @@ const ProductDetail = () => {
     const reviewSummaryUrl = productId ? API_ENDPOINTS.REVIEWS.SUMMARY(productId) : '';
 
     // Fetch colors and sizes for mapping
-    const colorsUrl = `${API_ENDPOINTS.PRODUCTS.LIST.split('/products')[0]}/attributes/colors`;
-    const sizesUrl = `${API_ENDPOINTS.PRODUCTS.LIST.split('/products')[0]}/attributes/sizes`;
+    const colorsUrl = API_ENDPOINTS.ATTRIBUTES.COLORS.LIST;
+    const sizesUrl = API_ENDPOINTS.ATTRIBUTES.SIZES.LIST;
 
     // Fetch images riêng nếu product không có images
     const imagesUrl = (!productImages || productImages.length === 0) && productId

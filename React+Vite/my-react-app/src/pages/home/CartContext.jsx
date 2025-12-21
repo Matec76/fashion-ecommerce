@@ -10,6 +10,7 @@ const API_ENDPOINTS = {
         UPDATE_ITEM: (itemId) => `${API_BASE_URL}/cart/items/${itemId}`,
         REMOVE_ITEM: (itemId) => `${API_BASE_URL}/cart/items/${itemId}`,
         CLEAR: `${API_BASE_URL}/cart/clear`,
+        MERGE: `${API_BASE_URL}/cart/merge`,
     }
 };
 
@@ -239,9 +240,56 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // Fetch cart khi component mount
+    // Merge guest cart sau khi login
+    const mergeGuestCart = async () => {
+        const token = getAuthToken();
+        const guestSessionId = localStorage.getItem('guestSessionId');
+
+        // Nếu không có token hoặc không có guest session, bỏ qua
+        if (!token || !guestSessionId) {
+            return;
+        }
+
+        console.log('🔄 Merging guest cart, session_id:', guestSessionId);
+
+        try {
+            const response = await fetch(`${API_ENDPOINTS.CART.MERGE}?session_id=${guestSessionId}`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Guest cart merged successfully:', data);
+
+                // Xóa guest session sau khi merge thành công
+                localStorage.removeItem('guestSessionId');
+
+                // Refresh cart để hiển thị items mới
+                await fetchCart();
+            } else {
+                console.error('❌ Failed to merge guest cart:', response.status);
+            }
+        } catch (err) {
+            console.error('💥 Error merging guest cart:', err);
+        }
+    };
+
+    // Fetch cart khi component mount và merge guest cart nếu cần
     useEffect(() => {
-        fetchCart();
+        const initCart = async () => {
+            const token = getAuthToken();
+            if (token) {
+                // Nếu có token, thử merge guest cart trước
+                await mergeGuestCart();
+            }
+            // Sau đó fetch cart
+            await fetchCart();
+        };
+        initCart();
     }, [fetchCart]);
 
     const value = {
@@ -255,7 +303,8 @@ export const CartProvider = ({ children }) => {
         updateQuantity,
         removeItem,
         clearCart,
-        fetchCart
+        fetchCart,
+        mergeGuestCart
     };
 
     return (

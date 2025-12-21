@@ -75,6 +75,9 @@ export const API_ENDPOINTS = {
         REMOVE_ITEM: (itemId) => `${API_BASE_URL}/cart/items/${itemId}`,
 
         CLEAR: `${API_BASE_URL}/cart/clear`,
+
+        // Merge guest cart (requires session_id as query param)
+        MERGE: `${API_BASE_URL}/cart/merge`,
     },
 
     // Orders
@@ -85,6 +88,10 @@ export const API_ENDPOINTS = {
         MY_ORDERS: `${API_BASE_URL}/orders/me`,
         SHIPPING_METHODS: `${API_BASE_URL}/orders/shipping-methods/all`,
         PAYOS_RETURN: `${API_BASE_URL}/orders/payment/payos/return`,
+
+        // Payment & Order Management
+        CONFIRM_COD: (orderId) => `${API_BASE_URL}/orders/${orderId}/payment/confirm-cod`,
+        CANCEL_ORDER: (orderId) => `${API_BASE_URL}/orders/me/${orderId}/cancel`,
     },
 
     // Reviews
@@ -146,6 +153,18 @@ export const API_ENDPOINTS = {
         LIST: `${API_BASE_URL}/categories/collections/all`,
         DETAIL: (id) => `${API_BASE_URL}/categories/collections/${id}`,
         BY_SLUG: (slug) => `${API_BASE_URL}/categories/collections/slug/${slug}`,
+    },
+
+    // Attributes
+    ATTRIBUTES: {
+        COLORS: {
+            LIST: `${API_BASE_URL}/attributes/colors`,
+            DETAIL: (id) => `${API_BASE_URL}/attributes/colors/${id}`,
+        },
+        SIZES: {
+            LIST: `${API_BASE_URL}/attributes/sizes`,
+            DETAIL: (id) => `${API_BASE_URL}/attributes/sizes/${id}`,
+        },
     },
 
     // Notifications
