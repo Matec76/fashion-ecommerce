@@ -1,7 +1,33 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
-import API_ENDPOINTS, { getAuthToken } from '../config/api.config';
+import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
+
+const API_BASE_URL = "http://localhost:8000/api/v1";
+
+const API_ENDPOINTS = {
+    CART: {
+        DETAIL: `${API_BASE_URL}/cart/me`,
+        SUMMARY: `${API_BASE_URL}/cart/summary`,
+        ADD_ITEM: `${API_BASE_URL}/cart/items`,
+        UPDATE_ITEM: (itemId) => `${API_BASE_URL}/cart/items/${itemId}`,
+        REMOVE_ITEM: (itemId) => `${API_BASE_URL}/cart/items/${itemId}`,
+        CLEAR: `${API_BASE_URL}/cart/clear`,
+    }
+};
+
+// Helper function to get auth token
+const getAuthToken = () => {
+    return localStorage.getItem('authToken');
+};
 
 const CartContext = createContext();
+
+// Custom hook để sử dụng Cart Context
+export const useCart = () => {
+    const context = useContext(CartContext);
+    if (!context) {
+        throw new Error('useCart must be used within CartProvider');
+    }
+    return context;
+};
 
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
@@ -11,8 +37,11 @@ export const CartProvider = ({ children }) => {
 
     // Fetch cart từ API
     const fetchCart = useCallback(async () => {
-        const token = getAuthToken(); // Lấy token mới mỗi lần gọi
+        const token = getAuthToken();
+        console.log('🛒 fetchCart called, token:', token ? 'EXISTS' : 'MISSING');
+
         if (!token) {
+            console.warn('⚠️ No auth token, setting empty cart');
             setCartItems([]);
             setCartSummary({ total_items: 0, total_amount: 0 });
             return;
@@ -20,12 +49,20 @@ export const CartProvider = ({ children }) => {
 
         setLoading(true);
         try {
-            const response = await fetch(API_ENDPOINTS.CART.GET, {
+            console.log('📡 Fetching cart from:', API_ENDPOINTS.CART.DETAIL);
+            const response = await fetch(API_ENDPOINTS.CART.DETAIL, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+
+            console.log('📥 Cart response status:', response.status);
+
             if (response.ok) {
                 const data = await response.json();
+                console.log('✅ Cart data received:', data);
+                console.log('📦 Cart items:', data.items);
                 setCartItems(data.items || data || []);
+            } else {
+                console.error('❌ Cart fetch failed:', response.status);
             }
 
             // Fetch summary
@@ -34,10 +71,11 @@ export const CartProvider = ({ children }) => {
             });
             if (summaryRes.ok) {
                 const summaryData = await summaryRes.json();
+                console.log('📊 Cart summary:', summaryData);
                 setCartSummary(summaryData);
             }
         } catch (err) {
-            console.error('Error fetching cart:', err);
+            console.error('💥 Error fetching cart:', err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -46,53 +84,72 @@ export const CartProvider = ({ children }) => {
 
     // Thêm sản phẩm vào giỏ
     const addToCart = async (productId, quantity = 1, variantId = null) => {
-        const token = getAuthToken(); // Lấy token mới mỗi lần gọi
-        console.log('=== ADD TO CART DEBUG ===');
-        console.log('Token:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN');
-        console.log('Product ID:', productId);
-        console.log('Quantity:', quantity);
-        console.log('Variant ID:', variantId);
+        const token = getAuthToken();
 
         if (!token) {
-            alert('Vui lòng đăng nhập để thêm vào giỏ hàng!');
+            alert("Bạn cần đăng nhập để mua hàng!");
+            window.location.href = '/login';
             return false;
         }
 
-        setLoading(true);
+        if (!variantId) {
+            console.warn("Sản phẩm không có variant_id - sẽ sử dụng product_id");
+        }
+
         try {
-            // API yêu cầu variant_id, không phải product_id
-            const body = {
-                variant_id: variantId,
-                quantity: quantity
-            };
+            const payload = variantId
+                ? { variant_id: variantId, quantity }
+                : { product_id: productId, quantity };
 
-            console.log('Request URL:', API_ENDPOINTS.CART.ADD);
-            console.log('Request Body:', body);
+            console.log("Đang gọi API:", API_ENDPOINTS.CART.ADD_ITEM);
+            console.log("Payload:", payload);
 
-            const response = await fetch(API_ENDPOINTS.CART.ADD, {
+            const response = await fetch(API_ENDPOINTS.CART.ADD_ITEM, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify(body)
+                body: JSON.stringify(payload)
             });
 
-            console.log('Response Status:', response.status);
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.detail || 'Không thể thêm vào giỏ hàng');
+            if (response.status === 401) {
+                alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+                localStorage.removeItem('authToken');
+                window.location.href = '/login';
+                return false;
             }
 
-            await fetchCart(); // Refresh cart
-            return true;
-        } catch (err) {
-            console.error('Error adding to cart:', err);
-            alert(err.message);
+            if (response.ok) {
+                await fetchCart();
+                alert("Thêm vào giỏ hàng thành công!");
+                return true;
+            } else {
+                let message = "Lỗi không xác định";
+                try {
+                    const err = await response.json();
+                    console.error("Backend error response:", err);
+
+                    if (typeof err.detail === 'string') {
+                        message = err.detail;
+                    } else if (Array.isArray(err.detail)) {
+                        message = err.detail.map(e => `${e.loc?.join('→') || 'Field'}: ${e.msg}`).join(', ');
+                    } else if (typeof err.detail === 'object') {
+                        message = JSON.stringify(err.detail, null, 2);
+                    } else {
+                        message = err.message || JSON.stringify(err);
+                    }
+                } catch (e) {
+                    message = `Lỗi Server (${response.status})`;
+                }
+                console.error("Parsed error message:", message);
+                alert(`Không thể thêm vào giỏ: ${message}`);
+                return false;
+            }
+        } catch (error) {
+            console.error("Lỗi:", error);
+            alert("Lỗi kết nối Server!");
             return false;
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -103,7 +160,7 @@ export const CartProvider = ({ children }) => {
 
         setLoading(true);
         try {
-            const response = await fetch(API_ENDPOINTS.CART.UPDATE(cartItemId), {
+            const response = await fetch(API_ENDPOINTS.CART.UPDATE_ITEM(cartItemId), {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -134,7 +191,7 @@ export const CartProvider = ({ children }) => {
 
         setLoading(true);
         try {
-            const response = await fetch(API_ENDPOINTS.CART.REMOVE(cartItemId), {
+            const response = await fetch(API_ENDPOINTS.CART.REMOVE_ITEM(cartItemId), {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -182,7 +239,7 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    // Fetch cart khi component mount hoặc token thay đổi
+    // Fetch cart khi component mount
     useEffect(() => {
         fetchCart();
     }, [fetchCart]);

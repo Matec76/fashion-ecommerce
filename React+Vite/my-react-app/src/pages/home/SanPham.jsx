@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo, memo } from 'react';
-import { useLocation, Link } from 'react-router-dom';
-import useFetch from '../../components/useFetch'; // Import hook đã tối ưu
-import { API_ENDPOINTS } from '/src/config/api.config'; // Đảm bảo đường dẫn đúng
+import { useLocation, Link, useNavigate } from 'react-router-dom';
+import useFetch from '../../components/useFetch';
+import useMutation from '../../components/useMutation';
+import useDelete from '../../components/useDelete';
+import { API_ENDPOINTS, API_CONFIG } from '/src/config/api.config';
 import '../../style/SanPham.css';
 
 // ==========================================
@@ -9,6 +11,15 @@ import '../../style/SanPham.css';
 // Tự động tải ảnh riêng lẻ, giúp trang load nhanh hơn
 // ==========================================
 const ProductCard = memo(({ product }) => {
+  const navigate = useNavigate();
+  const [isInWishlist, setIsInWishlist] = useState(false);
+
+  // Hooks cho API calls
+  const { mutate, loading: addLoading } = useMutation();
+  const { remove, loading: removeLoading } = useDelete();
+
+  const wishlistLoading = addLoading || removeLoading;
+
   // Gọi API lấy ảnh cho từng sản phẩm (Sẽ tự động cache lại)
   const { data: imagesData, loading } = useFetch(
     API_ENDPOINTS.PRODUCTS.IMAGES(product.id)
@@ -23,8 +34,70 @@ const ProductCard = memo(({ product }) => {
     return primary.image_url;
   }, [imagesData]);
 
-  // Ảnh hiển thị (Fallback nếu chưa có)
-  const displayImage = imageUrl || 'https://placehold.co/400x400?text=No+Image';
+  const [imgError, setImgError] = useState(false);
+
+  // Reset error khi đổi sản phẩm/ảnh
+  useEffect(() => {
+    setImgError(false);
+  }, [imageUrl]);
+
+  // Ảnh hiển thị (Fallback nếu chưa có hoặc lỗi)
+  const displayImage = (imageUrl && !imgError) ? imageUrl : 'https://placehold.co/600x600?text=No+Image';
+  const isPlaceholder = !imageUrl || imgError;
+
+  // Debug images (chỉ log khi có data để tránh spam)
+  useEffect(() => {
+    if (imagesData && imagesData.length > 0) {
+      console.log(`🖼️ Images for ${product.name}:`, imagesData);
+    } else if (imagesData) {
+      console.log(`⚠️ No images for ${product.name}`);
+    }
+  }, [imagesData, product.name]);
+
+  // Toggle wishlist
+  const handleWishlistClick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      alert('Vui lòng đăng nhập để thêm vào yêu thích!');
+      navigate('/login');
+      return;
+    }
+
+    if (isInWishlist) {
+      // Xóa khỏi wishlist - cần tìm item_id trước
+      try {
+        const checkResponse = await fetch(`${API_CONFIG.BASE_URL}/wishlist/check/${product.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (checkResponse.ok) {
+          const wishlistData = await checkResponse.json();
+          const itemId = Object.values(wishlistData)[0]?.item_id;
+          if (itemId) {
+            const result = await remove(`${API_CONFIG.BASE_URL}/wishlist/items/${itemId}`);
+            if (result.success) {
+              setIsInWishlist(false);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error removing from wishlist:', err);
+      }
+    } else {
+      // Thêm vào wishlist
+      const result = await mutate(`${API_CONFIG.BASE_URL}/wishlist/add-to-default`, {
+        method: 'POST',
+        body: { product_id: product.id }
+      });
+      if (result.success) {
+        setIsInWishlist(true);
+      } else {
+        console.error('Error adding to wishlist:', result.error);
+      }
+    }
+  };
 
   return (
     // Link tới trang chi tiết (dùng Slug nếu có, không thì dùng ID)
@@ -32,12 +105,37 @@ const ProductCard = memo(({ product }) => {
       <div className="product-card">
         {product.isNew && <span className="new-badge">NEW</span>}
 
+        <button
+          className={`wishlist-icon-btn ${isInWishlist ? 'active' : ''}`}
+          onClick={handleWishlistClick}
+          disabled={wishlistLoading}
+          title={isInWishlist ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
+        >
+          {wishlistLoading ? (
+            <span className="loading-dot">•</span>
+          ) : isInWishlist ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#e74c3c" stroke="#e74c3c">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          )}
+        </button>
+
         <div className="product-image">
           {loading ? (
             // Hiệu ứng Skeleton khi đang tải ảnh
             <div className="skeleton-image"></div>
           ) : (
-            <img src={displayImage} alt={product.name} loading="lazy" />
+            <img
+              src={displayImage}
+              alt={product.name}
+              loading="lazy"
+              className={isPlaceholder ? 'is-placeholder' : ''}
+              onError={() => setImgError(true)}
+            />
           )}
         </div>
 
@@ -52,6 +150,7 @@ const ProductCard = memo(({ product }) => {
     </Link>
   );
 });
+
 
 // ==========================================
 // 2. MAIN COMPONENT
@@ -111,10 +210,18 @@ function SanPham() {
   // --- API 2: LẤY DANH SÁCH SẢN PHẨM ---
   const buildApiUrl = () => {
     const params = new URLSearchParams(location.search);
+    const searchKeyword = params.get('search');
+
     // Tối ưu: Nếu lọc "Hàng mới", gọi API chuyên biệt sẽ nhanh hơn
     if (params.get('new') === 'true') {
       return API_ENDPOINTS.PRODUCTS.NEW_ARRIVALS || '/api/v1/products/new-arrivals';
     }
+
+    // Nếu có từ khóa tìm kiếm, thêm vào URL
+    if (searchKeyword) {
+      return `${API_ENDPOINTS.PRODUCTS.LIST}?search=${encodeURIComponent(searchKeyword)}`;
+    }
+
     // Mặc định gọi List
     return API_ENDPOINTS.PRODUCTS.LIST;
   };
@@ -187,7 +294,27 @@ function SanPham() {
 
       return true;
     });
-  }, [data, categories, selectedGenders, selectedTypes, selectedSizes]);
+  }, [data, categories, selectedGenders, selectedTypes, selectedSizes, location.search]);
+
+  // --- PAGINATION LOGIC ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 18;
+
+  // Reset trang về 1 khi filter thay đổi
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredProducts]);
+
+  // Lấy sản phẩm cho trang hiện tại
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentProducts = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  // Scroll to top khi đổi trang
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [currentPage]);
 
   // Helper toggle
   const toggleFilter = (state, setState, value) => {
@@ -246,22 +373,6 @@ function SanPham() {
                 ))}
               </div>
             </div>
-            {/* Kích cỡ (Cảnh báo: Hiện tại API chưa hỗ trợ lọc cái này) */}
-            <div className="filter-group">
-              <h4>Kích cỡ</h4>
-              <div className="size-options">
-                {['S', 'M', 'L', 'XL', '39', '40', '41', '42'].map(s => (
-                  <button
-                    key={s}
-                    className={`size-button ${selectedSizes.includes(s) ? 'active' : ''}`}
-                    onClick={() => toggleFilter(selectedSizes, setSelectedSizes, s)}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </div>
-
             {/* Nút xóa */}
             {(selectedGenders.length > 0 || selectedSizes.length > 0 || selectedTypes.length > 0) && (
               <button
@@ -277,18 +388,54 @@ function SanPham() {
         {/* MAIN CONTENT */}
         <main className="main-content">
           <div className="product-count">
-            <p>Hiển thị {filteredProducts.length} sản phẩm</p>
+            {new URLSearchParams(location.search).get('search') ? (
+              <p>Kết quả tìm kiếm "{new URLSearchParams(location.search).get('search')}": {filteredProducts.length} sản phẩm</p>
+            ) : (
+              <p>Hiển thị {filteredProducts.length} sản phẩm</p>
+            )}
           </div>
 
           {filteredProducts.length === 0 ? (
             <div className="no-products"><p>Không tìm thấy sản phẩm phù hợp.</p></div>
           ) : (
             <div className="products-grid">
-              {filteredProducts.map(p => (
+              {currentProducts.map(p => (
                 <ProductCard key={p.id} product={p} />
               ))}
             </div>
           )}
+
+          {/* Pagination Controls */}
+          {filteredProducts.length > itemsPerPage && (
+            <div className="pagination-container">
+              <button
+                className="pagination-btn"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(prev => prev - 1)}
+              >
+                &lt;
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(number => (
+                <button
+                  key={number}
+                  className={`pagination-btn ${currentPage === number ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(number)}
+                >
+                  {number}
+                </button>
+              ))}
+
+              <button
+                className="pagination-btn"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(prev => prev + 1)}
+              >
+                &gt;
+              </button>
+            </div>
+          )}
+
         </main>
       </div>
     </div>

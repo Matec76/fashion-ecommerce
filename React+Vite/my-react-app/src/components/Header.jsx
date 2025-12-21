@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
-import { useCart } from '../context/useCart';
+import { Link, useNavigate } from 'react-router-dom';
+import { useCart } from '../pages/home/CartContext';
+import NotificationBell from './NotificationBell';
 import '/src/style/main.css';
 
 const Header = ({
@@ -10,11 +11,28 @@ const Header = ({
   onLogout,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const userMenuRef = useRef(null);
   const { itemCount } = useCart();
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
+
+  // Search handlers
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      navigate(`/product?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
+
+  const handleSearchClick = () => {
+    if (searchQuery.trim()) {
+      navigate(`/product?search=${encodeURIComponent(searchQuery.trim())}`);
+      setSearchQuery('');
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -62,8 +80,21 @@ const Header = ({
 
         <div className="icons">
           <div className="search">
-            <input type="text" placeholder="Tìm kiếm" />
-            <svg className="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <input
+              type="text"
+              placeholder="Tìm kiếm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+            />
+            <svg
+              className="search-icon"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              onClick={handleSearchClick}
+            >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </div>
@@ -81,19 +112,34 @@ const Header = ({
                     <span className="user-name">👋 Hi, {user.username}</span>
                   </div>
                   <div className="dropdown-divider"></div>
-                  <Link to="/profile" className="dropdown-item">
+                  <Link to="/profile" className="dropdown-item" onClick={closeMenu}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
                     Tài khoản của tôi
                   </Link>
-                  <Link to="/orders" className="dropdown-item">
+                  <Link to="/orders" className="dropdown-item" onClick={closeMenu}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
                       <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
                     </svg>
                     Đơn hàng
+                  </Link>
+                  <Link to="/wishlist" className="dropdown-item" onClick={closeMenu}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                    Yêu thích
+                  </Link>
+                  <Link to="/cart" className="dropdown-item" onClick={closeMenu}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="9" cy="21" r="1" />
+                      <circle cx="20" cy="21" r="1" />
+                      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                    </svg>
+                    Giỏ hàng
+                    {itemCount > 0 && <span className="dropdown-badge">{itemCount}</span>}
                   </Link>
                   <div className="dropdown-divider"></div>
                   <button onClick={onLogout} className="dropdown-item logout-btn">
@@ -119,22 +165,7 @@ const Header = ({
             </div>
           )}
 
-          {user && (
-            <>
-              <Link to="#" className="icon" title="Yêu thích">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.636l1.318-1.318a4.5 4.5 0 116.364 6.364L12 20.364l-7.682-7.682a4.5 4.5 0 010-6.364z" />
-                </svg>
-              </Link>
-
-              <Link to="/cart" className="icon cart" title="Giỏ hàng">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                {itemCount > 0 && <span className="cart-badge">{itemCount}</span>}
-              </Link>
-            </>
-          )}
+          {user && <NotificationBell />}
         </div>
       </nav>
 

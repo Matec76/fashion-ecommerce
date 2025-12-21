@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../../context/useCart';
+import { useCart } from './CartContext';
 import '../../style/Cart.css';
 
 const Cart = () => {
@@ -16,9 +16,41 @@ const Cart = () => {
         fetchCart
     } = useCart();
 
+    // State for selected items
+    const [selectedItems, setSelectedItems] = React.useState(new Set());
+
     useEffect(() => {
         fetchCart();
     }, [fetchCart]);
+
+    // Auto-select all items when cart loads
+    useEffect(() => {
+        if (cartItems && cartItems.length > 0) {
+            const allItemIds = new Set(cartItems.map(item => item.cart_item_id || item.id));
+            setSelectedItems(allItemIds);
+        }
+    }, [cartItems]);
+
+    // Handle select all toggle
+    const handleSelectAll = () => {
+        if (selectedItems.size === cartItems.length) {
+            setSelectedItems(new Set());
+        } else {
+            const allItemIds = new Set(cartItems.map(item => item.cart_item_id || item.id));
+            setSelectedItems(allItemIds);
+        }
+    };
+
+    // Handle individual item selection
+    const handleSelectItem = (itemId) => {
+        const newSelected = new Set(selectedItems);
+        if (newSelected.has(itemId)) {
+            newSelected.delete(itemId);
+        } else {
+            newSelected.add(itemId);
+        }
+        setSelectedItems(newSelected);
+    };
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('vi-VN', {
@@ -26,6 +58,38 @@ const Cart = () => {
             currency: 'VND'
         }).format(price);
     };
+
+    // Safely parse price from item (handles string/number and different field names)
+    const getItemPrice = (item) => {
+        // Debug logging
+        console.log('🛒 Cart item:', item);
+
+        // Price is in variant.product.sale_price or variant.product.base_price
+        const product = item.variant?.product || item.product;
+
+        console.log('  variant?.product:', product);
+        console.log('  sale_price:', product?.sale_price);
+        console.log('  base_price:', product?.base_price);
+
+        // Try sale_price first, then base_price
+        const priceValue = product?.sale_price || product?.base_price || 0;
+
+        console.log('  → Selected price value:', priceValue);
+
+        // Convert to number if it's a string
+        const numPrice = typeof priceValue === 'string' ? parseFloat(priceValue) : priceValue;
+
+        console.log('  → Final parsed price:', numPrice);
+
+        return isNaN(numPrice) ? 0 : numPrice;
+    };
+
+    // Calculate total for selected items only
+    const selectedTotal = cartItems
+        .filter(item => selectedItems.has(item.cart_item_id || item.id))
+        .reduce((sum, item) => sum + (getItemPrice(item) * item.quantity), 0);
+
+    const selectedCount = selectedItems.size;
 
     const handleQuantityChange = async (itemId, newQuantity) => {
         if (newQuantity < 1) return;
@@ -75,67 +139,88 @@ const Cart = () => {
             <div className="cart-container">
                 {/* Header */}
                 <div className="cart-header">
-                    <h1>Giỏ hàng của bạn</h1>
+                    <div className="header-left">
+                        <input
+                            type="checkbox"
+                            className="select-all-checkbox"
+                            checked={selectedItems.size === cartItems.length && cartItems.length > 0}
+                            onChange={handleSelectAll}
+                        />
+                        <h1>Giỏ hàng của bạn</h1>
+                    </div>
                     <span className="cart-count">{itemCount} sản phẩm</span>
                 </div>
 
                 {/* Cart Items */}
                 <div className="cart-content">
                     <div className="cart-items">
-                        {cartItems.map((item) => (
-                            <div key={item.cart_item_id || item.id} className="cart-item">
-                                <div className="item-image">
-                                    <img
-                                        src={item.product?.images?.[0]?.image_url || item.image_url || '/placeholder.jpg'}
-                                        alt={item.product?.product_name || item.product_name}
+                        {cartItems.map((item) => {
+                            const itemId = item.cart_item_id || item.id;
+                            const isSelected = selectedItems.has(itemId);
+
+                            return (
+                                <div key={itemId} className={`cart-item ${isSelected ? 'selected' : ''}`}>
+                                    <input
+                                        type="checkbox"
+                                        className="item-checkbox"
+                                        checked={isSelected}
+                                        onChange={() => handleSelectItem(itemId)}
                                     />
-                                </div>
+                                    <div className="item-image">
+                                        <img
+                                            src={item.product?.images?.[0]?.image_url || item.image_url || '/placeholder.jpg'}
+                                            alt={item.product?.product_name || item.product_name}
+                                        />
+                                    </div>
 
-                                <div className="item-details">
-                                    <h3 className="item-name">
-                                        {item.product?.product_name || item.product_name}
-                                    </h3>
-                                    {item.variant && (
-                                        <p className="item-variant">
-                                            {item.variant.color && `Màu: ${item.variant.color}`}
-                                            {item.variant.size && ` | Size: ${item.variant.size}`}
+                                    <div className="item-details">
+                                        <h3 className="item-name">
+                                            {item.product?.product_name || item.product_name}
+                                        </h3>
+                                        {item.variant && (
+                                            <p className="item-variant">
+                                                {item.variant.color?.name && `Màu: ${item.variant.color.name}`}
+                                                {item.variant.color && typeof item.variant.color === 'string' && `Màu: ${item.variant.color}`}
+                                                {item.variant.size?.name && ` | Size: ${item.variant.size.name}`}
+                                                {item.variant.size && typeof item.variant.size === 'string' && ` | Size: ${item.variant.size}`}
+                                            </p>
+                                        )}
+                                        <p className="item-price">
+                                            {formatPrice(getItemPrice(item))}
                                         </p>
-                                    )}
-                                    <p className="item-price">
-                                        {formatPrice(item.unit_price || item.price)}
-                                    </p>
-                                </div>
+                                    </div>
 
-                                <div className="item-quantity">
+                                    <div className="item-quantity">
+                                        <button
+                                            className="qty-btn"
+                                            onClick={() => handleQuantityChange(item.cart_item_id || item.id, item.quantity - 1)}
+                                            disabled={item.quantity <= 1}
+                                        >
+                                            −
+                                        </button>
+                                        <span className="qty-value">{item.quantity}</span>
+                                        <button
+                                            className="qty-btn"
+                                            onClick={() => handleQuantityChange(item.cart_item_id || item.id, item.quantity + 1)}
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+
+                                    <div className="item-subtotal">
+                                        {formatPrice(getItemPrice(item) * item.quantity)}
+                                    </div>
+
                                     <button
-                                        className="qty-btn"
-                                        onClick={() => handleQuantityChange(item.cart_item_id || item.id, item.quantity - 1)}
-                                        disabled={item.quantity <= 1}
+                                        className="remove-btn"
+                                        onClick={() => handleRemove(item.cart_item_id || item.id)}
+                                        title="Xóa sản phẩm"
                                     >
-                                        −
-                                    </button>
-                                    <span className="qty-value">{item.quantity}</span>
-                                    <button
-                                        className="qty-btn"
-                                        onClick={() => handleQuantityChange(item.cart_item_id || item.id, item.quantity + 1)}
-                                    >
-                                        +
+                                        ✕
                                     </button>
                                 </div>
-
-                                <div className="item-subtotal">
-                                    {formatPrice((item.unit_price || item.price) * item.quantity)}
-                                </div>
-
-                                <button
-                                    className="remove-btn"
-                                    onClick={() => handleRemove(item.cart_item_id || item.id)}
-                                    title="Xóa sản phẩm"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
 
                     {/* Cart Summary */}
@@ -143,8 +228,8 @@ const Cart = () => {
                         <h3>Tổng đơn hàng</h3>
 
                         <div className="summary-row">
-                            <span>Tạm tính ({itemCount} sản phẩm)</span>
-                            <span>{formatPrice(totalAmount)}</span>
+                            <span>Tạm tính ({selectedCount} sản phẩm đã chọn)</span>
+                            <span>{formatPrice(selectedTotal)}</span>
                         </div>
 
                         <div className="summary-row">
@@ -156,14 +241,25 @@ const Cart = () => {
 
                         <div className="summary-row total">
                             <span>Tổng cộng</span>
-                            <span className="total-amount">{formatPrice(totalAmount)}</span>
+                            <span className="total-amount">{formatPrice(selectedTotal)}</span>
                         </div>
 
                         <button
                             className="checkout-btn"
-                            onClick={() => navigate('/checkout')}
+                            onClick={() => {
+                                const selectedCartItems = cartItems.filter(item =>
+                                    selectedItems.has(item.cart_item_id || item.id)
+                                );
+                                navigate('/checkout', {
+                                    state: {
+                                        selectedItems: selectedCartItems,
+                                        selectedTotal
+                                    }
+                                });
+                            }}
+                            disabled={selectedCount === 0}
                         >
-                            Tiến hành thanh toán
+                            Tiến hành thanh toán ({selectedCount})
                         </button>
 
                         <button

@@ -4,12 +4,12 @@ import '/src/style/SubPages.css';
 const TrungTamHoTro = () => {
   return (
     <div className="sub-page-container">
-      <main class="sub1">
-        <div class="help-center">
+      <main className="sub1">
+        <div className="help-center">
             <h1>Trung tâm trợ giúp</h1>
-            <p class="subtitle">Chúng tôi ở đây để trả lời các câu hỏi của bạn.</p>
+            <p className="subtitle">Chúng tôi ở đây để trả lời các câu hỏi của bạn.</p>
 
-            <div class="faq-list">
+            <div className="faq-list">
                 <div class="faq-item">
                     <h3>Làm cách nào để theo dõi đơn hàng của tôi?</h3>
                     <p>Bạn có thể theo dõi đơn hàng của mình bằng cách truy cập trang "Theo dõi đơn hàng" và nhập mã đơn hàng cùng với email của bạn.</p>

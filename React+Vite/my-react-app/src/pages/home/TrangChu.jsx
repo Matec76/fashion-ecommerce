@@ -115,6 +115,7 @@ const TrangChu = () => {
           </div>
         </section>
 
+
         <section className="club-section">
           <div className="club-container">
             <h2>TRỞ THÀNH HỘI VIÊN</h2>

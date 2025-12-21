@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import useFetch from '../../components/useFetch';
 import { API_ENDPOINTS } from '../../config/api.config';
-import { useCart } from '../../context/useCart';
+import { useCart } from './CartContext';
 import '../../style/ProductDetail.css';
 
 // ==========================================
@@ -69,12 +69,22 @@ const ImageGallery = ({ images, loading, productName }) => {
 // ==========================================
 // SUB-COMPONENT: VARIANT SELECTOR
 // ==========================================
-const VariantSelector = ({ variants, selectedVariant, onSelect }) => {
+const VariantSelector = ({ variants, selectedColor, selectedSize, onColorChange, onSizeChange }) => {
     if (!variants || variants.length === 0) return null;
 
     // Group variants by color and size
     const colors = [...new Set(variants.map(v => v.color?.name).filter(Boolean))];
     const sizes = [...new Set(variants.map(v => v.size?.name).filter(Boolean))];
+
+    // Get available sizes for selected color (or all sizes if no color selected)
+    const availableSizes = selectedColor
+        ? [...new Set(variants.filter(v => v.color?.name === selectedColor).map(v => v.size?.name).filter(Boolean))]
+        : sizes;
+
+    // Get available colors for selected size (or all colors if no size selected)
+    const availableColors = selectedSize
+        ? [...new Set(variants.filter(v => v.size?.name === selectedSize).map(v => v.color?.name).filter(Boolean))]
+        : colors;
 
     return (
         <div className="variant-selector">
@@ -82,18 +92,20 @@ const VariantSelector = ({ variants, selectedVariant, onSelect }) => {
                 <div className="variant-group">
                     <h4>Màu sắc</h4>
                     <div className="variant-options">
-                        {colors.map(color => (
-                            <button
-                                key={color}
-                                className={`variant-btn color-btn ${selectedVariant?.color?.name === color ? 'active' : ''}`}
-                                onClick={() => {
-                                    const variant = variants.find(v => v.color?.name === color);
-                                    onSelect(variant);
-                                }}
-                            >
-                                {color}
-                            </button>
-                        ))}
+                        {colors.map(color => {
+                            const isAvailable = availableColors.includes(color);
+                            const isSelected = selectedColor === color;
+                            return (
+                                <button
+                                    key={color}
+                                    className={`variant-btn color-btn ${isSelected ? 'active' : ''} ${!isAvailable ? 'disabled' : ''}`}
+                                    onClick={() => onColorChange(color)}
+                                    disabled={!isAvailable}
+                                >
+                                    {color}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -101,18 +113,20 @@ const VariantSelector = ({ variants, selectedVariant, onSelect }) => {
                 <div className="variant-group">
                     <h4>Kích cỡ</h4>
                     <div className="variant-options">
-                        {sizes.map(size => (
-                            <button
-                                key={size}
-                                className={`variant-btn size-btn ${selectedVariant?.size?.name === size ? 'active' : ''}`}
-                                onClick={() => {
-                                    const variant = variants.find(v => v.size?.name === size);
-                                    onSelect(variant);
-                                }}
-                            >
-                                {size}
-                            </button>
-                        ))}
+                        {sizes.map(size => {
+                            const isAvailable = availableSizes.includes(size);
+                            const isSelected = selectedSize === size;
+                            return (
+                                <button
+                                    key={size}
+                                    className={`variant-btn size-btn ${isSelected ? 'active' : ''} ${!isAvailable ? 'disabled' : ''}`}
+                                    onClick={() => onSizeChange(size)}
+                                    disabled={!isAvailable}
+                                >
+                                    {size}
+                                </button>
+                            );
+                        })}
                     </div>
                 </div>
             )}
@@ -229,7 +243,9 @@ const ReviewSection = ({ reviews, reviewSummary, productRating, reviewCount, pro
                 body: JSON.stringify({
                     product_id: productId,
                     rating: newRating,
-                    comment: newComment
+                    title: `Đánh giá ${newRating} sao`,
+                    comment: newComment,
+                    image_urls: []
                 })
             });
 
@@ -367,6 +383,215 @@ const ReviewSection = ({ reviews, reviewSummary, productRating, reviewCount, pro
 };
 
 // ==========================================
+// SUB-COMPONENT: Q&A SECTION
+// ==========================================
+const QASection = ({ productId }) => {
+    const [questions, setQuestions] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showQuestionForm, setShowQuestionForm] = useState(false);
+    const [newQuestion, setNewQuestion] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+
+    // Fetch questions when productId changes
+    useEffect(() => {
+        console.log('QASection - productId:', productId);
+        if (!productId) return;
+
+        const fetchQuestions = async () => {
+            setLoading(true);
+            try {
+                const url = API_ENDPOINTS.QUESTIONS.BY_PRODUCT(productId);
+                console.log('Fetching questions from:', url);
+                const response = await fetch(url);
+                console.log('Questions response status:', response.status);
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('Questions data:', data);
+                    setQuestions(data || []);
+                }
+            } catch (error) {
+                console.error('Error fetching questions:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchQuestions();
+    }, [productId]);
+
+    const handleSubmitQuestion = async (e) => {
+        e.preventDefault();
+
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            alert('Vui lòng đăng nhập để đặt câu hỏi!');
+            return;
+        }
+
+        if (!newQuestion.trim()) {
+            alert('Vui lòng nhập câu hỏi!');
+            return;
+        }
+
+        setSubmitting(true);
+
+        try {
+            const response = await fetch(API_ENDPOINTS.QUESTIONS.CREATE, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    product_id: parseInt(productId, 10),
+                    question: newQuestion.trim()
+                })
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                // Handle different error formats
+                let errorMessage = 'Có lỗi xảy ra';
+                if (typeof errorData.detail === 'string') {
+                    errorMessage = errorData.detail;
+                } else if (Array.isArray(errorData.detail)) {
+                    // FastAPI validation errors are usually in this format
+                    errorMessage = errorData.detail.map(err => err.msg || err.message).join(', ');
+                } else if (errorData.message) {
+                    errorMessage = errorData.message;
+                } else {
+                    errorMessage = `HTTP Error: ${response.status}`;
+                }
+                throw new Error(errorMessage);
+            }
+
+            const newQ = await response.json();
+            setQuestions(prev => [newQ, ...prev]);
+            setNewQuestion('');
+            setShowQuestionForm(false);
+            alert('Câu hỏi của bạn đã được gửi! 🎉');
+        } catch (error) {
+            console.error('Error submitting question:', error);
+            alert(`Có lỗi xảy ra: ${error.message}`);
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '';
+        return new Date(dateString).toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    };
+
+    return (
+        <div className="qa-section">
+            <div className="qa-header">
+                <h2>❓ Hỏi & Đáp về sản phẩm</h2>
+                <button
+                    className="ask-question-btn"
+                    onClick={() => setShowQuestionForm(!showQuestionForm)}
+                >
+                    ✍️ Đặt câu hỏi
+                </button>
+            </div>
+
+            {/* Question Form */}
+            {showQuestionForm && (
+                <form className="question-form" onSubmit={handleSubmitQuestion}>
+                    <textarea
+                        value={newQuestion}
+                        onChange={(e) => setNewQuestion(e.target.value)}
+                        placeholder="Bạn có thắc mắc gì về sản phẩm này? Hãy đặt câu hỏi..."
+                        rows={3}
+                        required
+                    />
+                    <div className="form-actions">
+                        <button
+                            type="button"
+                            className="cancel-btn"
+                            onClick={() => {
+                                setShowQuestionForm(false);
+                                setNewQuestion('');
+                            }}
+                        >
+                            Hủy
+                        </button>
+                        <button
+                            type="submit"
+                            className="submit-btn"
+                            disabled={submitting}
+                        >
+                            {submitting ? 'Đang gửi...' : 'Gửi câu hỏi'}
+                        </button>
+                    </div>
+                </form>
+            )}
+
+            {/* Questions List */}
+            <div className="questions-list">
+                {loading ? (
+                    <div className="loading-questions">
+                        <div className="loading-spinner"></div>
+                        <p>Đang tải câu hỏi...</p>
+                    </div>
+                ) : questions.length === 0 ? (
+                    <div className="no-questions">
+                        <p>💬 Chưa có câu hỏi nào cho sản phẩm này.</p>
+                        <p>Hãy là người đầu tiên đặt câu hỏi!</p>
+                    </div>
+                ) : (
+                    questions.map((q) => (
+                        <div key={q.question_id} className="question-item">
+                            <div className="question-content">
+                                <div className="question-icon">Q</div>
+                                <div className="question-body">
+                                    <p className="question-text">{q.question}</p>
+                                    <div className="question-meta">
+                                        <span className="question-author">
+                                            {q.user?.full_name || q.user?.email || 'Người dùng'}
+                                        </span>
+                                        <span className="question-date">
+                                            {formatDate(q.created_at)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {q.answer && (
+                                <div className="answer-content">
+                                    <div className="answer-icon">A</div>
+                                    <div className="answer-body">
+                                        <p className="answer-text">{q.answer}</p>
+                                        <div className="answer-meta">
+                                            <span className="answer-author">
+                                                {q.answerer?.full_name || 'Shop'}
+                                            </span>
+                                            <span className="answer-date">
+                                                {formatDate(q.answered_at)}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {!q.answer && (
+                                <div className="no-answer">
+                                    <span>⏳ Đang chờ trả lời...</span>
+                                </div>
+                            )}
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+};
+
+// ==========================================
 // MAIN COMPONENT: PRODUCT DETAIL
 // ==========================================
 const ProductDetail = () => {
@@ -374,7 +599,11 @@ const ProductDetail = () => {
     const navigate = useNavigate();
     const { addToCart } = useCart();
     const [selectedVariant, setSelectedVariant] = useState(null);
+    const [selectedColor, setSelectedColor] = useState(null);
+    const [selectedSize, setSelectedSize] = useState(null);
     const [quantity, setQuantity] = useState(1);
+    const [isInWishlist, setIsInWishlist] = useState(false);
+    const [wishlistLoading, setWishlistLoading] = useState(false);
 
     // Xác định API endpoint dựa trên identifier là số (ID) hay chuỗi (slug)
     const isNumericId = /^\d+$/.test(identifier);
@@ -397,26 +626,87 @@ const ProductDetail = () => {
     const reviewsUrl = productId ? API_ENDPOINTS.REVIEWS.BY_PRODUCT(productId) : '';
     const reviewSummaryUrl = productId ? API_ENDPOINTS.REVIEWS.SUMMARY(productId) : '';
 
+    // Fetch colors and sizes for mapping
+    const colorsUrl = `${API_ENDPOINTS.PRODUCTS.LIST.split('/products')[0]}/attributes/colors`;
+    const sizesUrl = `${API_ENDPOINTS.PRODUCTS.LIST.split('/products')[0]}/attributes/sizes`;
+
     // Fetch images riêng nếu product không có images
     const imagesUrl = (!productImages || productImages.length === 0) && productId
         ? API_ENDPOINTS.PRODUCTS.IMAGES(productId)
         : '';
 
     const { data: fetchedImages, loading: imagesLoading } = useFetch(imagesUrl || null);
-    const { data: variants } = useFetch(variantsUrl || null);
+    const { data: variantsData } = useFetch(variantsUrl || null);
+    const { data: colorsData } = useFetch(colorsUrl);
+    const { data: sizesData } = useFetch(sizesUrl);
     const { data: relatedProducts } = useFetch(relatedUrl || null);
     const { data: reviews } = useFetch(reviewsUrl || null);
     const { data: reviewSummary } = useFetch(reviewSummaryUrl || null);
 
+    // Map colors and sizes to variants
+    const variants = useMemo(() => {
+        if (!variantsData || !colorsData || !sizesData) return variantsData;
+
+        return variantsData.map(variant => {
+            const color = colorsData.find(c => c.color_id === variant.color_id);
+            const size = sizesData.find(s => s.size_id === variant.size_id);
+
+            return {
+                ...variant,
+                color: color ? { name: color.color_name, code: color.color_code } : null,
+                size: size ? { name: size.size_name } : null
+            };
+        });
+    }, [variantsData, colorsData, sizesData]);
+
     // Ưu tiên images từ product response
     const images = productImages && productImages.length > 0 ? productImages : fetchedImages;
 
-    // Set default variant
+    // Set default color and size from first variant
     useEffect(() => {
-        if (variants && variants.length > 0 && !selectedVariant) {
-            setSelectedVariant(variants[0]);
+        if (variants && variants.length > 0) {
+            if (!selectedColor && variants[0]?.color) {
+                setSelectedColor(variants[0].color.name);
+            }
+            if (!selectedSize && variants[0]?.size) {
+                setSelectedSize(variants[0].size.name);
+            }
         }
-    }, [variants, selectedVariant]);
+    }, [variants, selectedColor, selectedSize]);
+
+    // Find matching variant based on selected color and size
+    useEffect(() => {
+        if (variants && variants.length > 0) {
+            const matchingVariant = variants.find(v => {
+                const colorMatch = !selectedColor || v.color?.name === selectedColor;
+                const sizeMatch = !selectedSize || v.size?.name === selectedSize;
+                return colorMatch && sizeMatch;
+            });
+            setSelectedVariant(matchingVariant || variants[0]);
+        }
+    }, [variants, selectedColor, selectedSize]);
+
+    // Check wishlist status khi có productId
+    useEffect(() => {
+        if (!productId) return;
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+
+        const checkWishlistStatus = async () => {
+            try {
+                const response = await fetch(`${API_ENDPOINTS.PRODUCTS.LIST.split('/products')[0]}/wishlist/check/${productId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setIsInWishlist(Object.keys(data).length > 0);
+                }
+            } catch (err) {
+                console.error('Error checking wishlist:', err);
+            }
+        };
+        checkWishlistStatus();
+    }, [productId]);
 
     // Loading state
     if (productLoading) {
@@ -459,6 +749,60 @@ const ProductDetail = () => {
         }
     };
 
+    // Handler thêm/xóa khỏi wishlist
+    const handleToggleWishlist = async () => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            alert('Vui lòng đăng nhập để thêm vào yêu thích!');
+            navigate('/login');
+            return;
+        }
+
+        setWishlistLoading(true);
+        try {
+            if (isInWishlist) {
+                // Xóa khỏi wishlist - cần tìm item_id trước
+                const checkResponse = await fetch(`${API_ENDPOINTS.PRODUCTS.LIST.split('/products')[0]}/wishlist/check/${productId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (checkResponse.ok) {
+                    const wishlistData = await checkResponse.json();
+                    const itemId = Object.values(wishlistData)[0]?.item_id;
+                    if (itemId) {
+                        await fetch(`${API_ENDPOINTS.PRODUCTS.LIST.split('/products')[0]}/wishlist/items/${itemId}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        setIsInWishlist(false);
+                    }
+                }
+            } else {
+                // Thêm vào wishlist mặc định
+                const variantId = selectedVariant?.variant_id || selectedVariant?.id || null;
+                const response = await fetch(`${API_ENDPOINTS.PRODUCTS.LIST.split('/products')[0]}/wishlist/add-to-default`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        product_id: productId,
+                        variant_id: variantId
+                    })
+                });
+                if (response.ok) {
+                    setIsInWishlist(true);
+                    alert('Đã thêm vào danh sách yêu thích! ❤️');
+                }
+            }
+        } catch (err) {
+            console.error('Error toggling wishlist:', err);
+            alert('Có lỗi xảy ra!');
+        } finally {
+            setWishlistLoading(false);
+        }
+    };
+
     return (
         <div className="product-detail-page">
             {/* Breadcrumb */}
@@ -493,7 +837,8 @@ const ProductDetail = () => {
                         )}
                         {product.gender && (
                             <span className="gender-tag">
-                                {product.gender === 'male' ? 'Nam' : product.gender === 'female' ? 'Nữ' : 'Unisex'}
+                                {product.gender.toUpperCase() === 'MEN' || product.gender === 'male' ? 'Nam' :
+                                    product.gender.toUpperCase() === 'WOMEN' || product.gender === 'female' ? 'Nữ' : 'Unisex'}
                             </span>
                         )}
                     </div>
@@ -520,8 +865,10 @@ const ProductDetail = () => {
                     {/* Variant Selector */}
                     <VariantSelector
                         variants={variants}
-                        selectedVariant={selectedVariant}
-                        onSelect={setSelectedVariant}
+                        selectedColor={selectedColor}
+                        selectedSize={selectedSize}
+                        onColorChange={setSelectedColor}
+                        onSizeChange={setSelectedSize}
                     />
 
                     {/* Quantity & Add to Cart */}
@@ -539,6 +886,14 @@ const ProductDetail = () => {
 
                         <button className="add-to-cart-btn" onClick={handleAddToCart}>
                             🛒 Thêm vào giỏ hàng
+                        </button>
+
+                        <button
+                            className={`wishlist-btn ${isInWishlist ? 'active' : ''}`}
+                            onClick={handleToggleWishlist}
+                            disabled={wishlistLoading}
+                        >
+                            {wishlistLoading ? '...' : isInWishlist ? '❤️' : '🤍'}
                         </button>
                     </div>
 
@@ -575,6 +930,9 @@ const ProductDetail = () => {
                 reviewCount={product.review_count}
                 productId={productId}
             />
+
+            {/* Q&A Section */}
+            <QASection productId={productId} />
         </div>
     );
 };

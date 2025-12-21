@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { API_ENDPOINTS } from '../../config/api.config'; // Đảm bảo đường dẫn import đúng
+import { API_ENDPOINTS } from '../../config/api.config';
 import '/src/style/style.css';
+import '/src/style/Loyalty.css';
 
 const SignUp = () => {
   const navigate = useNavigate();
 
-  // Khai báo state formData (đây là cái bạn đang bị thiếu)
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -14,7 +14,8 @@ const SignUp = () => {
     month: '',
     year: '',
     email: '',
-    password: ''
+    password: '',
+    referralCode: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -59,6 +60,20 @@ const SignUp = () => {
       const data = await response.json();
 
       if (response.ok) {
+        // Apply referral code if provided
+        if (formData.referralCode && data.access_token) {
+          try {
+            await fetch(API_ENDPOINTS.LOYALTY.REFERRALS.APPLY(formData.referralCode), {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${data.access_token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+          } catch (refErr) {
+            console.error('Referral apply error:', refErr);
+          }
+        }
         alert("Đăng ký thành công! Vui lòng kiểm tra email.");
         navigate('/login');
       } else {
@@ -118,6 +133,19 @@ const SignUp = () => {
           <div className="input__group">
             <input type="password" name="password" value={formData.password} onChange={handleChange} required />
             <label>Mật khẩu</label>
+          </div>
+
+          {/* Referral Code Input */}
+          <div className="referral-input-section">
+            <label>Mã giới thiệu (không bắt buộc)</label>
+            <input
+              type="text"
+              name="referralCode"
+              value={formData.referralCode}
+              onChange={handleChange}
+              placeholder="Nhập mã giới thiệu nếu có"
+            />
+            <span className="referral-input-hint">Bạn và người giới thiệu sẽ nhận điểm thưởng!</span>
           </div>
 
           {error && <div style={{ color: 'red', marginBottom: '10px', textAlign: 'center' }}>{error}</div>}

@@ -267,6 +267,19 @@
     box-shadow: 0 4px 12px rgba(26, 26, 46, 0.3);
 }
 
+.variant-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #e0e0e0;
+    color: #ccc;
+}
+
+.variant-btn.disabled:hover {
+    transform: none;
+    border-color: #e0e0e0;
+    color: #ccc;
+}
+
 .size-btn {
     min-width: 50px;
     text-align: center;
@@ -339,6 +352,37 @@
 
 .add-to-cart-btn:active {
     transform: translateY(-1px);
+}
+
+/* Wishlist Button */
+.wishlist-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 8px;
+    background: #f5f5f5;
+    border: 2px solid #e0e0e0;
+    cursor: pointer;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.wishlist-btn:hover {
+    border-color: #ff6b81;
+    background: #fff5f7;
+    transform: translateY(-3px);
+}
+
+.wishlist-btn.active {
+    background: #ffe0e6;
+    border-color: #ff4757;
+}
+
+.wishlist-btn:disabled {
+    opacity: 0.7;
+    cursor: wait;
 }
 
 /* Stock Status */
@@ -812,6 +856,236 @@
 }
 
 /* ==========================================
+   Q&A SECTION
+   ========================================== */
+.qa-section {
+    max-width: 1400px;
+    margin: 0 auto 80px;
+    padding: 40px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+.qa-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.qa-header h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0;
+}
+
+.ask-question-btn {
+    padding: 14px 28px;
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.ask-question-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(33, 150, 243, 0.4);
+}
+
+/* Question Form */
+.question-form {
+    padding: 25px;
+    background: linear-gradient(135deg, #e3f2fd, #f5f5f5);
+    border-radius: 12px;
+    margin-bottom: 30px;
+    border: 2px solid #bbdefb;
+}
+
+.question-form textarea {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    transition: border-color 0.3s ease;
+    background: white;
+}
+
+.question-form textarea:focus {
+    outline: none;
+    border-color: #2196f3;
+}
+
+.question-form .form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+/* Questions List */
+.questions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.loading-questions {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.loading-questions .loading-spinner {
+    margin: 0 auto 15px;
+}
+
+.no-questions {
+    text-align: center;
+    padding: 50px 30px;
+    background: linear-gradient(135deg, #f8f9fa, #fff);
+    border-radius: 12px;
+    border: 2px dashed #e0e0e0;
+}
+
+.no-questions p {
+    margin: 5px 0;
+    color: #888;
+    font-size: 15px;
+}
+
+.no-questions p:first-child {
+    font-size: 18px;
+    color: #555;
+}
+
+/* Question Item */
+.question-item {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.question-item:hover {
+    background: #f0f2f5;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.question-content {
+    display: flex;
+    gap: 15px;
+}
+
+.question-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.question-body {
+    flex: 1;
+}
+
+.question-text {
+    font-size: 15px;
+    color: #1a1a2e;
+    line-height: 1.6;
+    margin: 0 0 10px;
+    font-weight: 500;
+}
+
+.question-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 13px;
+    color: #888;
+}
+
+.question-author {
+    font-weight: 500;
+    color: #666;
+}
+
+/* Answer */
+.answer-content {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e0e0e0;
+    margin-left: 51px;
+}
+
+.answer-icon {
+    width: 36px;
+    height: 36px;
+    background: linear-gradient(135deg, #4caf50, #43a047);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.answer-body {
+    flex: 1;
+}
+
+.answer-text {
+    font-size: 15px;
+    color: #333;
+    line-height: 1.6;
+    margin: 0 0 10px;
+}
+
+.answer-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 13px;
+    color: #888;
+}
+
+.answer-author {
+    font-weight: 600;
+    color: #4caf50;
+}
+
+/* No Answer State */
+.no-answer {
+    margin-top: 12px;
+    margin-left: 51px;
+    padding: 10px 15px;
+    background: #fff3e0;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #f57c00;
+}
+
+/* ==========================================
    RESPONSIVE DESIGN
    ========================================== */
 @media (max-width: 1200px) {
@@ -878,6 +1152,28 @@
     .score-number {
         font-size: 36px;
     }
+
+    /* Q&A Responsive */
+    .qa-section {
+        padding: 25px;
+    }
+
+    .qa-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ask-question-btn {
+        width: 100%;
+    }
+
+    .answer-content {
+        margin-left: 0;
+    }
+
+    .no-answer {
+        margin-left: 0;
+    }
 }
 
 @media (max-width: 480px) {
@@ -905,5 +1201,25 @@
     .cancel-btn,
     .submit-btn {
         width: 100%;
+    }
+
+    /* Q&A Mobile */
+    .question-content,
+    .answer-content {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .question-icon,
+    .answer-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+    }
+
+    .question-meta,
+    .answer-meta {
+        flex-direction: column;
+        gap: 5px;
     }
 }

@@ -44,6 +44,7 @@ const Login = ({ onLoginSuccess }) => {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: new URLSearchParams({
+          grant_type: 'password',
           username: formData.email,
           password: formData.password
         })
@@ -55,32 +56,32 @@ const Login = ({ onLoginSuccess }) => {
         // 1. Lưu token
         // Lưu ý: Đảm bảo functions saveAuthTokens/saveUser có tồn tại trong utils
         if (typeof saveAuthTokens === 'function') {
-             saveAuthTokens(result.access_token, result.refresh_token || '');
+          saveAuthTokens(result.access_token, result.refresh_token || '');
         } else {
-             // Fallback nếu chưa có utils: Lưu localStorage thủ công
-             localStorage.setItem('accessToken', result.access_token);
+          // Fallback nếu chưa có utils: Lưu localStorage thủ công
+          localStorage.setItem('authToken', result.access_token);
         }
 
         // 2. Lấy thông tin User
         try {
-            const userResponse = await fetch(API_ENDPOINTS.USERS.ME, {
+          const userResponse = await fetch(API_ENDPOINTS.USERS.ME, {
             headers: {
-                'Authorization': `Bearer ${result.access_token}`
+              'Authorization': `Bearer ${result.access_token}`
             }
-            });
+          });
 
-            if (userResponse.ok) {
-                const userData = await userResponse.json();
-                if (typeof saveUser === 'function') saveUser(userData);
-                if (onLoginSuccess) onLoginSuccess(userData);
-            } else {
-                // Nếu không lấy được info thì dùng tạm email
-                const basicUser = { email: formData.email };
-                if (typeof saveUser === 'function') saveUser(basicUser);
-                if (onLoginSuccess) onLoginSuccess(basicUser);
-            }
+          if (userResponse.ok) {
+            const userData = await userResponse.json();
+            if (typeof saveUser === 'function') saveUser(userData);
+            if (onLoginSuccess) onLoginSuccess(userData);
+          } else {
+            // Nếu không lấy được info thì dùng tạm email
+            const basicUser = { email: formData.email };
+            if (typeof saveUser === 'function') saveUser(basicUser);
+            if (onLoginSuccess) onLoginSuccess(basicUser);
+          }
         } catch (err) {
-            console.warn('Could not fetch user info', err);
+          console.warn('Could not fetch user info', err);
         }
 
         // 3. Chuyển hướng
@@ -136,7 +137,7 @@ const Login = ({ onLoginSuccess }) => {
               />
               Ghi nhớ đăng nhập
             </label>
-            <a href="#" onClick={(e) => e.preventDefault()}>Quên mật khẩu?</a>
+            <Link to="/forgot-password">Quên mật khẩu?</Link>
           </div>
 
           {errorMessage && (

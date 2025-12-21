@@ -4,12 +4,26 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 // Auth pages
 import Login from './pages/auth/Login';
 import SignUp from './pages/auth/SignUp';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import ResetPassword from './pages/auth/ResetPassword';
+import ChangePassword from './pages/auth/ChangePassword';
 
 // Home
 import HomePage from './pages/home/TrangChu';
 import ProductPage from './pages/home/SanPham';
 import ProductDetail from './pages/home/ProductDetail';
 import Cart from './pages/home/Cart';
+import Checkout from './pages/home/Checkout';
+import PaymentQR from './pages/home/PaymentQR';
+import PaymentSuccess from './pages/home/PaymentSuccess';
+import PaymentFailure from './pages/home/PaymentFailure';
+import UserProfile from './pages/user/UserProfile';
+import Wishlist from './pages/user/Wishlist';
+import AddressManagement from './pages/home/AddressManagement';
+import OrderTracking from './pages/home/OrderTracking';
+import FlashSales from './pages/home/FlashSales';
+import Collections from './pages/home/Collections';
+import CollectionDetail from './pages/home/CollectionDetail';
 
 // Support pages
 import TrungTamHoTro from './pages/support/TrungTamHoTro';
@@ -23,7 +37,7 @@ import CongTy from './pages/info/CongTy';
 import Layout from './components/Layout';
 
 // Context
-import { CartProvider } from './context/CartContext';
+import { CartProvider } from './pages/home/CartContext';
 
 function App() {
   // Lazy state initializer - chỉ chạy 1 lần khi component mount
@@ -78,6 +92,9 @@ function App() {
                 <SignUp />
             }
           />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/change-password" element={<ChangePassword />} />
 
           <Route element={<Layout user={user} onLogout={handleLogout} isSubPage={false} />}>
             <Route path="/" element={<HomePage />} />
@@ -94,6 +111,18 @@ function App() {
             <Route path="/tracking" element={<TheoDoi />} />
             <Route path="/company" element={<CongTy />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/payment-qr" element={<PaymentQR />} />
+            <Route path="/payment/success" element={<PaymentSuccess />} />
+            <Route path="/payment/failure" element={<PaymentFailure />} />
+            <Route path="/profile" element={<UserProfile />} />
+            <Route path="/addresses" element={<AddressManagement />} />
+            <Route path="/orders" element={<OrderTracking />} />
+            <Route path="/order/:orderId" element={<OrderTracking />} />
+            <Route path="/wishlist" element={<Wishlist />} />
+            <Route path="/flash-sales" element={<FlashSales />} />
+            <Route path="/collections" element={<Collections />} />
+            <Route path="/collections/:slug" element={<CollectionDetail />} />
 
           </Route>
           {/* 404 Route */}
