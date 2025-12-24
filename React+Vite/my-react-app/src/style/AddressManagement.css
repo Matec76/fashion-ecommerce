@@ -36,7 +36,7 @@
 
 .add-address-btn {
     padding: 14px 28px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #000;
     color: white;
     border: none;
     border-radius: 10px;
@@ -48,7 +48,7 @@
 
 .add-address-btn:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* Address Form Card */
@@ -221,13 +221,10 @@
 }
 
 .default-badge {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    padding: 6px 12px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 8px 16px;
+    background: #000;
     color: white;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     border-radius: 6px;
 }
@@ -276,39 +273,46 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
-    border: none;
+    border: 1px solid #000;
+    background: white;
+    color: #000;
+}
+
+.action-btn:hover {
+    background: #000;
+    color: white;
 }
 
 .action-btn.set-default {
-    background: #f0f7ff;
-    color: #667eea;
-    border: 1px solid #667eea;
+    background: white;
+    color: #000;
+    border: 1px solid #000;
 }
 
 .action-btn.set-default:hover {
-    background: #667eea;
+    background: #000;
     color: white;
 }
 
 .action-btn.edit {
-    background: #fff7ed;
-    color: #f97316;
-    border: 1px solid #f97316;
+    background: white;
+    color: #000;
+    border: 1px solid #000;
 }
 
 .action-btn.edit:hover {
-    background: #f97316;
+    background: #000;
     color: white;
 }
 
 .action-btn.delete {
-    background: #fee;
-    color: #e74c3c;
-    border: 1px solid #e74c3c;
+    background: white;
+    color: #000;
+    border: 1px solid #000;
 }
 
 .action-btn.delete:hover {
-    background: #e74c3c;
+    background: #000;
     color: white;
 }
 

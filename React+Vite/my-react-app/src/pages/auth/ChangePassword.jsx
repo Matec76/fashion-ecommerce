@@ -16,6 +16,9 @@ const ChangePassword = () => {
 
     const { mutate, loading } = useMutation();
 
+    // Kiểm tra token để xác định user đã đăng nhập chưa
+    const token = localStorage.getItem('authToken');
+
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData(prev => ({
@@ -72,7 +75,7 @@ const ChangePassword = () => {
                 confirmPassword: ''
             });
             setTimeout(() => {
-                navigate('/profile');
+                navigate('/');
             }, 3000);
         } else {
             setError(result.error || 'Không thể đổi mật khẩu. Vui lòng thử lại!');
@@ -136,7 +139,7 @@ const ChangePassword = () => {
                         }}>
                             Mật khẩu đã được thay đổi thành công!
                             <br />
-                            Đang chuyển hướng...
+                            Đang chuyển hướng về trang chủ...
                         </div>
                     </div>
                 ) : (

@@ -25,7 +25,6 @@ const Checkout = () => {
         email: '',
         address: '',
         ward: '',
-        district: '',
         city: '',
         notes: ''
     });
@@ -323,18 +322,38 @@ const Checkout = () => {
             console.log('🔗 Payment URL:', paymentUrl);
             console.log('📱 QR Code:', qrCode ? 'Available' : 'Not available');
 
-            // Redirect to payment page with QR code
-            navigate('/payment-qr', {
-                state: {
-                    orderId,
-                    orderNumber: order.order_number,
-                    transactionCode,
-                    paymentUrl,
-                    qrCode,
-                    totalAmount: parseFloat(order.total_amount),
-                    paymentInstructions: payment.payment_instructions || payment.message
-                }
-            });
+            // Check if payment method is COD (Cash on Delivery)
+            const selectedMethod = paymentMethods.find(m => m.payment_method_id === selectedPaymentMethod);
+            console.log('🔍 Selected payment method:', selectedMethod);
+            console.log('📝 Method name:', selectedMethod?.method_name);
+
+            const isCOD = selectedMethod?.method_name?.toLowerCase().includes('cod') ||
+                selectedMethod?.method_name?.toLowerCase().includes('nhận hàng') ||
+                selectedMethod?.method_name?.toLowerCase().includes('tiền mặt') ||
+                selectedMethod?.method_name?.toLowerCase().includes('thanh toán khi');
+
+            console.log('💰 Is COD?', isCOD);
+
+            if (isCOD) {
+                // COD: Show success message and redirect to cart after 5 seconds
+                alert('Đặt đơn thành công!');
+                setTimeout(() => {
+                    navigate('/cart');
+                }, 5000);
+            } else {
+                // Online payment: Redirect to payment QR page
+                navigate('/payment-qr', {
+                    state: {
+                        orderId,
+                        orderNumber: order.order_number,
+                        transactionCode,
+                        paymentUrl,
+                        qrCode,
+                        totalAmount: parseFloat(order.total_amount),
+                        paymentInstructions: payment.payment_instructions || payment.message
+                    }
+                });
+            }
 
         } catch (error) {
             console.error('💥 Error placing order:', error);
@@ -398,7 +417,7 @@ const Checkout = () => {
                                                 </div>
                                                 <p>{address.phone_number}</p>
                                                 <p className="address-text">
-                                                    {address.street_address}, {address.ward}, {address.district}, {address.city}
+                                                    {address.street_address}, {address.ward}, {address.city}
                                                 </p>
                                             </div>
                                         </label>

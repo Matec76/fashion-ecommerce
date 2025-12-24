@@ -135,17 +135,15 @@ const SignUp = () => {
             <label>Mật khẩu</label>
           </div>
 
-          {/* Referral Code Input */}
-          <div className="referral-input-section">
-            <label>Mã giới thiệu (không bắt buộc)</label>
+          <div className="input__group">
             <input
               type="text"
               name="referralCode"
               value={formData.referralCode}
               onChange={handleChange}
-              placeholder="Nhập mã giới thiệu nếu có"
+              required
             />
-            <span className="referral-input-hint">Bạn và người giới thiệu sẽ nhận điểm thưởng!</span>
+            <label>Mã giới thiệu</label>
           </div>
 
           {error && <div style={{ color: 'red', marginBottom: '10px', textAlign: 'center' }}>{error}</div>}

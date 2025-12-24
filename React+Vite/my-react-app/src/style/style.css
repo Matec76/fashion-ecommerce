@@ -1,225 +1,252 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-html, body {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 #root {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
-body{
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-repeat: no-repeat;
-    flex-direction: column;
-    background-size: cover;
-    background-position: center;
-    background-attachment: fixed;
-    overflow-y: auto;
+
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-repeat: no-repeat;
+  flex-direction: column;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  overflow-y: auto;
 }
-h1{
-    text-align: center;
-    font-size: 2.5rem;
-    font-weight: 900;
-    margin-top: 20px;
-    margin-bottom: 0px;
-    color: black;
+
+h1 {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-top: 20px;
+  margin-bottom: 0px;
+  color: black;
 }
 
 /* ============= GLASS CONTAINER - ĐĂNG KÝ ============= */
-.glass-container{
-    position: relative;
-    width: 400px;
-    padding: 30px;
-    border-radius: 20px;
-    backdrop-filter: blur(110px);
-    border: 1 solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 25px 45px rgba(16, 15, 15, 0.4);
-    z-index: 10;
-    overflow: hidden;
-    margin: 30px 0;
-    height: 550px;
+.glass-container {
+  position: relative;
+  width: 400px;
+  padding: 30px;
+  border-radius: 20px;
+  backdrop-filter: blur(110px);
+  border: 1 solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 25px 45px rgba(16, 15, 15, 0.4);
+  z-index: 10;
+  overflow: hidden;
+  margin: 30px 0;
+  height: 550px;
 }
-.glass-container::before{
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    transform: skewX(-15deg);
-    transition: 0.5s;
-    pointer-events: none;
+
+.glass-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  transform: skewX(-15deg);
+  transition: 0.5s;
+  pointer-events: none;
 }
-.glass-container:hover::before{
-    left: 120%;
+
+.glass-container:hover::before {
+  left: 120%;
 }
-.glass-container h2{
-    color: black;
-    font-size: 28px;
-    font-weight: 700;
-    text-align: center;
-    letter-spacing: 1px;
-    margin-bottom: 40px;
+
+.glass-container h2 {
+  color: black;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 1px;
+  margin-bottom: 40px;
 
 }
-.input__group{
-    position: relative;
-    margin-bottom: 30px;
+
+.input__group {
+  position: relative;
+  margin-bottom: 30px;
 
 }
-.input__group input{
-    width: 100%;
-    padding: 15px 20px;
-    background :rgba(255, 255, 255, 0.2);
-    border: none;
-    outline: none;
-    border-radius: 10px;
-    font-size: 16px;
-    color: black;
-    transition: all .3s ease;
+
+.input__group input {
+  width: 100%;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  font-size: 16px;
+  color: black;
+  transition: all .3s ease;
 }
-.input__group input::placeholder{
-    color: rgba(255, 255, 255, 0.7);
+
+.input__group input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
 }
-.input__group input:focus{
-    background: rgba(255, 255, 255, 0.3);
-    box-shadow:0 8px 20px rgba(0,0,0,0.1) ;
+
+.input__group input:focus {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
-.input__group label{
-    position: absolute;
-    top:50%;
-    left: 20px;
-    transform: translateY(-50%);
-    color: black;
-    font-size: 16px;
-    pointer-events:none; 
-    transition: all .3s ease;    
+
+.input__group label {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  color: black;
+  font-size: 16px;
+  pointer-events: none;
+  transition: all .3s ease;
 }
-.input__group input:focus +label,
-.input__group input:valid +label{
-    top: -15px;
-    left: 0;
-    font-size: 14px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    color: black;
+
+.input__group input:focus+label,
+.input__group input:valid+label {
+  top: -15px;
+  left: 0;
+  font-size: 14px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: black;
 }
-.remember-forget{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 14px;
-    color: black;
-    margin-bottom: 25px;
+
+.remember-forget {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: black;
+  margin-bottom: 25px;
 }
-.remember-forget label{
-    display: flex;
-    align-items: center;
-    cursor: pointer;
+
+.remember-forget label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
 }
-.remember-forget input{
-    margin-right: 8px;
-    accent-color: black;
+
+.remember-forget input {
+  margin-right: 8px;
+  accent-color: black;
 }
-.remember-forget a{
-    color: black;
-    text-decoration: none;
-    transition: all .3s ease;
+
+.remember-forget a {
+  color: black;
+  text-decoration: none;
+  transition: all .3s ease;
 }
-.remember-forget a:hover{
-    text-decoration: underline;
+
+.remember-forget a:hover {
+  text-decoration: underline;
 }
-.login-btn{
-    width: 100%;
-    padding: 15px;
-    background: black;
-    border: none;
-    outline: none;
-    border-radius: 35px;
-    color: white;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all .3s ease;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+
+.login-btn {
+  width: 100%;
+  padding: 15px;
+  background: black;
+  border: none;
+  outline: none;
+  border-radius: 35px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
-.login-btn:hover{
-    background: rgba(255, 255, 255, 0.4);
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.2);
-    color: black;
+
+.login-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.2);
+  color: black;
 }
-.sign_up{
-    text-align: center;
-    margin-top: 25px;
-    color: black;
-    font-size: 14px;
+
+.sign_up {
+  text-align: center;
+  margin-top: 25px;
+  color: black;
+  font-size: 14px;
 }
-.sign_up a{
-    color:black;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all .3s ease;
+
+.sign_up a {
+  color: black;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all .3s ease;
 }
-.sign_up a:hover{
-    text-decoration: underline;
+
+.sign_up a:hover {
+  text-decoration: underline;
 }
 
 /* ============= ĐĂNG KÝ ============= */
-.glass-container1{
-    position: relative;
-    width: 30rem;
-    padding: 30px;
-    border-radius: 20px;
-    backdrop-filter: blur(110px);
-    background: rgba(255, 255, 255, 0.1);
-    border: 1 solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 25px 45px rgba(16, 15, 15, 0.4);
-    z-index: 10;
-    overflow: hidden;
-    margin: 20px 0;
-    height: 45rem;
-    
+.glass-container1 {
+  position: relative;
+  width: 30rem;
+  padding: 30px;
+  border-radius: 20px;
+  backdrop-filter: blur(110px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1 solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 25px 45px rgba(16, 15, 15, 0.4);
+  z-index: 10;
+  overflow: hidden;
+  margin: 20px 0;
+  height: 45rem;
+
 }
-.glass-container1::before{
-    content: "";
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    transform: skewX(-15deg);
-    transition: 0.5s;
-    pointer-events: none;
+
+.glass-container1::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  transform: skewX(-15deg);
+  transition: 0.5s;
+  pointer-events: none;
 }
-.glass-container1:hover::before{
-    left: 120%;
+
+.glass-container1:hover::before {
+  left: 120%;
 }
-.glass-container1 h3{
-    color: black;
-    font-size: 28px;
-    font-weight: 700;
-    text-align: center;
-    letter-spacing: 1px;
-    padding-bottom: 2rem;
+
+.glass-container1 h3 {
+  color: black;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 1px;
+  padding-bottom: 2rem;
 }
-.container1{
-    display: flex;
-    gap :1rem;
+
+.container1 {
+  display: flex;
+  gap: 1rem;
 }
+
 .signup-container {
   margin-bottom: 25px;
 }
@@ -255,6 +282,7 @@ h1{
   background: rgba(255, 255, 255, 0.3);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
+
 .birthdate select::-webkit-scrollbar {
   display: none;
 }
@@ -265,7 +293,7 @@ h1{
   display: flex;
   justify-content: center;
   align-items: center;
-  background-image: url('E:/React+Vite/my-react-app/public/Gemini_Generated_Image_ly0y6zly0y6zly0y.png');
+  background-image: url('/Gemini_Generated_Image_ly0y6zly0y6zly0y.png');
   background-repeat: no-repeat;
   flex-direction: column;
   background-size: cover;
@@ -287,7 +315,7 @@ h1{
 .login-glass-container {
   position: relative;
   width: 400px;
-  padding: 30px;
+  padding: 50px;
   border-radius: 20px;
   backdrop-filter: blur(110px);
   background: rgba(255, 255, 255, 0.1);
@@ -362,8 +390,8 @@ h1{
   transition: all 0.3s ease;
 }
 
-.login-input-group input:focus + label,
-.login-input-group input:valid + label {
+.login-input-group input:focus+label,
+.login-input-group input:valid+label {
   top: -15px;
   left: 0;
   font-size: 14px;
@@ -434,6 +462,7 @@ h1{
 
 /* Responsive */
 @media (max-width: 480px) {
+
   .glass-container,
   .login-glass-container {
     width: 90%;

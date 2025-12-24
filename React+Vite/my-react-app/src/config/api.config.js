@@ -51,6 +51,7 @@ export const API_ENDPOINTS = {
     USERS: {
         ME: `${API_BASE_URL}/users/me`,
         UPDATE: `${API_BASE_URL}/users/me`,
+        AVATAR: `${API_BASE_URL}/users/me/avatar`,
         ADDRESSES: `${API_BASE_URL}/users/me/addresses`,
         ADDRESS_DETAIL: (addressId) => `${API_BASE_URL}/users/me/addresses/${addressId}`,
         SET_DEFAULT_ADDRESS: (addressId) => `${API_BASE_URL}/users/me/addresses/${addressId}/set-default`,
@@ -190,6 +191,23 @@ export const API_ENDPOINTS = {
             STATS: `${API_BASE_URL}/loyalty/referrals/stats`,
             APPLY: (code) => `${API_BASE_URL}/loyalty/referrals/apply?referral_code=${code}`,
         },
+    },
+
+    // Wishlist
+    WISHLIST: {
+        LIST: `${API_BASE_URL}/wishlist/me`,
+        DEFAULT: `${API_BASE_URL}/wishlist/me/default`,
+        CREATE: `${API_BASE_URL}/wishlist`,
+        CHECK: (productId) => `${API_BASE_URL}/wishlist/check/${productId}`,
+        DETAIL: (id) => `${API_BASE_URL}/wishlist/${id}`,
+        UPDATE: (id) => `${API_BASE_URL}/wishlist/${id}`,
+        DELETE: (id) => `${API_BASE_URL}/wishlist/${id}`,
+        SET_DEFAULT: (id) => `${API_BASE_URL}/wishlist/${id}/set-default`,
+        ADD_ITEM: (id) => `${API_BASE_URL}/wishlist/${id}/items`,
+        ADD_TO_DEFAULT: `${API_BASE_URL}/wishlist/add-to-default`,
+        UPDATE_ITEM: (itemId) => `${API_BASE_URL}/wishlist/items/${itemId}`,
+        REMOVE_ITEM: (itemId) => `${API_BASE_URL}/wishlist/items/${itemId}`,
+        MOVE_ITEM: (itemId) => `${API_BASE_URL}/wishlist/items/${itemId}/move`,
     },
 };
 

@@ -162,6 +162,46 @@
     min-height: 500px;
 }
 
+/* Category Tabs */
+.category-tabs {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.product-tab-btn {
+    padding: 10px 0;
+    background: transparent;
+    color: #333;
+    border: none;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    position: relative;
+}
+
+.product-tab-btn:hover {
+    color: #000;
+}
+
+.product-tab-btn.active {
+    color: #000;
+    font-weight: 600;
+}
+
+.product-tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #000;
+}
+
 .product-count {
     margin-bottom: 25px;
 }

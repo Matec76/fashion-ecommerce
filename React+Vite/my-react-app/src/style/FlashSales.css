@@ -1,19 +1,22 @@
-.flash-sales-page {
+/* ==========================================
+   FLASH SALES PAGE - NEW DESIGN (4X SIZE)
+   ========================================== */
+
+.fsp-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
-    color: #fff;
+    background: #f5f5f5;
 }
 
 /* Hero Section */
-.flash-sales-hero {
-    background: linear-gradient(135deg, #e74c3c 0%, #f39c12 50%, #e74c3c 100%);
+.fsp-hero {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff6b35 100%);
     background-size: 200% 200%;
-    animation: gradientShift 3s ease infinite;
-    padding: 3rem 2rem;
+    animation: fspGradient 3s ease infinite;
+    padding: 8rem;
     text-align: center;
 }
 
-@keyframes gradientShift {
+@keyframes fspGradient {
 
     0%,
     100% {
@@ -25,22 +28,23 @@
     }
 }
 
-.hero-content h1 {
-    font-size: 2.5rem;
+.fsp-hero-title {
+    font-size: 10rem;
     font-weight: 800;
+    color: white;
     margin: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
+    gap: 3rem;
 }
 
-.flash-icon-large {
-    font-size: 3rem;
-    animation: pulse 1s ease-in-out infinite;
+.fsp-flash-icon {
+    font-size: 10rem;
+    animation: fspPulse 1s ease-in-out infinite;
 }
 
-@keyframes pulse {
+@keyframes fspPulse {
 
     0%,
     100% {
@@ -52,219 +56,207 @@
     }
 }
 
-.hero-content p {
-    margin: 0.5rem 0 0;
-    font-size: 1.1rem;
-    opacity: 0.9;
+.fsp-hero-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 2rem 0 0;
+    font-size: 4rem;
 }
 
-/* Container */
-.flash-sales-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem;
+/* Timer Bar */
+.fsp-timer-bar {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 4rem 6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4rem;
+}
+
+.fsp-timer-info {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    color: white;
+}
+
+.fsp-timer-icon {
+    font-size: 6rem;
+}
+
+.fsp-timer-text {
+    font-size: 4rem;
+}
+
+.fsp-timer-text strong {
+    color: #f7931e;
+}
+
+.fsp-timer-countdown {
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+}
+
+.fsp-timer-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 3.6rem;
+}
+
+.fsp-countdown {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.fsp-time-box {
+    background: #f7931e;
+    color: white;
+    padding: 1.6rem 2.4rem;
+    border-radius: 1.5rem;
+    font-size: 4.4rem;
+    font-weight: 700;
+    min-width: 10rem;
+    text-align: center;
+}
+
+.fsp-colon {
+    color: white;
+    font-weight: 700;
+    font-size: 4.8rem;
+}
+
+.fsp-expired {
+    color: #e74c3c;
+    font-weight: 600;
+    font-size: 4rem;
 }
 
 /* Tabs */
-.tabs-container {
+.fsp-tabs-container {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
+    background: white;
+    border-bottom: 4px solid #e0e0e0;
 }
 
-.tab-btn {
+.fsp-time-tab {
     flex: 1;
-    padding: 1rem 2rem;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 1rem;
-    font-weight: 600;
+    padding: 4rem;
+    background: none;
+    border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
-}
-
-.tab-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-.tab-btn.active {
-    background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
-    border-color: transparent;
-    color: #fff;
-}
-
-/* Flash Sale Card */
-.flash-sales-grid {
-    display: grid;
-    gap: 1.5rem;
-}
-
-.flash-sale-card {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
-    padding: 1.5rem;
-    transition: all 0.3s ease;
-}
-
-.flash-sale-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(231, 76, 60, 0.2);
-    border-color: rgba(231, 76, 60, 0.5);
-}
-
-.flash-sale-header {
     display: flex;
+    flex-direction: column;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 1rem;
+    transition: all 0.2s;
+    border-bottom: 12px solid transparent;
 }
 
-.flash-sale-badge {
-    background: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-weight: 700;
+.fsp-time-tab:hover {
+    background: #f9f9f9;
+}
+
+.fsp-time-tab.active {
+    background: #fff5f0;
+    border-bottom-color: #ff6b35;
+}
+
+.fsp-tab-time {
+    font-size: 6rem;
+}
+
+.fsp-tab-label {
+    font-size: 3.4rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.fsp-time-tab.active .fsp-tab-label {
+    color: #ff6b35;
+    font-weight: 600;
+}
+
+/* Content */
+.fsp-content {
+    padding: 4rem;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Products List */
+.fsp-products-list {
     display: flex;
-    align-items: center;
-    gap: 0.25rem;
+    flex-direction: column;
+    gap: 4rem;
 }
 
-.flash-icon {
-    animation: pulse 1s ease-in-out infinite;
-}
-
-.flash-sale-name {
-    margin: 0;
-    font-size: 1.25rem;
-    color: #fff;
-}
-
-/* Countdown Timer */
-.flash-sale-time {
-    margin-bottom: 1.5rem;
-}
-
-.time-label {
-    color: rgba(255, 255, 255, 0.6);
-    margin: 0 0 0.5rem;
-    font-size: 0.9rem;
-}
-
-.countdown-timer {
+/* Product Card */
+.fsp-product-card {
     display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.countdown-item {
-    background: rgba(231, 76, 60, 0.2);
-    padding: 0.5rem 0.75rem;
-    border-radius: 8px;
-    text-align: center;
-    min-width: 50px;
-}
-
-.countdown-value {
-    display: block;
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #f39c12;
-}
-
-.countdown-label {
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.6);
-    text-transform: uppercase;
-}
-
-.countdown-separator {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #f39c12;
-}
-
-.countdown-expired {
-    color: #e74c3c;
-    font-weight: 600;
-}
-
-.start-time {
-    color: #f39c12;
-    font-weight: 600;
-    margin: 0;
-}
-
-/* Products Grid */
-.flash-sale-products h4 {
-    margin: 0 0 1rem;
-    color: rgba(255, 255, 255, 0.8);
-    font-weight: 600;
-}
-
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 1rem;
-}
-
-.flash-product-item {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
+    background: white;
+    border-radius: 3rem;
     overflow: hidden;
     text-decoration: none;
     color: inherit;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
     transition: all 0.3s ease;
 }
 
-.flash-product-item:hover {
-    transform: scale(1.05);
-    box-shadow: 0 5px 15px rgba(243, 156, 18, 0.3);
+.fsp-product-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
 }
 
-.flash-product-item .product-image {
+.fsp-product-image {
     position: relative;
-    aspect-ratio: 1;
-    background: rgba(255, 255, 255, 0.1);
+    width: 560px;
+    min-width: 560px;
+    height: 560px;
+    background: #f5f5f5;
 }
 
-.flash-product-item .product-image img {
+.fsp-product-image img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.flash-product-item .no-image {
+.fsp-no-image {
     display: flex;
     align-items: center;
     justify-content: center;
     height: 100%;
-    font-size: 2rem;
-    color: rgba(255, 255, 255, 0.3);
+    font-size: 12rem;
+    color: #ccc;
 }
 
-.discount-badge {
+.fsp-discount-tag {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    background: #e74c3c;
-    color: #fff;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
+    top: 32px;
+    left: 32px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 1.2rem 2.4rem;
+    border-radius: 1rem;
+    font-size: 3rem;
     font-weight: 700;
 }
 
-.flash-product-item .product-info {
-    padding: 0.75rem;
+/* Product Content */
+.fsp-product-content {
+    flex: 1;
+    padding: 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
-.flash-product-item .product-name {
-    margin: 0 0 0.5rem;
-    font-size: 0.85rem;
-    color: #fff;
+.fsp-product-name {
+    margin: 0 0 2rem;
+    font-size: 4rem;
+    font-weight: 600;
+    color: #333;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -272,101 +264,210 @@
     overflow: hidden;
 }
 
-.price-row {
+/* Tags */
+.fsp-product-tags {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
 }
 
-.original-price {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.5);
-    text-decoration: line-through;
+.fsp-tag {
+    padding: 0.8rem 2rem;
+    border-radius: 1rem;
+    font-size: 2.8rem;
+    font-weight: 600;
 }
 
-.sale-price {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #f39c12;
+.fsp-tag-freeship {
+    background: #e8f5e9;
+    color: #2e7d32;
 }
 
-.more-products {
-    margin: 1rem 0 0;
-    text-align: center;
-    color: rgba(255, 255, 255, 0.6);
-    font-size: 0.9rem;
+.fsp-tag-cod {
+    background: #e3f2fd;
+    color: #1565c0;
 }
 
-/* No Sales */
-.no-sales {
-    text-align: center;
-    padding: 4rem 2rem;
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 16px;
+/* Progress Bar */
+.fsp-progress-container {
+    margin-bottom: 2rem;
 }
 
-.no-sales-icon {
-    font-size: 4rem;
-    display: block;
+.fsp-progress-bar {
+    height: 24px;
+    background: #e0e0e0;
+    border-radius: 12px;
+    overflow: hidden;
     margin-bottom: 1rem;
 }
 
-.no-sales h3 {
-    margin: 0 0 0.5rem;
-    color: #fff;
+.fsp-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b35, #f7931e);
+    border-radius: 12px;
+    transition: width 0.5s ease;
 }
 
-.no-sales p {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.6);
+.fsp-sold-text {
+    font-size: 3rem;
+    color: #ff6b35;
+    font-weight: 600;
+}
+
+/* Price Row */
+.fsp-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 4rem;
+}
+
+.fsp-prices {
+    display: flex;
+    flex-direction: column;
+}
+
+.fsp-sale-price {
+    font-size: 5rem;
+    font-weight: 700;
+    color: #e74c3c;
+}
+
+.fsp-original-price {
+    font-size: 3.4rem;
+    color: #999;
+    text-decoration: line-through;
+}
+
+/* Buy Button */
+.fsp-buy-btn {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    border: none;
+    padding: 2.4rem 4rem;
+    border-radius: 1.5rem;
+    font-weight: 600;
+    font-size: 3.4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.fsp-buy-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 16px 48px rgba(255, 107, 53, 0.4);
+}
+
+.fsp-discount-badge {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 0.6rem 1.6rem;
+    border-radius: 1rem;
+    font-size: 2.8rem;
 }
 
 /* Loading */
-.loading-container {
+.fsp-loading {
     text-align: center;
-    padding: 4rem 2rem;
+    padding: 16rem 8rem;
 }
 
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: 4px solid rgba(255, 255, 255, 0.1);
-    border-top-color: #f39c12;
+.fsp-spinner {
+    width: 200px;
+    height: 200px;
+    border: 16px solid #e0e0e0;
+    border-top-color: #ff6b35;
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1rem;
+    animation: fspSpin 1s linear infinite;
+    margin: 0 auto 4rem;
 }
 
-@keyframes spin {
+@keyframes fspSpin {
     to {
         transform: rotate(360deg);
     }
 }
 
+.fsp-loading p {
+    color: #666;
+    font-size: 4rem;
+}
+
+/* Empty State */
+.fsp-empty {
+    text-align: center;
+    padding: 16rem 8rem;
+    background: white;
+    border-radius: 4rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+.fsp-empty-icon {
+    font-size: 16rem;
+    display: block;
+    margin-bottom: 4rem;
+}
+
+.fsp-empty h3 {
+    margin: 0 0 2rem;
+    color: #333;
+    font-size: 5rem;
+}
+
+.fsp-empty p {
+    margin: 0 0 6rem;
+    color: #666;
+    font-size: 3.5rem;
+}
+
+.fsp-back-home {
+    display: inline-block;
+    color: #ff6b35;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 4rem;
+    transition: color 0.2s;
+}
+
+.fsp-back-home:hover {
+    color: #e55a2b;
+    text-decoration: underline;
+}
+
 /* Responsive */
-@media (max-width: 768px) {
-    .hero-content h1 {
-        font-size: 1.75rem;
+@media (max-width: 1024px) {
+    .fsp-hero-title {
+        font-size: 7rem;
     }
 
-    .flash-icon-large {
-        font-size: 2rem;
+    .fsp-flash-icon {
+        font-size: 7rem;
     }
 
-    .tabs-container {
+    .fsp-timer-bar {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .fsp-product-card {
         flex-direction: column;
     }
 
-    .countdown-item {
-        min-width: 40px;
-        padding: 0.4rem 0.5rem;
+    .fsp-product-image {
+        width: 100%;
+        height: 400px;
     }
 
-    .countdown-value {
-        font-size: 1.2rem;
+    .fsp-price-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 3rem;
     }
 
-    .products-grid {
-        grid-template-columns: repeat(2, 1fr);
+    .fsp-buy-btn {
+        justify-content: center;
     }
 }

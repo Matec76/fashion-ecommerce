@@ -1,6 +1,5 @@
 .order-tracking-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     padding: 40px 20px;
 }
 
@@ -67,7 +66,7 @@
     background: rgba(255, 255, 255, 0.2);
     border: none;
     border-radius: 20px;
-    color: white;
+    color: black;
     font-size: 14px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -78,8 +77,8 @@
 }
 
 .filter-btn.active {
-    background: white;
-    color: #667eea;
+    background: black;
+    color: white;
 }
 
 /* No Orders */
@@ -156,6 +155,20 @@
     padding: 8px 16px;
     border-radius: 20px;
     font-size: 14px;
+    font-weight: 600;
+    border: 1px solid;
+}
+
+.order-status-badges {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.payment-status-badge {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
     font-weight: 600;
     border: 1px solid;
 }
@@ -395,6 +408,23 @@
 
 .confirm-delivery-btn:hover {
     background: #218838;
+}
+
+.cancel-order-btn {
+    padding: 10px 20px;
+    background: transparent;
+    border: 2px solid #dc3545;
+    color: #dc3545;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.cancel-order-btn:hover {
+    background: #dc3545;
+    color: white;
 }
 
 /* Responsive */

@@ -13,7 +13,8 @@ const UserProfile = () => {
     const [loading, setLoading] = useState(true);
     const [editing, setEditing] = useState(false);
     const [formData, setFormData] = useState({
-        full_name: '',
+        first_name: '',
+        last_name: '',
         email: '',
         phone_number: '',
         date_of_birth: '',
@@ -26,8 +27,58 @@ const UserProfile = () => {
     const [referralCode, setReferralCode] = useState('');
     const [transactions, setTransactions] = useState([]);
     const [showTransactionsModal, setShowTransactionsModal] = useState(false);
+    const [avatarUploading, setAvatarUploading] = useState(false);
 
     const { patch, loading: patchLoading } = usePatch();
+
+    // Handle avatar upload
+    const handleAvatarUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Vui lòng chọn file ảnh!');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Ảnh không được vượt quá 5MB!');
+            return;
+        }
+
+        setAvatarUploading(true);
+
+        try {
+            const token = localStorage.getItem('authToken');
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Upload to backend
+            const uploadResponse = await fetch(`${API_BASE_URL}/users/me/avatar`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (uploadResponse.ok) {
+                const data = await uploadResponse.json();
+                setUser(prev => ({ ...prev, avatar_url: data.avatar_url }));
+                alert('Cập nhật ảnh đại diện thành công!');
+            } else {
+                const error = await uploadResponse.json();
+                alert(error.detail || 'Không thể tải ảnh lên!');
+            }
+        } catch (error) {
+            console.error('Error uploading avatar:', error);
+            alert('Có lỗi xảy ra khi tải ảnh!');
+        } finally {
+            setAvatarUploading(false);
+        }
+    };
 
     // Fetch user data
     useEffect(() => {
@@ -107,7 +158,8 @@ const UserProfile = () => {
                 const data = await response.json();
                 setUser(data);
                 setFormData({
-                    full_name: data.full_name || '',
+                    first_name: data.first_name || '',
+                    last_name: data.last_name || '',
                     email: data.email || '',
                     phone_number: data.phone_number || '',
                     date_of_birth: data.date_of_birth || '',
@@ -179,8 +231,29 @@ const UserProfile = () => {
             <div className="profile-container">
                 <div className="profile-header">
                     <div className="profile-avatar">
-                        <div className="avatar-circle">
-                            {user?.full_name?.charAt(0)?.toUpperCase() || 'U'}
+                        <div className="avatar-wrapper">
+                            {user?.avatar_url ? (
+                                <img
+                                    src={user.avatar_url}
+                                    alt="Avatar"
+                                    className="avatar-image"
+                                />
+                            ) : (
+                                <div className="avatar-circle">
+                                    {user?.first_name?.charAt(0)?.toUpperCase() || user?.last_name?.charAt(0)?.toUpperCase() || 'U'}
+                                </div>
+                            )}
+                            <label className="avatar-upload-btn" htmlFor="avatar-input">
+                                {avatarUploading ? 'Đang tải...' : 'Chỉnh sửa'}
+                            </label>
+                            <input
+                                type="file"
+                                id="avatar-input"
+                                accept="image/*"
+                                onChange={handleAvatarUpload}
+                                style={{ display: 'none' }}
+                                disabled={avatarUploading}
+                            />
                         </div>
                     </div>
                     <div className="profile-title">
@@ -227,16 +300,29 @@ const UserProfile = () => {
                             <form className="profile-form" onSubmit={handleSubmit}>
                                 <div className="form-row">
                                     <div className="form-group">
-                                        <label>Họ và tên</label>
+                                        <label>Họ</label>
                                         <input
                                             type="text"
-                                            name="full_name"
-                                            value={formData.full_name}
+                                            name="last_name"
+                                            value={formData.last_name}
                                             onChange={handleInputChange}
-                                            placeholder="Nguyễn Văn A"
+                                            placeholder="Nguyễn"
                                         />
                                     </div>
 
+                                    <div className="form-group">
+                                        <label>Tên</label>
+                                        <input
+                                            type="text"
+                                            name="first_name"
+                                            value={formData.first_name}
+                                            onChange={handleInputChange}
+                                            placeholder="Văn A"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-row">
                                     <div className="form-group">
                                         <label>Số điện thoại</label>
                                         <input
@@ -291,8 +377,12 @@ const UserProfile = () => {
                         ) : (
                             <div className="info-grid">
                                 <div className="info-item">
-                                    <span className="info-label">Họ và tên</span>
-                                    <span className="info-value">{user?.full_name || 'Chưa cập nhật'}</span>
+                                    <span className="info-label">Họ và Tên</span>
+                                    <span className="info-value">
+                                        {user?.last_name || user?.first_name
+                                            ? `${user?.last_name || ''} ${user?.first_name || ''}`.trim()
+                                            : 'Chưa cập nhật'}
+                                    </span>
                                 </div>
 
                                 <div className="info-item">
@@ -330,7 +420,7 @@ const UserProfile = () => {
                                         {defaultAddress ? (
                                             <>
                                                 {defaultAddress.street_address}, {defaultAddress.ward && `${defaultAddress.ward}, `}
-                                                {defaultAddress.district}, {defaultAddress.city}
+                                                {defaultAddress.city}
                                                 <button
                                                     className="manage-address-link"
                                                     onClick={() => navigate('/addresses')}

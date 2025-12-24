@@ -81,24 +81,7 @@ const HoiVien = () => {
             Nhận quyền truy cập tức thì vào các bản giới hạn, giảm giá đặc biệt và nhiều đặc quyền khác.
           </p>
 
-          {/* Current Status (if logged in) */}
-          {isLoggedIn && userLoyalty && (
-            <div className="user-loyalty-status">
-              <div className="loyalty-card compact">
-                <div className="loyalty-main">
-                  <div className="points-display">
-                    <span className="points-value">{formatPoints(userLoyalty.points_balance)}</span>
-                    <span className="points-label">điểm</span>
-                  </div>
-                  <div className="tier-info">
-                    <span className="tier-badge" data-tier={userLoyalty.tier?.tier_name?.toLowerCase()}>
-                      {TIER_ICONS[userLoyalty.tier?.tier_name?.toLowerCase()] || '🎖️'} {userLoyalty.tier?.tier_name || 'Bronze'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+
 
           {/* Tier Cards */}
           <div className="tiers-container">
@@ -154,7 +137,7 @@ const HoiVien = () => {
           {/* Leaderboard */}
           {leaderboard.length > 0 && (
             <div className="leaderboard-section">
-              <h2>🏆 Bảng xếp hạng</h2>
+              <h2>Bảng xếp hạng</h2>
               <table className="leaderboard-table">
                 <thead>
                   <tr>
@@ -167,7 +150,7 @@ const HoiVien = () => {
                   {leaderboard.map((user, index) => (
                     <tr key={user.user_id || index}>
                       <td className={`leaderboard-rank ${index < 3 ? `top-${index + 1}` : ''}`}>
-                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                        {index + 1}
                       </td>
                       <td className="leaderboard-name">
                         {user.full_name || user.email?.split('@')[0] || `User ${user.user_id}`}

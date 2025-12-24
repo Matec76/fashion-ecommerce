@@ -18,8 +18,8 @@ const AddressManagement = () => {
         phone_number: '',
         street_address: '',
         ward: '',
-        district: '',
         city: '',
+        postal_code: '',
         is_default: false
     });
 
@@ -40,6 +40,8 @@ const AddressManagement = () => {
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('📍 Addresses from API:', data);
+                console.log('📍 is_default values:', data.map(a => ({ id: a.address_id, is_default: a.is_default })));
                 setAddresses(data);
             } else if (response.status === 401) {
                 navigate('/login');
@@ -87,8 +89,8 @@ const AddressManagement = () => {
             phone_number: address.phone_number || '',
             street_address: address.street_address || '',
             ward: address.ward || '',
-            district: address.district || '',
             city: address.city || '',
+            postal_code: address.postal_code || '',
             is_default: address.is_default || false
         });
         setEditingId(address.address_id);
@@ -115,8 +117,10 @@ const AddressManagement = () => {
         );
 
         if (result.success) {
+            // Small delay to allow backend database commit
+            await new Promise(resolve => setTimeout(resolve, 300));
+            // Refresh addresses list
             await fetchAddresses();
-            alert('Đã đặt làm địa chỉ mặc định!');
         } else {
             alert(result.error || 'Không thể đặt làm mặc định!');
         }
@@ -128,8 +132,8 @@ const AddressManagement = () => {
             phone_number: '',
             street_address: '',
             ward: '',
-            district: '',
             city: '',
+            postal_code: '',
             is_default: false
         });
         setEditingId(null);
@@ -221,17 +225,6 @@ const AddressManagement = () => {
                                 </div>
 
                                 <div className="form-group">
-                                    <label>Quận/Huyện <span className="required">*</span></label>
-                                    <input
-                                        type="text"
-                                        name="district"
-                                        value={formData.district}
-                                        onChange={handleInputChange}
-                                        required
-                                    />
-                                </div>
-
-                                <div className="form-group">
                                     <label>Tỉnh/Thành phố <span className="required">*</span></label>
                                     <input
                                         type="text"
@@ -239,6 +232,16 @@ const AddressManagement = () => {
                                         value={formData.city}
                                         onChange={handleInputChange}
                                         required
+                                    />
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Mã bưu chính</label>
+                                    <input
+                                        type="text"
+                                        name="postal_code"
+                                        value={formData.postal_code}
+                                        onChange={handleInputChange}
                                     />
                                 </div>
                             </div>
@@ -292,10 +295,6 @@ const AddressManagement = () => {
                                 key={address.address_id}
                                 className={`address-card ${address.is_default ? 'default' : ''}`}
                             >
-                                {address.is_default && (
-                                    <div className="default-badge">Mặc định</div>
-                                )}
-
                                 <div className="address-info">
                                     <div className="recipient-info">
                                         <h3>{address.recipient_name}</h3>
@@ -305,7 +304,7 @@ const AddressManagement = () => {
                                     <div className="address-detail">
                                         <p>{address.street_address}</p>
                                         <p>
-                                            {[address.ward, address.district, address.city]
+                                            {[address.ward, address.city]
                                                 .filter(Boolean)
                                                 .join(', ')}
                                         </p>
@@ -313,7 +312,9 @@ const AddressManagement = () => {
                                 </div>
 
                                 <div className="address-actions">
-                                    {!address.is_default && (
+                                    {address.is_default ? (
+                                        <div className="default-badge">MẶC ĐỊNH</div>
+                                    ) : (
                                         <button
                                             className="action-btn set-default"
                                             onClick={() => handleSetDefault(address.address_id)}

@@ -27,7 +27,7 @@ import CollectionDetail from './pages/home/CollectionDetail';
 
 // Support pages
 import TrungTamHoTro from './pages/support/TrungTamHoTro';
-import TheoDoi from './pages/support/TheoDoi';
+
 import HoiVien from './pages/support/HoiVien';
 
 // Info pages
@@ -108,7 +108,7 @@ function App() {
             <Route path="/privacy" element={<ChinhSach />} />  {/* <-- Trang bị lỗi của bạn đây */}
             <Route path="/terms" element={<DieuKhoan />} />
             <Route path="/support" element={<TrungTamHoTro />} />
-            <Route path="/tracking" element={<TheoDoi />} />
+
             <Route path="/company" element={<CongTy />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />

@@ -1,6 +1,6 @@
 export const TOP_LINKS = Object.freeze([
   { to: '/support', label: 'TRỢ GIÚP' },
-  { to: '/tracking', label: 'THEO DÕI ĐƠN HÀNG' },
+  { to: '/orders', label: 'THEO DÕI ĐƠN HÀNG' },
   { to: '/member', label: 'ĐĂNG KÝ HỘI VIÊN' }
 ]);
 
@@ -33,7 +33,7 @@ export const FOOTER_SECTIONS = Object.freeze([
       { to: '#', label: 'Liên hệ' },
       { to: '/support', label: 'Câu hỏi thường gặp' },
       { to: '#', label: 'Chính sách đổi trả' },
-      { to: '/tracking', label: 'Tra cứu đơn hàng' }
+      { to: '/orders', label: 'Tra cứu đơn hàng' }
     ]
   },
   {

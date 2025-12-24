@@ -183,6 +183,7 @@ function SanPham() {
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [selectedGenders, setSelectedGenders] = useState(initialFilters.genders);
   const [categories, setCategories] = useState([]); // Dùng để map ID -> Tên danh mục
+  const [activeTab, setActiveTab] = useState('all'); // 'all', 'featured', 'best-sellers', 'new'
 
   // --- API 1: LẤY DANH MỤC (Để lấy tên loại sản phẩm) ---
   useEffect(() => {
@@ -208,34 +209,45 @@ function SanPham() {
   }, []);
 
   // --- API 2: LẤY DANH SÁCH SẢN PHẨM ---
-  const buildApiUrl = () => {
+  const apiUrl = useMemo(() => {
     const params = new URLSearchParams(location.search);
     const searchKeyword = params.get('search');
 
-    // Tối ưu: Nếu lọc "Hàng mới", gọi API chuyên biệt sẽ nhanh hơn
-    if (params.get('new') === 'true') {
-      return API_ENDPOINTS.PRODUCTS.NEW_ARRIVALS || '/api/v1/products/new-arrivals';
-    }
-
-    // Nếu có từ khóa tìm kiếm, thêm vào URL
+    // Nếu có từ khóa tìm kiếm, luôn gọi API search
     if (searchKeyword) {
       return `${API_ENDPOINTS.PRODUCTS.LIST}?search=${encodeURIComponent(searchKeyword)}`;
     }
 
-    // Mặc định gọi List
-    return API_ENDPOINTS.PRODUCTS.LIST;
-  };
+    // Chọn API dựa trên tab đang active
+    switch (activeTab) {
+      case 'featured':
+        return `${API_ENDPOINTS.PRODUCTS.FEATURED}?limit=50`;
+      case 'best-sellers':
+        return `${API_ENDPOINTS.PRODUCTS.BEST_SELLERS}?limit=50`;
+      case 'new':
+        return `${API_ENDPOINTS.PRODUCTS.NEW_ARRIVALS}?limit=50`;
+      default:
+        // Tab "Tất cả" hoặc khi có param new=true từ URL
+        if (params.get('new') === 'true') {
+          return API_ENDPOINTS.PRODUCTS.NEW_ARRIVALS;
+        }
+        return API_ENDPOINTS.PRODUCTS.LIST;
+    }
+  }, [activeTab, location.search]);
 
-  const { data, loading, error } = useFetch(buildApiUrl());
+  const { data, loading, error, refetch } = useFetch(apiUrl);
 
   // --- LOGIC LỌC SẢN PHẨM (Dùng useMemo để tối ưu hiệu năng) ---
   const filteredProducts = useMemo(() => {
+    // Safety check: return empty array if data is null/undefined
+    if (!data) return [];
+
     let rawProducts = [];
     if (Array.isArray(data)) rawProducts = data;
     else if (data?.items) rawProducts = data.items;
     else if (data?.data) rawProducts = data.data;
 
-    if (!rawProducts.length) return [];
+    if (!rawProducts || !rawProducts.length) return [];
 
     // 1. Chuẩn hóa dữ liệu (Mapping)
     // 1. Chuẩn hóa dữ liệu (Mapping)
@@ -387,6 +399,34 @@ function SanPham() {
 
         {/* MAIN CONTENT */}
         <main className="main-content">
+          {/* Category Tabs */}
+          <div className="category-tabs">
+            <button
+              className={`product-tab-btn ${activeTab === 'all' ? 'active' : ''}`}
+              onClick={() => setActiveTab('all')}
+            >
+              Tất cả
+            </button>
+            <button
+              className={`product-tab-btn ${activeTab === 'featured' ? 'active' : ''}`}
+              onClick={() => setActiveTab('featured')}
+            >
+              Nổi bật
+            </button>
+            <button
+              className={`product-tab-btn ${activeTab === 'best-sellers' ? 'active' : ''}`}
+              onClick={() => setActiveTab('best-sellers')}
+            >
+              Bán chạy
+            </button>
+            <button
+              className={`product-tab-btn ${activeTab === 'new' ? 'active' : ''}`}
+              onClick={() => setActiveTab('new')}
+            >
+              Mới
+            </button>
+          </div>
+
           <div className="product-count">
             {new URLSearchParams(location.search).get('search') ? (
               <p>Kết quả tìm kiếm "{new URLSearchParams(location.search).get('search')}": {filteredProducts.length} sản phẩm</p>

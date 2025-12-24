@@ -14,43 +14,36 @@ const OrderTracking = () => {
         'PENDING': {
             label: 'Chờ xác nhận',
             color: '#ffc107',
-            icon: '⏳',
             step: 1
         },
         'CONFIRMED': {
             label: 'Đã xác nhận',
             color: '#17a2b8',
-            icon: '✓',
             step: 2
         },
         'PROCESSING': {
             label: 'Đang xử lý',
             color: '#6f42c1',
-            icon: '📦',
             step: 2
         },
         'AWAITING_SHIPMENT': {
             label: 'Chờ vận chuyển',
             color: '#fd7e14',
-            icon: '📋',
             step: 3
         },
         'SHIPPED': {
             label: 'Đang vận chuyển',
             color: '#007bff',
-            icon: '🚚',
             step: 4
         },
         'DELIVERED': {
             label: 'Đã giao hàng',
             color: '#28a745',
-            icon: '✅',
             step: 5
         },
         'CANCELLED': {
             label: 'Đã hủy',
             color: '#dc3545',
-            icon: '❌',
             step: 0
         }
     };
@@ -111,9 +104,46 @@ const OrderTracking = () => {
         return statusConfig[status] || {
             label: status,
             color: '#6c757d',
-            icon: '•',
             step: 0
         };
+    };
+
+    const handleCancelOrder = async (orderId, paymentStatus) => {
+        // Different confirm message for paid orders
+        const isPaid = paymentStatus === 'COMPLETED';
+        const confirmMessage = isPaid
+            ? 'Đơn hàng này đã được thanh toán. Bạn có chắc chắn muốn hủy đơn hàng này không?'
+            : 'Bạn có chắc chắn muốn hủy đơn hàng này?';
+
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        const token = localStorage.getItem('authToken');
+        try {
+            const response = await fetch(API_ENDPOINTS.ORDERS.CANCEL_ORDER(orderId), {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                // Different success message for paid orders
+                if (isPaid) {
+                    alert('Hủy đơn hàng thành công! Bạn sẽ được hoàn tiền trong vòng 1 tuần.');
+                } else {
+                    alert('Đã hủy đơn hàng thành công!');
+                }
+                fetchOrders(); // Refresh orders
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Không thể hủy đơn hàng');
+            }
+        } catch (err) {
+            console.error('Error cancelling order:', err);
+            alert('Lỗi kết nối server');
+        }
     };
 
     const filteredOrders = selectedStatus === 'all'
@@ -165,7 +195,7 @@ const OrderTracking = () => {
                                 onClick={() => setSelectedStatus(key)}
                                 style={{ '--btn-color': config.color }}
                             >
-                                {config.icon} {config.label} ({count})
+                                {config.label} ({count})
                             </button>
                         );
                     })}
@@ -174,7 +204,7 @@ const OrderTracking = () => {
                 {/* Orders List */}
                 {filteredOrders.length === 0 ? (
                     <div className="no-orders">
-                        <div className="empty-icon">📦</div>
+
                         <p>Không có đơn hàng nào</p>
                         <Link to="/product" className="shop-btn">Mua sắm ngay</Link>
                     </div>
@@ -190,15 +220,29 @@ const OrderTracking = () => {
                                             <span className="order-number">{order.order_number}</span>
                                             <span className="order-date">{formatDate(order.created_at)}</span>
                                         </div>
-                                        <div
-                                            className="order-status"
-                                            style={{
-                                                backgroundColor: `${statusInfo.color}20`,
-                                                color: statusInfo.color,
-                                                borderColor: statusInfo.color
-                                            }}
-                                        >
-                                            {statusInfo.icon} {statusInfo.label}
+                                        <div className="order-status-badges">
+                                            {/* Payment Status */}
+                                            <div
+                                                className="payment-status-badge"
+                                                style={{
+                                                    backgroundColor: order.payment_status === 'COMPLETED' ? '#d4edda' : '#fff3cd',
+                                                    color: order.payment_status === 'COMPLETED' ? '#28a745' : '#856404',
+                                                    borderColor: order.payment_status === 'COMPLETED' ? '#28a745' : '#ffc107'
+                                                }}
+                                            >
+                                                {order.payment_status === 'COMPLETED' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                                            </div>
+                                            {/* Order Status */}
+                                            <div
+                                                className="order-status"
+                                                style={{
+                                                    backgroundColor: `${statusInfo.color}20`,
+                                                    color: statusInfo.color,
+                                                    borderColor: statusInfo.color
+                                                }}
+                                            >
+                                                {statusInfo.label}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -275,6 +319,14 @@ const OrderTracking = () => {
                                             <span className="total-amount">{formatPrice(order.total_amount)}</span>
                                         </div>
                                         <div className="order-actions">
+                                            {order.order_status === 'PENDING' && (
+                                                <button
+                                                    className="cancel-order-btn"
+                                                    onClick={() => handleCancelOrder(order.order_id, order.payment_status)}
+                                                >
+                                                    Hủy đơn
+                                                </button>
+                                            )}
                                             <Link
                                                 to={`/order/${order.order_id}`}
                                                 className="view-detail-btn"

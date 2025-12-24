@@ -82,7 +82,6 @@ const ResetPassword = () => {
             <h1 className="login-brand-title">STYLEX</h1>
 
             <div className="login-glass-container">
-                <h2>ĐẶT LẠI MẬT KHẨU</h2>
 
                 {success ? (
                     <div style={{ textAlign: 'center' }}>
@@ -129,14 +128,6 @@ const ResetPassword = () => {
                     </div>
                 ) : (
                     <>
-                        <p style={{
-                            color: '#666',
-                            fontSize: '14px',
-                            textAlign: 'center',
-                            marginBottom: '25px'
-                        }}>
-                            Nhập mật khẩu mới cho tài khoản của bạn.
-                        </p>
 
                         <form onSubmit={handleSubmit}>
                             <div className="login-input-group">
