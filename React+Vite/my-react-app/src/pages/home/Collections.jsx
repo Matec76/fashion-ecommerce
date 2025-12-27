@@ -90,9 +90,7 @@ const Collections = () => {
                                                 className="collection-image"
                                             />
                                         ) : (
-                                            <div className="collection-no-image">
-                                                <span>🎨</span>
-                                            </div>
+                                            <div className="collection-no-image"></div>
                                         )}
                                         <div className="collection-overlay">
                                             <span className="collection-view-btn">Xem bộ sưu tập</span>

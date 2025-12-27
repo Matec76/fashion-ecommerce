@@ -51,15 +51,19 @@ const Login = ({ onLoginSuccess }) => {
       });
 
       const result = await response.json();
+      console.log('Login API response:', result);
+      console.log('access_token:', result.access_token);
 
       if (response.ok && result.access_token) {
-        // 1. Lưu token
-        // Lưu ý: Đảm bảo functions saveAuthTokens/saveUser có tồn tại trong utils
+        // 1. Lưu token - ALWAYS save to localStorage first
+        console.log('Saving authToken to localStorage...');
+        localStorage.setItem('authToken', result.access_token);
+        localStorage.setItem('refreshToken', result.refresh_token || '');
+        console.log('authToken saved:', localStorage.getItem('authToken'));
+
+        // Also call saveAuthTokens if available
         if (typeof saveAuthTokens === 'function') {
           saveAuthTokens(result.access_token, result.refresh_token || '');
-        } else {
-          // Fallback nếu chưa có utils: Lưu localStorage thủ công
-          localStorage.setItem('authToken', result.access_token);
         }
 
         // 2. Lấy thông tin User

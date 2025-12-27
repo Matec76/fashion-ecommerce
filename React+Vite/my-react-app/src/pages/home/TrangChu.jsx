@@ -52,10 +52,78 @@ const CountdownTimer = ({ endDate }) => {
 
 const TrangChu = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isEmailVerified, setIsEmailVerified] = useState(true); // Default true to hide section initially
   const intervalRef = useRef(null);
+  const [flashSales, setFlashSales] = useState([]);
+  const [flashLoading, setFlashLoading] = useState(true);
 
-  // Fetch Flash Sales data
-  const { data: flashSales, loading: flashLoading } = useFetch(API_ENDPOINTS.FLASH_SALES.ACTIVE);
+  // Fetch Flash Sales data by ID (since /active may be empty)
+  // TODO: Uncomment khi có dữ liệu flash sales trong database
+  /*
+  useEffect(() => {
+    const fetchFlashSales = async () => {
+      setFlashLoading(true);
+      const fetchedSales = [];
+
+      try {
+        // Fetch flash sales by ID (1, 2, 3...)
+        for (let id = 1; id <= 5; id++) {
+          try {
+            const response = await fetch(API_ENDPOINTS.FLASH_SALES.DETAIL(id));
+            if (response.ok) {
+              const data = await response.json();
+              if (data && data.products && data.products.length > 0) {
+                fetchedSales.push(data);
+              }
+            }
+          } catch (err) {
+            // Flash sale with this ID doesn't exist
+          }
+        }
+        setFlashSales(fetchedSales);
+      } catch (error) {
+        console.error('Error fetching flash sales:', error);
+      } finally {
+        setFlashLoading(false);
+      }
+    };
+
+    fetchFlashSales();
+  }, []);
+  */
+
+  // Tạm thời set loading = false vì đã comment đoạn fetch
+  useEffect(() => {
+    setFlashLoading(false);
+  }, []);
+
+  // Fetch most viewed products
+  const { data: mostViewed, loading: mostViewedLoading } = useFetch(`${API_ENDPOINTS.ANALYTICS.MOST_VIEWED_PRODUCTS}?limit=4&days=7`);
+
+  // Check email verification status
+  useEffect(() => {
+    const checkVerification = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        setIsEmailVerified(true); // Hide for non-logged in users
+        return;
+      }
+
+      try {
+        const response = await fetch(API_ENDPOINTS.AUTH.ME, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setIsEmailVerified(data.is_email_verified || false);
+        }
+      } catch (error) {
+        console.error('Error checking verification:', error);
+      }
+    };
+
+    checkVerification();
+  }, []);
 
   const heroImages = useMemo(() => [
     'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600',
@@ -97,8 +165,8 @@ const TrangChu = () => {
     return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
   };
 
-  // Get first active flash sale
-  const activeFlashSale = flashSales && flashSales.length > 0 ? flashSales[0] : null;
+  // Get first flash sale with products
+  const activeFlashSale = flashSales.length > 0 ? flashSales[0] : null;
 
   return (
     <div className="homepage-container">
@@ -150,11 +218,10 @@ const TrangChu = () => {
             <div className="fs-header">
               <div className="fs-title-group">
                 <h2 className="fs-title">
-                  <span className="fs-icon">⚡</span>
                   Flash Sale
                 </h2>
                 {activeFlashSale && (
-                  <span className="fs-badge">Giảm đến {activeFlashSale.discount_percent}%</span>
+                  <span className="fs-badge">Giảm đến {parseFloat(activeFlashSale.discount_value) || 0}%</span>
                 )}
               </div>
               <div className="fs-timer-group">
@@ -169,34 +236,41 @@ const TrangChu = () => {
               <div className="fs-loading">Đang tải...</div>
             ) : activeFlashSale && activeFlashSale.products && activeFlashSale.products.length > 0 ? (
               <div className="fs-products-grid">
-                {activeFlashSale.products.slice(0, 4).map((product, index) => (
-                  <Link
-                    to={`/products/${product.slug || product.product_id}`}
-                    key={product.product_id}
-                    className="fs-product-card"
-                  >
-                    <div className="fs-product-image">
-                      {product.image_url ? (
-                        <img src={product.image_url} alt={product.product_name} />
-                      ) : (
-                        <div className="fs-no-image">📷</div>
-                      )}
-                      <span className="fs-discount-badge">{activeFlashSale.discount_percent}%</span>
-                      {index === 0 && <span className="fs-hot-badge">Hot</span>}
-                    </div>
-                    <div className="fs-product-info">
-                      <p className="fs-product-name">{product.product_name}</p>
-                      <div className="fs-price-row">
-                        <span className="fs-sale-price">
-                          {formatPrice(product.base_price * (1 - activeFlashSale.discount_percent / 100))}
-                        </span>
-                        <span className="fs-original-price">
-                          {formatPrice(product.base_price)}
-                        </span>
+                {activeFlashSale.products.slice(0, 4).map((product, index) => {
+                  const originalPrice = parseFloat(product.price) || 0;
+                  const discountValue = parseFloat(activeFlashSale.discount_value) || 0;
+                  const salePrice = originalPrice * (1 - discountValue / 100);
+                  const productImage = product.images && product.images.length > 0 ? product.images[0] : null;
+
+                  return (
+                    <Link
+                      to={`/products/${product.product_slug || product.product_id}`}
+                      key={product.product_id}
+                      className="fs-product-card"
+                    >
+                      <div className="fs-product-image">
+                        {productImage ? (
+                          <img src={productImage} alt={product.product_name} />
+                        ) : (
+                          <div className="fs-no-image"></div>
+                        )}
+                        <span className="fs-discount-badge">{discountValue}%</span>
+                        {index === 0 && <span className="fs-hot-badge">Hot</span>}
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                      <div className="fs-product-info">
+                        <p className="fs-product-name">{product.product_name}</p>
+                        <div className="fs-price-row">
+                          <span className="fs-sale-price">
+                            {formatPrice(salePrice)}
+                          </span>
+                          <span className="fs-original-price">
+                            {formatPrice(originalPrice)}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <div className="fs-empty">
@@ -208,6 +282,43 @@ const TrangChu = () => {
             )}
           </div>
         </section>
+
+        {/* Most Viewed Products Section */}
+        {mostViewed && mostViewed.length > 0 && (
+          <section className="most-viewed-section">
+            <div className="container">
+              <div className="section-header">
+                <h2 className="section-title">🔥 Đang Xu Hướng</h2>
+                <Link to="/product" className="view-all">Xem tất cả →</Link>
+              </div>
+
+              {mostViewedLoading ? (
+                <div className="loading-grid">Đang tải...</div>
+              ) : (
+                <div className="products-grid">
+                  {mostViewed.map((product) => (
+                    <Link
+                      to={`/product/${product.slug}`}
+                      key={product.id}
+                      className="product-card"
+                    >
+                      <div className="product-image">
+                        <img src={product.thumbnail_url || product.image_url} alt={product.name} />
+                      </div>
+                      <div className="product-info">
+                        <h3 className="product-name">{product.name}</h3>
+                        <div className="product-price">{formatPrice(product.price)}</div>
+                        <div className="product-views">
+                          <span>👁️ {product.view_count || product.total_views || 0} lượt xem</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
 
         <section className="featured-section">
@@ -242,18 +353,21 @@ const TrangChu = () => {
           </div>
         </section>
 
-        <section className="club-section">
-          <div className="club-container">
-            <h2>TRỞ THÀNH HỘI VIÊN</h2>
-            <p>
-              Đăng ký ngay để nhận ưu đãi độc quyền, quyền truy cập sớm và những phần quà đặc biệt.
-            </p>
-            <Link to="/member" className="join-btn">
-              Tham gia miễn phí
-              <span>&#8594;</span>
-            </Link>
-          </div>
-        </section>
+        {/* Only show for unverified users */}
+        {!isEmailVerified && (
+          <section className="club-section">
+            <div className="club-container">
+              <h2>TRỞ THÀNH HỘI VIÊN</h2>
+              <p>
+                Đăng ký ngay để nhận ưu đãi độc quyền, quyền truy cập sớm và những phần quà đặc biệt.
+              </p>
+              <Link to="/loyalty" className="join-btn">
+                Tham gia miễn phí
+                <span>&#8594;</span>
+              </Link>
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

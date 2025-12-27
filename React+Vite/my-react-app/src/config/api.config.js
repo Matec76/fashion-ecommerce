@@ -87,6 +87,7 @@ export const API_ENDPOINTS = {
         CREATE: `${API_BASE_URL}/orders`,
         DETAIL: (id) => `${API_BASE_URL}/orders/${id}`,
         MY_ORDERS: `${API_BASE_URL}/orders/me`,
+        MY_ORDER_DETAIL: (id) => `${API_BASE_URL}/orders/me/${id}`,
         SHIPPING_METHODS: `${API_BASE_URL}/orders/shipping-methods/all`,
         PAYOS_RETURN: `${API_BASE_URL}/orders/payment/payos/return`,
 
@@ -103,6 +104,7 @@ export const API_ENDPOINTS = {
         DELETE: (reviewId) => `${API_BASE_URL}/reviews/${reviewId}`,
         HELPFUL: (reviewId) => `${API_BASE_URL}/reviews/${reviewId}/helpful`,
         MY_REVIEWS: `${API_BASE_URL}/reviews/me/reviews`,
+        UPLOAD_IMAGE: `${API_BASE_URL}/reviews/upload-image`,
     },
 
     // Questions (Q&A)
@@ -189,7 +191,8 @@ export const API_ENDPOINTS = {
             MY_CODE: `${API_BASE_URL}/loyalty/referrals/my-code`,
             MY_REFERRALS: `${API_BASE_URL}/loyalty/referrals/my-referrals`,
             STATS: `${API_BASE_URL}/loyalty/referrals/stats`,
-            APPLY: (code) => `${API_BASE_URL}/loyalty/referrals/apply?referral_code=${code}`,
+            STATUS: `${API_BASE_URL}/loyalty/referrals/status`,
+            CLAIM: `${API_BASE_URL}/loyalty/referrals/claim`,
         },
     },
 
@@ -208,6 +211,16 @@ export const API_ENDPOINTS = {
         UPDATE_ITEM: (itemId) => `${API_BASE_URL}/wishlist/items/${itemId}`,
         REMOVE_ITEM: (itemId) => `${API_BASE_URL}/wishlist/items/${itemId}`,
         MOVE_ITEM: (itemId) => `${API_BASE_URL}/wishlist/items/${itemId}/move`,
+    },
+
+    // Analytics
+    ANALYTICS: {
+        RECENTLY_VIEWED: `${API_BASE_URL}/analytics/me/recently-viewed`,
+        SEARCH_HISTORY: `${API_BASE_URL}/analytics/me/search-history`,
+        POPULAR_SEARCHES: `${API_BASE_URL}/analytics/popular-searches`,
+        MOST_VIEWED_PRODUCTS: `${API_BASE_URL}/analytics/most-viewed-products`,
+        DASHBOARD: `${API_BASE_URL}/analytics/dashboard`,
+        SEARCH_ANALYTICS: `${API_BASE_URL}/analytics/search/analytics`,
     },
 };
 

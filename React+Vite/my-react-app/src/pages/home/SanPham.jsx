@@ -105,25 +105,6 @@ const ProductCard = memo(({ product }) => {
       <div className="product-card">
         {product.isNew && <span className="new-badge">NEW</span>}
 
-        <button
-          className={`wishlist-icon-btn ${isInWishlist ? 'active' : ''}`}
-          onClick={handleWishlistClick}
-          disabled={wishlistLoading}
-          title={isInWishlist ? 'Xóa khỏi yêu thích' : 'Thêm vào yêu thích'}
-        >
-          {wishlistLoading ? (
-            <span className="loading-dot">•</span>
-          ) : isInWishlist ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#e74c3c" stroke="#e74c3c">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-            </svg>
-          )}
-        </button>
-
         <div className="product-image">
           {loading ? (
             // Hiệu ứng Skeleton khi đang tải ảnh
@@ -142,9 +123,22 @@ const ProductCard = memo(({ product }) => {
         <div className="product-info">
           <h3 className="product-name">{product.name}</h3>
           <p className="product-type">{product.type}</p>
-          <p className="product-price">
-            {product.price?.toLocaleString('vi-VN')}₫
-          </p>
+          <div className="product-price-wrapper">
+            {product.salePrice ? (
+              <>
+                <span className="product-sale-price">
+                  {product.salePrice.toLocaleString('vi-VN')}₫
+                </span>
+                <span className="product-base-price-strikethrough">
+                  {product.basePrice.toLocaleString('vi-VN')}₫
+                </span>
+              </>
+            ) : (
+              <span className="product-price">
+                {product.basePrice.toLocaleString('vi-VN')}₫
+              </span>
+            )}
+          </div>
         </div>
       </div>
     </Link>
@@ -184,6 +178,7 @@ function SanPham() {
   const [selectedGenders, setSelectedGenders] = useState(initialFilters.genders);
   const [categories, setCategories] = useState([]); // Dùng để map ID -> Tên danh mục
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'featured', 'best-sellers', 'new'
+  const [priceSort, setPriceSort] = useState('none'); // 'none', 'asc', 'desc'
 
   // --- API 1: LẤY DANH MỤC (Để lấy tên loại sản phẩm) ---
   useEffect(() => {
@@ -266,7 +261,8 @@ function SanPham() {
         id: p.product_id || p.id,
         slug: p.slug,
         name: p.product_name || p.name,
-        price: typeof p.base_price === 'string' ? parseFloat(p.base_price) : (p.base_price || 0),
+        basePrice: typeof p.base_price === 'string' ? parseFloat(p.base_price) : (p.base_price || 0),
+        salePrice: p.sale_price ? (typeof p.sale_price === 'string' ? parseFloat(p.sale_price) : p.sale_price) : null,
         isNew: p.is_new_arrival || false,
         gender: (() => {
           const g = (p.gender || '').toUpperCase();
@@ -279,7 +275,7 @@ function SanPham() {
     });
 
     // 2. Thực hiện lọc
-    return normalized.filter(product => {
+    let filtered = normalized.filter(product => {
       // Lọc Giới tính
       if (selectedGenders.length > 0 && !selectedGenders.includes(product.gender)) return false;
 
@@ -306,7 +302,16 @@ function SanPham() {
 
       return true;
     });
-  }, [data, categories, selectedGenders, selectedTypes, selectedSizes, location.search]);
+
+    // 3. Sắp xếp theo giá (nếu có)
+    if (priceSort === 'asc') {
+      filtered = [...filtered].sort((a, b) => a.price - b.price);
+    } else if (priceSort === 'desc') {
+      filtered = [...filtered].sort((a, b) => b.price - a.price);
+    }
+
+    return filtered;
+  }, [data, categories, selectedGenders, selectedTypes, selectedSizes, priceSort, location.search]);
 
   // --- PAGINATION LOGIC ---
   const [currentPage, setCurrentPage] = useState(1);
@@ -331,6 +336,15 @@ function SanPham() {
   // Helper toggle
   const toggleFilter = (state, setState, value) => {
     setState(prev => prev.includes(value) ? prev.filter(i => i !== value) : [...prev, value]);
+  };
+
+  // Toggle price sort: none -> asc -> desc -> none
+  const togglePriceSort = () => {
+    setPriceSort(prev => {
+      if (prev === 'none') return 'asc';
+      if (prev === 'asc') return 'desc';
+      return 'none';
+    });
   };
 
   // --- RENDER UI ---
@@ -372,17 +386,27 @@ function SanPham() {
             <div className="filter-group">
               <h4>Loại sản phẩm</h4>
               <div className="filter-options">
-                {/* Danh sách các loại sản phẩm phổ biến */}
-                {['Giày', 'Quần', 'Áo', 'Đầm', 'Váy', 'Phụ kiện'].map(type => (
-                  <label key={type} className="filter-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={selectedTypes.includes(type)}
-                      onChange={() => toggleFilter(selectedTypes, setSelectedTypes, type)}
-                    />
-                    <span>{type}</span>
-                  </label>
-                ))}
+                {/* Danh sách các loại sản phẩm từ API (chỉ lấy child categories) */}
+                {categories.length > 0 ? (
+                  // Lọc chỉ lấy categories có parent (child categories)
+                  // Và lấy unique type names (bỏ suffix Nam/Nữ)
+                  [...new Set(
+                    categories
+                      .filter(cat => cat.parent_category_id !== null)
+                      .map(cat => cat.category_name.replace(/\s*(Nam|Nữ)$/i, '').trim())
+                  )].map(typeName => (
+                    <label key={typeName} className="filter-checkbox">
+                      <input
+                        type="checkbox"
+                        checked={selectedTypes.includes(typeName)}
+                        onChange={() => toggleFilter(selectedTypes, setSelectedTypes, typeName)}
+                      />
+                      <span>{typeName}</span>
+                    </label>
+                  ))
+                ) : (
+                  <span className="loading-text">Đang tải...</span>
+                )}
               </div>
             </div>
             {/* Nút xóa */}
@@ -424,6 +448,22 @@ function SanPham() {
               onClick={() => setActiveTab('new')}
             >
               Mới
+            </button>
+            <button
+              className="product-tab-btn price-sort-btn"
+              onClick={togglePriceSort}
+              title={priceSort === 'none' ? 'Sắp xếp theo giá' : priceSort === 'asc' ? 'Giá tăng dần' : 'Giá giảm dần'}
+              style={{ display: 'inline-flex', alignItems: 'center' }}
+            >
+              Giá
+              {priceSort === 'none' && (
+                <span style={{ marginLeft: '6px', display: 'inline-flex', flexDirection: 'column', fontSize: '10px', gap: '1px' }}>
+                  <span style={{ lineHeight: '1' }}>▲</span>
+                  <span style={{ lineHeight: '1' }}>▼</span>
+                </span>
+              )}
+              {priceSort === 'asc' && <span style={{ marginLeft: '6px', fontSize: '11px' }}>▲</span>}
+              {priceSort === 'desc' && <span style={{ marginLeft: '6px', fontSize: '11px' }}>▼</span>}
             </button>
           </div>
 

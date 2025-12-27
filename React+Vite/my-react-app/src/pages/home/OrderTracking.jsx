@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../config/api.config';
 import '../../style/OrderTracking.css';
 
 const OrderTracking = () => {
+    const { orderId } = useParams(); // Get orderId from URL if viewing single order
     const [orders, setOrders] = useState([]);
+    const [selectedOrder, setSelectedOrder] = useState(null); // For detail view
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedStatus, setSelectedStatus] = useState('all');
@@ -41,6 +43,11 @@ const OrderTracking = () => {
             color: '#28a745',
             step: 5
         },
+        'COMPLETED': {
+            label: 'Hoàn thành',
+            color: '#28a745',
+            step: 5
+        },
         'CANCELLED': {
             label: 'Đã hủy',
             color: '#dc3545',
@@ -49,8 +56,40 @@ const OrderTracking = () => {
     };
 
     useEffect(() => {
-        fetchOrders();
-    }, []);
+        if (orderId) {
+            fetchOrderDetail(orderId);
+        } else {
+            fetchOrders();
+        }
+    }, [orderId]);
+
+    const fetchOrderDetail = async (id) => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            setError('Vui lòng đăng nhập để xem đơn hàng');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const response = await fetch(API_ENDPOINTS.ORDERS.MY_ORDER_DETAIL(id), {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Order detail fetched:', data);
+                setSelectedOrder(data);
+            } else {
+                setError('Không thể tải thông tin đơn hàng');
+            }
+        } catch (err) {
+            console.error('Error fetching order detail:', err);
+            setError('Lỗi kết nối server');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchOrders = async () => {
         const token = localStorage.getItem('authToken');
@@ -167,6 +206,131 @@ const OrderTracking = () => {
                 <div className="error-container">
                     <p>{error}</p>
                     <Link to="/login" className="login-btn">Đăng nhập</Link>
+                </div>
+            </div>
+        );
+    }
+
+    // Order Detail View
+    if (orderId && selectedOrder) {
+        const statusInfo = getStatusInfo(selectedOrder.order_status);
+        return (
+            <div className="order-tracking-page">
+                <div className="order-tracking-container">
+                    <div className="order-detail-header">
+                        <Link to="/orders" className="back-btn">← Quay lại</Link>
+                        <h1>Chi tiết đơn hàng</h1>
+                    </div>
+
+                    <div className="order-detail-card">
+                        {/* Order Info */}
+                        <div className="order-detail-info">
+                            <div className="detail-row">
+                                <span className="label">Mã đơn hàng:</span>
+                                <span className="value">{selectedOrder.order_number}</span>
+                            </div>
+                            <div className="detail-row">
+                                <span className="label">Ngày đặt:</span>
+                                <span className="value">{formatDate(selectedOrder.created_at)}</span>
+                            </div>
+                            <div className="detail-row">
+                                <span className="label">Trạng thái:</span>
+                                <span className="status-badge" style={{
+                                    backgroundColor: `${statusInfo.color}20`,
+                                    color: statusInfo.color
+                                }}>
+                                    {statusInfo.label}
+                                </span>
+                            </div>
+                            <div className="detail-row">
+                                <span className="label">Thanh toán:</span>
+                                <span className={`payment-badge ${selectedOrder.payment_status === 'COMPLETED' ? 'paid' : 'unpaid'}`}>
+                                    {selectedOrder.payment_status === 'COMPLETED' ? 'Đã thanh toán' : 'Chưa thanh toán'}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Progress Tracker */}
+                        <div className="progress-tracker">
+                            <div className="progress-steps">
+                                {['Đặt hàng', 'Xác nhận', 'Chờ gửi', 'Đang giao', 'Hoàn thành'].map((step, index) => {
+                                    const stepNum = index + 1;
+                                    const isCompleted = statusInfo.step >= stepNum;
+                                    const isCurrent = statusInfo.step === stepNum;
+                                    const isCancelled = selectedOrder.order_status === 'CANCELLED';
+
+                                    return (
+                                        <div
+                                            key={index}
+                                            className={`progress-step ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''} ${isCancelled ? 'cancelled' : ''}`}
+                                        >
+                                            <div className="step-dot">
+                                                {isCompleted ? '✓' : stepNum}
+                                            </div>
+                                            <span className="step-label">{step}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Shipping Address */}
+                        {selectedOrder.shipping_snapshot && (
+                            <div className="order-section">
+                                <h3>Địa chỉ giao hàng</h3>
+                                <p><strong>{selectedOrder.shipping_snapshot.recipient_name}</strong></p>
+                                <p>{selectedOrder.shipping_snapshot.phone_number}</p>
+                                <p>{selectedOrder.shipping_snapshot.street_address}, {selectedOrder.shipping_snapshot.ward}, {selectedOrder.shipping_snapshot.city}</p>
+                            </div>
+                        )}
+
+                        {/* Order Items */}
+                        <div className="order-section">
+                            <h3>Sản phẩm</h3>
+                            <div className="order-items-detail">
+                                {(selectedOrder.items || []).map((item, index) => (
+                                    <div key={index} className="order-item-detail">
+                                        <div className="item-image">
+                                            <img src={item.product_image || '/placeholder.jpg'} alt={item.product_name} />
+                                        </div>
+                                        <div className="item-info">
+                                            <span className="item-name">{item.product_name}</span>
+                                            <span className="item-variant">
+                                                {item.color && `Màu: ${item.color}`}
+                                                {item.size && ` | Size: ${item.size}`}
+                                            </span>
+                                            <span className="item-qty">Số lượng: {item.quantity}</span>
+                                        </div>
+                                        <div className="item-price">{formatPrice(item.price || item.subtotal / item.quantity)}</div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Order Summary */}
+                        <div className="order-summary-detail">
+                            <div className="summary-row">
+                                <span>Tạm tính:</span>
+                                <span>{formatPrice(selectedOrder.subtotal || selectedOrder.total_amount)}</span>
+                            </div>
+                            <div className="summary-row">
+                                <span>Phí vận chuyển:</span>
+                                <span>{formatPrice(selectedOrder.shipping_fee || 0)}</span>
+                            </div>
+                            {selectedOrder.discount_amount > 0 && (
+                                <div className="summary-row discount">
+                                    <span>Giảm giá:</span>
+                                    <span>-{formatPrice(selectedOrder.discount_amount)}</span>
+                                </div>
+                            )}
+                            <div className="summary-row total">
+                                <span>Tổng cộng:</span>
+                                <span className="total-amount">{formatPrice(selectedOrder.total_amount)}</span>
+                            </div>
+                        </div>
+
+
+                    </div>
                 </div>
             </div>
         );

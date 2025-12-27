@@ -1,22 +1,63 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { API_ENDPOINTS } from '../../config/api.config';
-import { useFetch } from '../../components/useFetch';
+import { API_ENDPOINTS, getAuthHeaders } from '../../config/api.config';
 import '../../style/FlashSales.css';
+
+const PRODUCTS_PER_PAGE = 18;
 
 const FlashSales = () => {
     const [activeTab, setActiveTab] = useState('active');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [flashSales, setFlashSales] = useState([]);
+    const [upcomingFlashSales, setUpcomingFlashSales] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    // Fetch flash sales data
-    const {
-        data: activeFlashSales,
-        loading: activeLoading
-    } = useFetch(API_ENDPOINTS.FLASH_SALES.ACTIVE);
+    // Fetch flash sales data by ID
+    useEffect(() => {
+        const fetchFlashSales = async () => {
+            setLoading(true);
+            const fetchedSales = [];
 
-    const {
-        data: upcomingFlashSales,
-        loading: upcomingLoading
-    } = useFetch(API_ENDPOINTS.FLASH_SALES.UPCOMING);
+            try {
+                // Fetch flash sales by ID (1, 2, 3...)
+                for (let id = 1; id <= 10; id++) {
+                    try {
+                        const response = await fetch(API_ENDPOINTS.FLASH_SALES.DETAIL(id), {
+                            headers: getAuthHeaders()
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data && data.products && data.products.length > 0) {
+                                fetchedSales.push(data);
+                            }
+                        }
+                    } catch (err) {
+                        // Flash sale with this ID doesn't exist, continue
+                    }
+                }
+                setFlashSales(fetchedSales);
+
+                // Fetch upcoming flash sales from API
+                try {
+                    const upcomingResponse = await fetch(API_ENDPOINTS.FLASH_SALES.UPCOMING, {
+                        headers: getAuthHeaders()
+                    });
+                    if (upcomingResponse.ok) {
+                        const upcomingData = await upcomingResponse.json();
+                        setUpcomingFlashSales(upcomingData || []);
+                    }
+                } catch (err) {
+                    console.error('Error fetching upcoming flash sales:', err);
+                }
+            } catch (error) {
+                console.error('Error fetching flash sales:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchFlashSales();
+    }, []);
 
     const formatPrice = (price) => {
         return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
@@ -61,32 +102,29 @@ const FlashSales = () => {
 
     // Product Card Component
     const ProductCard = ({ product, discountPercent }) => {
-        const salePrice = product.base_price * (1 - discountPercent / 100);
-        const soldPercent = product.sold_quantity && product.stock_quantity
-            ? Math.min(Math.round((product.sold_quantity / (product.sold_quantity + product.stock_quantity)) * 100), 100)
-            : Math.floor(Math.random() * 60) + 40; // Mock data for demo
+        const originalPrice = parseFloat(product.price) || 0;
+        const salePrice = originalPrice * (1 - discountPercent / 100);
+        const soldPercent = product.quantity_sold && product.quantity_limit
+            ? Math.min(Math.round((product.quantity_sold / product.quantity_limit) * 100), 100)
+            : Math.floor(Math.random() * 60) + 40;
+        const productImage = product.images && product.images.length > 0 ? product.images[0] : null;
 
         return (
             <Link
-                to={`/products/${product.slug || product.product_id}`}
+                to={`/products/${product.product_slug || product.product_id}`}
                 className="fsp-product-card"
             >
                 <div className="fsp-product-image">
-                    {product.image_url ? (
-                        <img src={product.image_url} alt={product.product_name} />
+                    {productImage ? (
+                        <img src={productImage} alt={product.product_name} />
                     ) : (
-                        <div className="fsp-no-image">📷</div>
+                        <div className="fsp-no-image"></div>
                     )}
                     <span className="fsp-discount-tag">-{discountPercent}%</span>
                 </div>
 
                 <div className="fsp-product-content">
                     <h3 className="fsp-product-name">{product.product_name}</h3>
-
-                    <div className="fsp-product-tags">
-                        <span className="fsp-tag fsp-tag-freeship">🚚 Freeship</span>
-                        <span className="fsp-tag fsp-tag-cod">COD</span>
-                    </div>
 
                     <div className="fsp-progress-container">
                         <div className="fsp-progress-bar">
@@ -101,12 +139,8 @@ const FlashSales = () => {
                     <div className="fsp-price-row">
                         <div className="fsp-prices">
                             <span className="fsp-sale-price">{formatPrice(salePrice)}</span>
-                            <span className="fsp-original-price">{formatPrice(product.base_price)}</span>
+                            <span className="fsp-original-price">{formatPrice(originalPrice)}</span>
                         </div>
-                        <button className="fsp-buy-btn">
-                            <span className="fsp-discount-badge">{discountPercent}%</span>
-                            Mua ngay
-                        </button>
                     </div>
                 </div>
             </Link>
@@ -119,17 +153,26 @@ const FlashSales = () => {
         return sales.flatMap(sale =>
             (sale.products || []).map(product => ({
                 ...product,
-                discountPercent: sale.discount_percent || 0,
-                flashSaleName: sale.name,
+                discountPercent: parseFloat(sale.discount_value) || 0,
+                flashSaleName: sale.sale_name,
                 endTime: sale.end_time
             }))
         );
     };
 
-    const currentSales = activeTab === 'active' ? activeFlashSales : upcomingFlashSales;
-    const isLoading = activeTab === 'active' ? activeLoading : upcomingLoading;
+    // Filter flash sales by active based on current time
+    const now = new Date();
+    const activeFlashSales = flashSales.filter(sale => {
+        const startTime = new Date(sale.start_time);
+        const endTime = new Date(sale.end_time);
+        return startTime <= now && now <= endTime;
+    });
+
+    const currentSales = activeTab === 'active'
+        ? (activeFlashSales.length > 0 ? activeFlashSales : flashSales)
+        : upcomingFlashSales;
     const allProducts = getAllProducts(currentSales);
-    const firstSale = currentSales && currentSales.length > 0 ? currentSales[0] : null;
+    const firstSale = flashSales.length > 0 ? flashSales[0] : null;
 
     return (
         <div className="fsp-page">
@@ -148,7 +191,7 @@ const FlashSales = () => {
                 <div className="fsp-timer-bar">
                     <div className="fsp-timer-info">
                         <span className="fsp-timer-text">
-                            Giảm đến <strong>{firstSale.discount_percent}%</strong>
+                            Giảm đến <strong>{parseFloat(firstSale.discount_value) || 0}%</strong>
                         </span>
                     </div>
                     <div className="fsp-timer-countdown">
@@ -162,35 +205,104 @@ const FlashSales = () => {
             <div className="fsp-tabs-container">
                 <button
                     className={`fsp-time-tab ${activeTab === 'active' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('active')}
+                    onClick={() => { setActiveTab('active'); setCurrentPage(1); }}
                 >
                     <span className="fsp-tab-label">Đang diễn ra</span>
+                    {flashSales.length > 0 && flashSales[0].start_time && (
+                        <div className="fsp-tab-times">
+                            <span className="fsp-tab-time">
+                                Bắt đầu: {new Date(flashSales[0].start_time).toLocaleString('vi-VN', {
+                                    day: '2-digit', month: '2-digit', year: 'numeric',
+                                    hour: '2-digit', minute: '2-digit'
+                                })}
+                            </span>
+                            <span className="fsp-tab-time">
+                                Kết thúc: {new Date(flashSales[0].end_time).toLocaleString('vi-VN', {
+                                    day: '2-digit', month: '2-digit', year: 'numeric',
+                                    hour: '2-digit', minute: '2-digit'
+                                })}
+                            </span>
+                        </div>
+                    )}
                 </button>
                 <button
                     className={`fsp-time-tab ${activeTab === 'upcoming' ? 'active' : ''}`}
-                    onClick={() => setActiveTab('upcoming')}
+                    onClick={() => { setActiveTab('upcoming'); setCurrentPage(1); }}
                 >
                     <span className="fsp-tab-label">Sắp tới</span>
+                    {upcomingFlashSales.length > 0 && (
+                        <div className="fsp-tab-times">
+                            <span className="fsp-tab-time">
+                                Bắt đầu: {new Date(upcomingFlashSales[0].start_time).toLocaleString('vi-VN', {
+                                    day: '2-digit', month: '2-digit', year: 'numeric',
+                                    hour: '2-digit', minute: '2-digit'
+                                })}
+                            </span>
+                            <span className="fsp-tab-time">
+                                Kết thúc: {new Date(upcomingFlashSales[0].end_time).toLocaleString('vi-VN', {
+                                    day: '2-digit', month: '2-digit', year: 'numeric',
+                                    hour: '2-digit', minute: '2-digit'
+                                })}
+                            </span>
+                        </div>
+                    )}
                 </button>
             </div>
 
             {/* Products List */}
             <div className="fsp-content">
-                {isLoading ? (
+                {loading ? (
                     <div className="fsp-loading">
                         <div className="fsp-spinner"></div>
                         <p>Đang tải Flash Sale...</p>
                     </div>
                 ) : allProducts.length > 0 ? (
-                    <div className="fsp-products-list">
-                        {allProducts.map((product, index) => (
-                            <ProductCard
-                                key={`${product.product_id}-${index}`}
-                                product={product}
-                                discountPercent={product.discountPercent}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <div className="fsp-products-list">
+                            {allProducts
+                                .slice((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE)
+                                .map((product, index) => (
+                                    <ProductCard
+                                        key={`${product.product_id}-${index}`}
+                                        product={product}
+                                        discountPercent={product.discountPercent}
+                                    />
+                                ))}
+                        </div>
+
+                        {/* Pagination */}
+                        {allProducts.length > PRODUCTS_PER_PAGE && (
+                            <div className="fsp-pagination">
+                                <button
+                                    className="fsp-page-btn"
+                                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                    disabled={currentPage === 1}
+                                >
+                                    ← Trước
+                                </button>
+
+                                <div className="fsp-page-numbers">
+                                    {Array.from({ length: Math.ceil(allProducts.length / PRODUCTS_PER_PAGE) }, (_, i) => i + 1).map(page => (
+                                        <button
+                                            key={page}
+                                            className={`fsp-page-number ${currentPage === page ? 'active' : ''}`}
+                                            onClick={() => setCurrentPage(page)}
+                                        >
+                                            {page}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <button
+                                    className="fsp-page-btn"
+                                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(allProducts.length / PRODUCTS_PER_PAGE)))}
+                                    disabled={currentPage === Math.ceil(allProducts.length / PRODUCTS_PER_PAGE)}
+                                >
+                                    Sau →
+                                </button>
+                            </div>
+                        )}
+                    </>
                 ) : (
                     <div className="fsp-empty">
                         <h3>

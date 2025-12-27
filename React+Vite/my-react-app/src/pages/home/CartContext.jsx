@@ -115,8 +115,8 @@ export const CartProvider = ({ children }) => {
             });
 
             if (response.status === 401) {
+                console.warn('401 Unauthorized for cart add');
                 alert("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
-                localStorage.removeItem('authToken');
                 window.location.href = '/login';
                 return false;
             }

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../pages/home/CartContext';
 import NotificationBell from './NotificationBell';
 import ChangePasswordModal from './ChangePasswordModal';
+import { API_ENDPOINTS } from '../config/api.config';
 import '/src/style/main.css';
 
 const Header = ({
@@ -14,18 +15,92 @@ const Header = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [popularSearches, setPopularSearches] = useState([]);
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [recentlyViewed, setRecentlyViewed] = useState([]);
+  const [loadingSearchData, setLoadingSearchData] = useState(false);
   const userMenuRef = useRef(null);
+  const searchRef = useRef(null);
   const { itemCount } = useCart();
   const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen((prev) => !prev);
   const closeMenu = useCallback(() => setIsMenuOpen(false), []);
 
+  // Fetch user verification status
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      const token = localStorage.getItem('authToken');
+      if (!token || !user) return;
+
+      try {
+        const response = await fetch(API_ENDPOINTS.AUTH.ME, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setIsEmailVerified(data.is_email_verified || false);
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
+
+  // Fetch search suggestions when dropdown opens
+  const fetchSearchSuggestions = async () => {
+    setLoadingSearchData(true);
+    const token = localStorage.getItem('authToken');
+
+    try {
+      // Fetch popular searches (public)
+      const popularRes = await fetch(`${API_ENDPOINTS.ANALYTICS.POPULAR_SEARCHES}?limit=5`);
+      if (popularRes.ok) {
+        const data = await popularRes.json();
+        setPopularSearches(data);
+      }
+
+      // Fetch search history (authenticated users only)
+      if (token) {
+        const historyRes = await fetch(`${API_ENDPOINTS.ANALYTICS.SEARCH_HISTORY}?limit=5`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (historyRes.ok) {
+          const data = await historyRes.json();
+          setSearchHistory(data);
+        }
+
+        // Fetch recently viewed products
+        const recentRes = await fetch(`${API_ENDPOINTS.ANALYTICS.RECENTLY_VIEWED}?limit=3`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (recentRes.ok) {
+          const data = await recentRes.json();
+          setRecentlyViewed(data);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching search suggestions:', error);
+    }
+    setLoadingSearchData(false);
+  };
+
+  // Handle search input focus
+  const handleSearchFocus = () => {
+    setShowSearchDropdown(true);
+    fetchSearchSuggestions();
+  };
+
   // Search handlers
   const handleSearchKeyDown = (e) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
       navigate(`/product?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
+      setShowSearchDropdown(false);
     }
   };
 
@@ -33,13 +108,33 @@ const Header = ({
     if (searchQuery.trim()) {
       navigate(`/product?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
+      setShowSearchDropdown(false);
     }
   };
 
+  // Handle suggestion click
+  const handleSuggestionClick = (query) => {
+    navigate(`/product?search=${encodeURIComponent(query)}`);
+    setSearchQuery('');
+    setShowSearchDropdown(false);
+  };
+
+  // Get dynamic label for loyalty link
+  const getLoyaltyLabel = (originalLabel, to) => {
+    if (to === '/loyalty') {
+      return isEmailVerified ? 'HỘI VIÊN' : 'ĐĂNG KÝ HỘI VIÊN';
+    }
+    return originalLabel;
+  };
+
+  // Close search dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         closeMenu();
+      }
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSearchDropdown(false);
       }
     };
 
@@ -54,7 +149,7 @@ const Header = ({
         <div className="top-links">
           {topLinks.map(({ to, label }) => (
             <Link key={to} to={to}>
-              {label}
+              {getLoyaltyLabel(label, to)}
             </Link>
           ))}
         </div>
@@ -73,7 +168,7 @@ const Header = ({
         </div>
 
         <div className="menu">
-          {menuLinks.map(({ to, label, className }) => (
+          {menuLinks.map(({ to, label, className = '' }) => (
             <Link key={to} to={to} className={className}>
               {label}
             </Link>
@@ -81,13 +176,14 @@ const Header = ({
         </div>
 
         <div className="icons">
-          <div className="search">
+          <div className="search" ref={searchRef}>
             <input
               type="text"
               placeholder="Tìm kiếm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleSearchKeyDown}
+              onFocus={handleSearchFocus}
             />
             <svg
               className="search-icon"
@@ -99,6 +195,88 @@ const Header = ({
             >
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
+
+            {/* Search Dropdown */}
+            {showSearchDropdown && (
+              <div className="search-dropdown">
+                {loadingSearchData ? (
+                  <div className="search-loading">Đang tải...</div>
+                ) : (
+                  <>
+                    {/* Search History */}
+                    {searchHistory.length > 0 && (
+                      <div className="search-section">
+                        <div className="search-section-title">
+                          <span>🕐 Tìm kiếm gần đây</span>
+                        </div>
+                        {searchHistory.map((item, index) => (
+                          <div
+                            key={index}
+                            className="search-suggestion-item history-item"
+                            onClick={() => handleSuggestionClick(item.query || item.search_term || item)}
+                          >
+                            <span className="suggestion-text">{item.query || item.search_term || item}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Popular Searches */}
+                    {popularSearches.length > 0 && (
+                      <div className="search-section">
+                        <div className="search-section-title">
+                          <span>🔥 Tìm kiếm phổ biến</span>
+                        </div>
+                        {popularSearches.map((item, index) => (
+                          <div
+                            key={index}
+                            className="search-suggestion-item popular-item"
+                            onClick={() => handleSuggestionClick(item.query || item.search_term || item)}
+                          >
+                            <span className="suggestion-text">{item.query || item.search_term || item}</span>
+                            {item.count && <span className="suggestion-count">{item.count}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Recently Viewed Products */}
+                    {recentlyViewed.length > 0 && (
+                      <div className="search-section">
+                        <div className="search-section-title">
+                          <span>👀 Sản phẩm đã xem</span>
+                        </div>
+                        <div className="recent-products-grid">
+                          {recentlyViewed.map((product) => (
+                            <Link
+                              key={product.id}
+                              to={`/product/${product.slug}`}
+                              className="recent-product-item"
+                              onClick={() => setShowSearchDropdown(false)}
+                            >
+                              <div className="recent-product-image">
+                                <img src={product.thumbnail_url || product.image_url} alt={product.name} />
+                              </div>
+                              <div className="recent-product-info">
+                                <div className="recent-product-name">{product.name}</div>
+                                <div className="recent-product-price">
+                                  {product.price?.toLocaleString()}đ
+                                </div>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* No suggestions */}
+                    {searchHistory.length === 0 && popularSearches.length === 0 && recentlyViewed.length === 0 && (
+                      <div className="no-suggestions">Nhập từ khóa để tìm kiếm</div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {user ? (
@@ -134,6 +312,23 @@ const Header = ({
                     </svg>
                     Yêu thích
                   </Link>
+                  {isEmailVerified && (
+                    <>
+                      <Link to="/loyalty" className="dropdown-item" onClick={closeMenu}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
+                        Hội viên
+                      </Link>
+                      <Link to="/vouchers" className="dropdown-item" onClick={closeMenu}>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="4" width="18" height="16" rx="2" />
+                          <path d="M7 10h10M7 14h10" />
+                        </svg>
+                        Voucher của tôi
+                      </Link>
+                    </>
+                  )}
                   <Link to="/cart" className="dropdown-item" onClick={closeMenu}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="9" cy="21" r="1" />
@@ -184,7 +379,7 @@ const Header = ({
       </nav>
 
       <div className="mobile-menu">
-        {menuLinks.map(({ to, label, className }) => (
+        {menuLinks.map(({ to, label, className = '' }) => (
           <Link key={to} to={to} className={className}>
             {label}
           </Link>

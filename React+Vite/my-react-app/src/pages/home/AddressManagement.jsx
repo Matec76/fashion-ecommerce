@@ -276,7 +276,6 @@ const AddressManagement = () => {
                 <div className="address-list">
                     {addresses.length === 0 ? (
                         <div className="empty-state">
-                            <div className="empty-icon">📍</div>
                             <h3>Chưa có địa chỉ nào</h3>
                             <p>Thêm địa chỉ giao hàng để thuận tiện cho việc đặt hàng</p>
                             <button

@@ -254,7 +254,7 @@
 .new-badge {
     position: absolute;
     top: 15px;
-    right: 15px;
+    left: 15px;
     background: #ff4757;
     color: white;
     padding: 6px 12px;
@@ -376,10 +376,29 @@
     letter-spacing: 0.5px;
 }
 
+/* Price Display */
+.product-price-wrapper {
+    display: flex;
+    align-items: baseline !important;
+    /* Đảm bảo chân chữ luôn thẳng hàng */
+    gap: 10px;
+    margin-top: 10px;
+    min-height: 35px;
+}
+
+.product-sale-price,
 .product-price {
-    font-size: 22px;
-    font-weight: 700;
-    color: #1a1a2e;
+    font-size: 24px !important;
+    font-weight: 800 !important;
+    color: #ff4757 !important;
+    line-height: 1 !important;
+}
+
+.product-base-price-strikethrough {
+    font-size: 16px;
+    color: #999;
+    text-decoration: line-through;
+    font-weight: 500;
 }
 
 /* Loading State */
@@ -566,50 +585,4 @@
 
 .pagination-dots {
     color: #999;
-}
-
-/* Pagination Styles */
-.pagination-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-top: 50px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-}
-
-.pagination-btn {
-    min-width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #ddd;
-    background: white;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    color: #555;
-    transition: all 0.2s ease;
-}
-
-.pagination-btn:hover:not(:disabled) {
-    border-color: #1a1a2e;
-    color: #1a1a2e;
-    transform: translateY(-2px);
-}
-
-.pagination-btn.active {
-    background: #1a1a2e;
-    color: white;
-    border-color: #1a1a2e;
-}
-
-.pagination-btn:disabled {
-    background: #f5f5f5;
-    color: #aaa;
-    border-color: #eee;
-    cursor: not-allowed;
 }

@@ -4,10 +4,12 @@ import '../../style/Checkout.css';
 import '../../style/Loyalty.css';
 import { API_ENDPOINTS, getAuthHeaders } from '../../config/api.config';
 import CouponInput from '../../components/CouponInput';
+import { useCart } from './CartContext';
 
 const Checkout = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { clearCart } = useCart();
 
     const { selectedItems = [], selectedTotal = 0 } = location.state || {};
 
@@ -235,6 +237,7 @@ const Checkout = () => {
     };
 
     const getItemPrice = (item) => {
+        // Ưu tiên: sale_price > base_price
         const product = item.variant?.product || item.product;
         const priceValue = product?.sale_price || product?.base_price || 0;
         const numPrice = typeof priceValue === 'string' ? parseFloat(priceValue) : priceValue;
@@ -329,19 +332,28 @@ const Checkout = () => {
 
             const isCOD = selectedMethod?.method_name?.toLowerCase().includes('cod') ||
                 selectedMethod?.method_name?.toLowerCase().includes('nhận hàng') ||
+                selectedMethod?.method_name?.toLowerCase().includes('nhan hang') ||
                 selectedMethod?.method_name?.toLowerCase().includes('tiền mặt') ||
-                selectedMethod?.method_name?.toLowerCase().includes('thanh toán khi');
+                selectedMethod?.method_name?.toLowerCase().includes('tien mat') ||
+                selectedMethod?.method_name?.toLowerCase().includes('thanh toán khi') ||
+                selectedMethod?.method_name?.toLowerCase().includes('thanh toan khi') ||
+                selectedMethod?.method_name?.toLowerCase().includes('cash on delivery') ||
+                selectedMethod?.payment_method_id === 1; // Thường COD có ID = 1
 
             console.log('💰 Is COD?', isCOD);
 
             if (isCOD) {
-                // COD: Show success message and redirect to cart after 5 seconds
-                alert('Đặt đơn thành công!');
-                setTimeout(() => {
-                    navigate('/cart');
-                }, 5000);
+                // COD: Clear cart and navigate to success page
+                await clearCart();
+                navigate('/payment/success', {
+                    state: {
+                        orderId,
+                        orderNumber: order.order_number,
+                        isCOD: true
+                    }
+                });
             } else {
-                // Online payment: Redirect to payment QR page
+                // Online payment: DON'T clear cart yet - will clear after payment success
                 navigate('/payment-qr', {
                     state: {
                         orderId,
@@ -388,7 +400,7 @@ const Checkout = () => {
 
                         {/* Address Selection */}
                         <div className="address-selection">
-                            <h3>📍 Địa chỉ giao hàng</h3>
+                            <h3>Địa chỉ giao hàng</h3>
                             {addresses.length === 0 ? (
                                 <div className="no-address-warning">
                                     <p>⚠️ Bạn chưa có địa chỉ nào. Vui lòng thêm địa chỉ để tiếp tục.</p>
@@ -428,7 +440,7 @@ const Checkout = () => {
 
                         {/* Shipping Methods */}
                         <div className="shipping-methods-section">
-                            <h3>🚚 Phương thức vận chuyển</h3>
+                            <h3>Phương thức vận chuyển</h3>
                             {shippingMethods.length === 0 ? (
                                 <p>Đang tải phương thức vận chuyển...</p>
                             ) : (
@@ -541,10 +553,10 @@ const Checkout = () => {
                                 appliedCoupon={appliedCoupon}
                             />
 
-                            {/* Points Redemption */}
+                            {/* Points Redemption - Tạm ẩn
                             {userPoints > 0 && (
                                 <div className="points-redemption-section">
-                                    <h3>🎁 Đổi điểm thưởng</h3>
+                                    <h3>Đổi điểm thưởng</h3>
                                     <p className="points-available">
                                         Bạn có <strong>{userPoints.toLocaleString('vi-VN')}</strong> điểm
                                         (tối đa giảm {formatPrice(Math.min(userPoints * POINTS_TO_VND_RATE, selectedTotal))})
@@ -584,6 +596,7 @@ const Checkout = () => {
                                     )}
                                 </div>
                             )}
+                            */}
 
                             <div className="summary-totals">
                                 <div className="summary-row">

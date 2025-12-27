@@ -76,8 +76,10 @@ const useFetch = (url, options = {}) => {
             });
 
             if (response.status === 401) {
-                localStorage.removeItem('authToken');
-                setError('Phiên đăng nhập hết hạn');
+                // Không xóa token ở đây - chỉ báo lỗi
+                // Token chỉ nên bị xóa khi đăng xuất hoặc khi endpoint /auth/me trả về 401
+                console.warn('401 Unauthorized for:', url);
+                setError('Không có quyền truy cập');
                 setData(null);
                 setLoading(false);
                 return;

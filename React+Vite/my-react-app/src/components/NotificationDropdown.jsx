@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS, getAuthHeaders } from '../config/api.config';
 import NotificationPreferencesModal from './NotificationPreferencesModal';
+import { useNotifications } from '../context/NotificationContext';
 
-const NotificationDropdown = ({ onClose, onUnreadChange }) => {
+const NotificationDropdown = ({ onClose }) => {
+    const { setUnreadCount } = useNotifications();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showPreferences, setShowPreferences] = useState(false);
@@ -42,7 +44,7 @@ const NotificationDropdown = ({ onClose, onUnreadChange }) => {
 
             // Update unread count
             const unreadCount = notifications.filter(n => !n.is_read && n.notification_id !== notificationId).length;
-            onUnreadChange(unreadCount);
+            setUnreadCount(unreadCount);
         } catch (error) {
             console.error('Error marking notification as read:', error);
         }
@@ -57,7 +59,7 @@ const NotificationDropdown = ({ onClose, onUnreadChange }) => {
             );
 
             setNotifications(notifications.map(n => ({ ...n, is_read: true })));
-            onUnreadChange(0);
+            setUnreadCount(0);
         } catch (error) {
             console.error('Error marking all as read:', error);
         }
@@ -74,7 +76,7 @@ const NotificationDropdown = ({ onClose, onUnreadChange }) => {
             setNotifications(updatedNotifications);
 
             const unreadCount = updatedNotifications.filter(n => !n.is_read).length;
-            onUnreadChange(unreadCount);
+            setUnreadCount(unreadCount);
         } catch (error) {
             console.error('Error deleting notification:', error);
         }

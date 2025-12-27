@@ -28,6 +28,7 @@ const UserProfile = () => {
     const [transactions, setTransactions] = useState([]);
     const [showTransactionsModal, setShowTransactionsModal] = useState(false);
     const [avatarUploading, setAvatarUploading] = useState(false);
+    const [verificationSending, setVerificationSending] = useState(false);
 
     const { patch, loading: patchLoading } = usePatch();
 
@@ -136,6 +137,32 @@ const UserProfile = () => {
     const copyReferralCode = () => {
         navigator.clipboard.writeText(referralCode);
         alert('Đã sao chép mã giới thiệu!');
+    };
+
+    const handleResendVerification = async () => {
+        setVerificationSending(true);
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`${API_BASE_URL}/auth/resend-verification`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                alert('Email xác thực đã được gửi! Vui lòng kiểm tra hộp thư của bạn.');
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Không thể gửi email xác thực!');
+            }
+        } catch (error) {
+            console.error('Error sending verification:', error);
+            alert('Có lỗi xảy ra khi gửi email xác thực!');
+        } finally {
+            setVerificationSending(false);
+        }
     };
 
     const openTransactionsModal = () => {
@@ -257,7 +284,22 @@ const UserProfile = () => {
                         </div>
                     </div>
                     <div className="profile-title">
-                        <h1>Tài khoản của tôi</h1>
+                        <div className="profile-title-row">
+                            <h1>Tài khoản của tôi</h1>
+                            {user?.is_email_verified ? (
+                                <span className="verification-badge verified">
+                                    ✓ Đã xác thực
+                                </span>
+                            ) : (
+                                <button
+                                    className="verification-btn"
+                                    onClick={handleResendVerification}
+                                    disabled={verificationSending}
+                                >
+                                    {verificationSending ? 'Đang gửi...' : 'Xác thực ngay'}
+                                </button>
+                            )}
+                        </div>
                         <p>Quản lý thông tin cá nhân của bạn</p>
                     </div>
                 </div>
@@ -440,66 +482,6 @@ const UserProfile = () => {
                                 </div>
                             </div>
                         )}
-                    </div>
-
-                    {/* Loyalty Section */}
-                    <div className="profile-section loyalty-section">
-                        <div className="section-header">
-                            <h2>Thành viên</h2>
-                            <button
-                                className="view-history-btn"
-                                onClick={openTransactionsModal}
-                            >
-                                Xem lịch sử điểm
-                            </button>
-                        </div>
-
-                        <div className="loyalty-card">
-                            <div className="loyalty-main">
-                                <div className="points-display">
-                                    <span className="points-value">{formatPoints(loyaltyData?.points_balance)}</span>
-                                    <span className="points-label">điểm</span>
-                                </div>
-                                <div className="tier-info">
-                                    <span className="tier-badge" data-tier={loyaltyData?.tier?.tier_name?.toLowerCase()}>
-                                        {loyaltyData?.tier?.tier_name || 'Bronze'}
-                                    </span>
-                                    {loyaltyData?.tier?.discount_percentage > 0 && (
-                                        <span className="tier-discount">
-                                            Giảm {loyaltyData.tier.discount_percentage}% mọi đơn
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="loyalty-stats">
-                                <div className="stat-item">
-                                    <span className="stat-value">{formatPoints(loyaltyData?.total_earned)}</span>
-                                    <span className="stat-label">Tổng tích lũy</span>
-                                </div>
-                                <div className="stat-item">
-                                    <span className="stat-value">{formatPoints(loyaltyData?.total_spent)}</span>
-                                    <span className="stat-label">Đã sử dụng</span>
-                                </div>
-                            </div>
-
-                            {referralCode && (
-                                <div className="referral-section">
-                                    <span className="referral-label">Mã giới thiệu của bạn:</span>
-                                    <div className="referral-code-box">
-                                        <code className="referral-code">{referralCode}</code>
-                                        <button
-                                            className="copy-btn"
-                                            onClick={copyReferralCode}
-                                            title="Sao chép mã"
-                                        >
-                                            Copy
-                                        </button>
-                                    </div>
-                                    <span className="referral-hint">Chia sẻ mã này để nhận thưởng khi bạn bè đăng ký!</span>
-                                </div>
-                            )}
-                        </div>
                     </div>
                 </div>
             </div>

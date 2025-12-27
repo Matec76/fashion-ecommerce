@@ -61,26 +61,13 @@ const Cart = () => {
 
     // Safely parse price from item (handles string/number and different field names)
     const getItemPrice = (item) => {
-        // Debug logging
-        console.log('🛒 Cart item:', item);
-
-        // Price is in variant.product.sale_price or variant.product.base_price
+        // Price is prioritized: sale_price > base_price
         const product = item.variant?.product || item.product;
 
-        console.log('  variant?.product:', product);
-        console.log('  sale_price:', product?.sale_price);
-        console.log('  base_price:', product?.base_price);
-
-        // Try sale_price first, then base_price
+        // Use the fields from the API: sale_price and base_price
         const priceValue = product?.sale_price || product?.base_price || 0;
 
-        console.log('  → Selected price value:', priceValue);
-
-        // Convert to number if it's a string
         const numPrice = typeof priceValue === 'string' ? parseFloat(priceValue) : priceValue;
-
-        console.log('  → Final parsed price:', numPrice);
-
         return isNaN(numPrice) ? 0 : numPrice;
     };
 
@@ -123,7 +110,6 @@ const Cart = () => {
         return (
             <div className="cart-page">
                 <div className="cart-empty">
-                    <div className="empty-icon">🛒</div>
                     <h2>Giỏ hàng trống</h2>
                     <p>Bạn chưa có sản phẩm nào trong giỏ hàng</p>
                     <Link to="/product" className="continue-shopping-btn">

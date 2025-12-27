@@ -1,11 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useCart } from './CartContext';
 import '../../style/Payment.css';
 
 const PaymentSuccess = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { orderId } = location.state || {};
+    const { clearCart } = useCart();
+    const { orderId, orderNumber, isCOD } = location.state || {};
+
+    // Clear cart when online payment succeeds (COD already cleared in Checkout)
+    useEffect(() => {
+        if (!isCOD) {
+            clearCart();
+        }
+    }, [isCOD, clearCart]);
 
     return (
         <div className="payment-result-page">
@@ -17,13 +26,18 @@ const PaymentSuccess = () => {
                         </svg>
                     </div>
 
-                    <h1>Thanh toán thành công!</h1>
-                    <p>Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đã được xác nhận.</p>
+                    <h1>{isCOD ? 'Đặt hàng thành công!' : 'Thanh toán thành công!'}</h1>
+                    <p>
+                        {isCOD
+                            ? 'Cảm ơn bạn đã đặt hàng. Vui lòng thanh toán khi nhận hàng.'
+                            : 'Cảm ơn bạn đã mua hàng. Đơn hàng của bạn đã được xác nhận.'
+                        }
+                    </p>
 
-                    {orderId && (
+                    {(orderId || orderNumber) && (
                         <div className="order-info">
                             <span className="label">Mã đơn hàng:</span>
-                            <span className="value">#{orderId}</span>
+                            <span className="value">{orderNumber || `#${orderId}`}</span>
                         </div>
                     )}
 
@@ -37,7 +51,7 @@ const PaymentSuccess = () => {
                             Tiếp tục mua sắm
                         </Link>
                         {orderId && (
-                            <Link to={`/orders/${orderId}`} className="secondary-btn">
+                            <Link to={`/order/${orderId}`} className="secondary-btn">
                                 Xem đơn hàng
                             </Link>
                         )}

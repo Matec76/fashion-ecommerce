@@ -449,6 +449,8 @@
 .no-address-warning p {
     color: #e74c3c;
     margin: 0 0 12px 0;
+    font-size: 18px;
+    font-weight: 600;
 }
 
 .add-address-link {

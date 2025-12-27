@@ -474,3 +474,260 @@ h1 {
     font-size: 2rem;
   }
 }
+
+/* ============= VERIFY EMAIL PAGE - TRANG XÁC THỰC EMAIL ============= */
+.verify-email-content {
+  text-align: center;
+  padding: 40px 20px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Loading state */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #000;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-state h2 {
+  color: #000;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.loading-state p {
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Success state */
+.success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: #4caf50;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  color: white;
+  animation: scaleIn 0.5s ease-out;
+}
+
+.success-state h2 {
+  color: #4caf50;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.success-state p {
+  color: #000;
+  font-size: 16px;
+  margin: 10px 0;
+  max-width: 400px;
+}
+
+.redirect-notice {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* Error state */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.error-icon {
+  width: 80px;
+  height: 80px;
+  background: #f44336;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  color: white;
+  animation: shake 0.5s ease-out;
+}
+
+.error-state h2 {
+  color: #f44336;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.error-state p {
+  color: #000;
+  font-size: 16px;
+  margin: 10px 0;
+  max-width: 400px;
+}
+
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.primary-btn,
+.secondary-btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.primary-btn {
+  background: #000;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.primary-btn:hover {
+  background: #333;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.secondary-btn {
+  background: rgba(0, 0, 0, 0.1);
+  color: #000;
+  border: 2px solid #000;
+}
+
+.secondary-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-10px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(10px);
+  }
+}
+
+/* Responsive cho verify email */
+@media (max-width: 480px) {
+  .verify-email-content {
+    padding: 20px 10px;
+  }
+
+  .success-icon,
+  .error-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 40px;
+  }
+
+  .success-state h2,
+  .error-state h2 {
+    font-size: 22px;
+  }
+
+  .success-state p,
+  .error-state p {
+    font-size: 14px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .primary-btn,
+  .secondary-btn {
+    width: 100%;
+  }
+}

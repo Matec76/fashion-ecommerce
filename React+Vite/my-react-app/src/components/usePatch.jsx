@@ -54,9 +54,9 @@ const usePatch = () => {
             });
 
             if (response.status === 401) {
-                localStorage.removeItem('authToken');
-                setError('Phiên đăng nhập hết hạn');
-                return { success: false, error: 'Phiên đăng nhập hết hạn', status: 401 };
+                console.warn('401 Unauthorized for:', url);
+                setError('Không có quyền truy cập');
+                return { success: false, error: 'Không có quyền truy cập', status: 401 };
             }
 
             let responseData = null;

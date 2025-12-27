@@ -14,6 +14,7 @@ const Wishlist = () => {
     const [newWishlistName, setNewWishlistName] = useState('');
     const [newWishlistDescription, setNewWishlistDescription] = useState('');
     const [selectedProducts, setSelectedProducts] = useState([]);
+    const [productDetails, setProductDetails] = useState({}); // Cache product details
 
     const token = localStorage.getItem('authToken');
     const { mutate, loading: mutateLoading } = useMutation();
@@ -45,13 +46,50 @@ const Wishlist = () => {
         }
     }, [token, navigate]);
 
-    // Get current items to display
-    const displayItems = useMemo(() => {
-        if (activeSection === 'favorites') {
-            return defaultWishlist?.items || [];
+    // Fetch product details for wishlist items
+    useEffect(() => {
+        const items = activeSection === 'favorites'
+            ? (defaultWishlist?.items || [])
+            : (activeWishlistData?.items || []);
+
+        const fetchProductDetails = async () => {
+            for (const item of items) {
+                if (item.product_id && !productDetails[item.product_id] && !item.product?.product_name) {
+                    try {
+                        const response = await fetch(API_ENDPOINTS.PRODUCTS.DETAIL(item.product_id));
+                        if (response.ok) {
+                            const product = await response.json();
+                            setProductDetails(prev => ({
+                                ...prev,
+                                [item.product_id]: product
+                            }));
+                        }
+                    } catch (err) {
+                        console.error('Error fetching product:', err);
+                    }
+                }
+            }
+        };
+
+        if (items.length > 0) {
+            fetchProductDetails();
         }
-        return activeWishlistData?.items || [];
-    }, [activeSection, defaultWishlist, activeWishlistData]);
+    }, [defaultWishlist, activeWishlistData, activeSection]);
+
+    // Get current items to display with enriched product data
+    const displayItems = useMemo(() => {
+        const items = activeSection === 'favorites'
+            ? (defaultWishlist?.items || [])
+            : (activeWishlistData?.items || []);
+
+        // Enrich items with fetched product details
+        return items.map(item => ({
+            ...item,
+            product: item.product?.product_name
+                ? item.product
+                : productDetails[item.product_id] || item.product
+        }));
+    }, [activeSection, defaultWishlist, activeWishlistData, productDetails]);
 
     // Filter wishlists (exclude default)
     const customWishlists = useMemo(() => {
@@ -163,11 +201,6 @@ const Wishlist = () => {
 
     return (
         <div className="wishlist-page">
-            {/* Hero Banner */}
-            <div className="wishlist-hero">
-                <h1>YÊU THÍCH</h1>
-            </div>
-
             <div className="wishlist-content">
                 {/* Sidebar */}
                 <aside className="wishlist-sidebar">
@@ -176,7 +209,6 @@ const Wishlist = () => {
                         className={`sidebar-item favorites ${activeSection === 'favorites' ? 'active' : ''}`}
                         onClick={() => setActiveSection('favorites')}
                     >
-                        <span className="heart-icon">♥</span>
                         <span>Yêu thích</span>
                         <span className="item-count">({defaultWishlist?.item_count || 0})</span>
                     </div>
@@ -235,43 +267,52 @@ const Wishlist = () => {
 
                     {displayItems.length === 0 ? (
                         <div className="empty-wishlist">
-                            <div className="empty-icon">💔</div>
                             <h3>Danh sách trống</h3>
                             <p>Chưa có sản phẩm nào</p>
                             <Link to="/product" className="browse-btn">Khám phá sản phẩm</Link>
                         </div>
                     ) : (
                         <div className="products-grid">
-                            {displayItems.map(item => (
-                                <div key={item.item_id} className="product-card">
-                                    <div
-                                        className="product-image"
-                                        onClick={() => navigate(`/products/${item.product?.slug || item.product_id}`)}
-                                    >
-                                        <img
-                                            src={item.product?.images?.[0]?.image_url || 'https://placehold.co/300x300?text=No+Image'}
-                                            alt={item.product?.product_name}
-                                        />
-                                    </div>
-                                    <div className="product-info">
-                                        <h3
-                                            className="product-name"
-                                            onClick={() => navigate(`/products/${item.product?.slug || item.product_id}`)}
+                            {displayItems.map(item => {
+                                const product = item.product;
+                                const imageUrl = product?.images?.[0]?.image_url || 'https://placehold.co/300x300?text=No+Image';
+                                const productName = product?.product_name || 'Đang tải...';
+                                const productSlug = product?.slug || item.product_id;
+                                const productPrice = product?.base_price;
+
+                                return (
+                                    <div key={item.wishlist_item_id} className="product-card">
+                                        <div
+                                            className="product-image"
+                                            onClick={() => navigate(`/products/${productSlug}`)}
                                         >
-                                            {item.product?.product_name || 'Sản phẩm'}
-                                        </h3>
-                                        <p className="product-price">
-                                            {formatPrice(item.product?.base_price || 0)}
-                                        </p>
-                                        <button
-                                            className="remove-btn"
-                                            onClick={() => handleRemoveItem(item.item_id)}
-                                        >
-                                            ♥ Xóa
-                                        </button>
+                                            <img
+                                                src={imageUrl}
+                                                alt={productName}
+                                            />
+                                        </div>
+                                        <div className="product-info">
+                                            <h3
+                                                className="product-name"
+                                                onClick={() => navigate(`/products/${productSlug}`)}
+                                            >
+                                                {productName}
+                                            </h3>
+                                            {productPrice && (
+                                                <p className="product-price">
+                                                    {formatPrice(productPrice)}
+                                                </p>
+                                            )}
+                                            <button
+                                                className="remove-btn"
+                                                onClick={() => handleRemoveItem(item.wishlist_item_id)}
+                                            >
+                                                Xóa
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </main>
@@ -321,21 +362,27 @@ const Wishlist = () => {
                         <h2>Chọn sản phẩm để thêm vào list</h2>
 
                         <div className="products-select-list">
-                            {(defaultWishlist?.items || []).map(item => (
-                                <label key={item.item_id} className="product-select-item">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedProducts.includes(item.product_id)}
-                                        onChange={() => toggleProductSelection(item.product_id)}
-                                    />
-                                    <img
-                                        src={item.product?.images?.[0]?.image_url || 'https://placehold.co/60x60?text=No+Image'}
-                                        alt={item.product?.product_name}
-                                    />
-                                    <span className="product-select-name">{item.product?.product_name}</span>
-                                    <span className="product-select-price">{formatPrice(item.product?.base_price || 0)}</span>
-                                </label>
-                            ))}
+                            {(defaultWishlist?.items || [])
+                                .filter(item => {
+                                    // Filter out products already in the current list
+                                    const currentListProductIds = (activeWishlistData?.items || []).map(i => i.product_id);
+                                    return !currentListProductIds.includes(item.product_id);
+                                })
+                                .map(item => (
+                                    <label key={item.wishlist_item_id} className="product-select-item">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedProducts.includes(item.product_id)}
+                                            onChange={() => toggleProductSelection(item.product_id)}
+                                        />
+                                        <img
+                                            src={item.product?.images?.[0]?.image_url || 'https://placehold.co/60x60?text=No+Image'}
+                                            alt={item.product?.product_name}
+                                        />
+                                        <span className="product-select-name">{item.product?.product_name}</span>
+                                        <span className="product-select-price">{formatPrice(item.product?.base_price || 0)}</span>
+                                    </label>
+                                ))}
                         </div>
 
                         <div className="modal-actions">

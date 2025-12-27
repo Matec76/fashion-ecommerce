@@ -30,11 +30,11 @@
 
 /* Sidebar */
 .wishlist-sidebar {
-    width: 250px;
+    width: 350px;
     flex-shrink: 0;
     background: white;
-    border-radius: 12px;
-    padding: 20px;
+    border-radius: 16px;
+    padding: 30px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     height: fit-content;
     position: sticky;
@@ -44,16 +44,19 @@
 .sidebar-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 15px;
-    border-radius: 8px;
+    gap: 15px;
+    padding: 18px 20px;
+    border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    font-size: 16px;
+    color: #1a1a1a;
+    font-weight: 500;
 }
 
 .sidebar-item:hover {
-    background: #f5f5f5;
+    background: #e8e8e8;
 }
 
 .sidebar-item.active {
@@ -63,7 +66,7 @@
 
 .sidebar-item.favorites .heart-icon {
     color: #e74c3c;
-    font-size: 18px;
+    font-size: 24px;
 }
 
 .sidebar-item.active.favorites .heart-icon {
@@ -102,28 +105,28 @@
 .sidebar-divider {
     height: 1px;
     background: #eee;
-    margin: 15px 0;
+    margin: 20px 0;
 }
 
 .sidebar-section-title {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 600;
     color: #888;
     letter-spacing: 1px;
-    padding: 10px 15px;
+    padding: 15px 20px;
 }
 
 .create-list-btn {
     width: 100%;
-    padding: 12px;
+    padding: 18px;
     background: transparent;
     border: 2px dashed #ddd;
-    border-radius: 8px;
+    border-radius: 10px;
     color: #666;
-    font-size: 14px;
+    font-size: 16px;
     cursor: pointer;
     transition: all 0.2s;
-    margin-top: 10px;
+    margin-top: 15px;
 }
 
 .create-list-btn:hover {
@@ -143,9 +146,10 @@
     margin-bottom: 25px;
 }
 
-.product-count {
-    color: #666;
+.wishlist-main .product-count {
+    color: #333;
     font-size: 14px;
+    font-weight: 600;
     margin: 0;
 }
 
@@ -248,34 +252,36 @@
 /* Empty State */
 .empty-wishlist {
     text-align: center;
-    padding: 80px 20px;
+    padding: 100px 30px;
     background: white;
     border-radius: 12px;
 }
 
 .empty-icon {
-    font-size: 60px;
-    margin-bottom: 20px;
+    font-size: 90px;
+    margin-bottom: 30px;
 }
 
 .empty-wishlist h3 {
-    font-size: 20px;
-    margin: 0 0 10px 0;
+    font-size: 30px;
+    margin: 0 0 15px 0;
     color: #333;
 }
 
 .empty-wishlist p {
     color: #666;
-    margin: 0 0 20px 0;
+    margin: 0 0 30px 0;
+    font-size: 18px;
 }
 
 .browse-btn {
     display: inline-block;
     background: #1a1a1a;
     color: white;
-    padding: 12px 30px;
-    border-radius: 6px;
+    padding: 18px 45px;
+    border-radius: 8px;
     text-decoration: none;
+    font-size: 16px;
     transition: background 0.2s;
 }
 

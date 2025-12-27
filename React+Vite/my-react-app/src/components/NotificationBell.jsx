@@ -2,29 +2,11 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_ENDPOINTS, getAuthHeaders } from '../config/api.config';
 import NotificationDropdown from './NotificationDropdown';
+import { useNotifications } from '../context/NotificationContext';
 
 const NotificationBell = () => {
-    const [unreadCount, setUnreadCount] = useState(0);
+    const { unreadCount, setUnreadCount, refreshUnreadCount } = useNotifications();
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-    const fetchUnreadCount = async () => {
-        try {
-            const response = await axios.get(API_ENDPOINTS.NOTIFICATIONS.UNREAD_COUNT, {
-                headers: getAuthHeaders()
-            });
-            setUnreadCount(response.data.unread_count || 0);
-        } catch (error) {
-            console.error('Error fetching unread count:', error);
-        }
-    };
-
-    useEffect(() => {
-        fetchUnreadCount();
-
-        // Auto-refresh every 30 seconds
-        const interval = setInterval(fetchUnreadCount, 30000);
-        return () => clearInterval(interval);
-    }, []);
 
     const toggleDropdown = () => {
         setIsDropdownOpen(!isDropdownOpen);
@@ -32,7 +14,7 @@ const NotificationBell = () => {
 
     const handleClose = () => {
         setIsDropdownOpen(false);
-        fetchUnreadCount(); // Refresh count when closing
+        refreshUnreadCount(); // Refresh count when closing
     };
 
     return (
@@ -54,7 +36,6 @@ const NotificationBell = () => {
             {isDropdownOpen && (
                 <NotificationDropdown
                     onClose={handleClose}
-                    onUnreadChange={setUnreadCount}
                 />
             )}
         </div>

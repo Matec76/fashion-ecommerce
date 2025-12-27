@@ -77,9 +77,6 @@ const CouponInput = ({ orderAmount, onApply, onRemove, appliedCoupon }) => {
                     <span className="coupon-icon">🎫</span>
                     <div className="coupon-details">
                         <span className="coupon-code">{appliedCoupon.code}</span>
-                        <span className="coupon-discount">
-                            -{new Intl.NumberFormat('vi-VN').format(appliedCoupon.discount_amount)}đ
-                        </span>
                     </div>
                 </div>
                 <button
@@ -96,7 +93,6 @@ const CouponInput = ({ orderAmount, onApply, onRemove, appliedCoupon }) => {
     return (
         <div className="coupon-input-container">
             <div className="coupon-input-wrapper">
-                <span className="coupon-icon">🎫</span>
                 <input
                     type="text"
                     placeholder="Nhập mã giảm giá"

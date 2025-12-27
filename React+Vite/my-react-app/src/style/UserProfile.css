@@ -4,7 +4,7 @@
 
 .user-profile-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+    background: #ffffff;
     padding: 40px 20px;
 }
 
@@ -87,6 +87,51 @@
     font-size: 16px;
     color: #666;
     margin: 0;
+}
+
+.profile-title-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.verification-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.verification-badge.verified {
+    background: #d4edda;
+    color: #155724;
+}
+
+.verification-btn {
+    padding: 8px 18px;
+    background: #ff6b6b;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.verification-btn:hover {
+    background: #ee5a5a;
+    transform: translateY(-1px);
+}
+
+.verification-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
 }
 
 /* Profile Content */

@@ -1,15 +1,16 @@
 export const TOP_LINKS = Object.freeze([
   { to: '/support', label: 'TRỢ GIÚP' },
   { to: '/orders', label: 'THEO DÕI ĐƠN HÀNG' },
-  { to: '/member', label: 'ĐĂNG KÝ HỘI VIÊN' }
+  { to: '/loyalty', label: 'ĐĂNG KÝ HỘI VIÊN' }
 ]);
 
 export const MENU_LINKS = Object.freeze([
-  { to: '/product?gender=Nam', label: 'Nam' },
-  { to: '/product?gender=Nữ', label: 'Nữ' },
-  { to: '/product?gender=Trẻ em', label: 'Trẻ em' },
+  { to: '/product?gender=Nam', label: 'NAM' },
+  { to: '/product?gender=Nữ', label: 'NỮ' },
+  { to: '/product?gender=Trẻ em', label: 'TRẺ EM' },
   { to: '/product', label: 'PHỤ KIỆN' },
-  { to: '/product?new=true', label: 'Outlet', className: 'outlet' }
+  { to: '/collections', label: 'BỘ SƯU TẬP' },
+  { to: '/product?new=true', label: 'OUTLET', className: 'outlet' }
 ]);
 
 export const BRAND_INFO = Object.freeze({

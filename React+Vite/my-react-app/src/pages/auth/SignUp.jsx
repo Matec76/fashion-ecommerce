@@ -14,8 +14,7 @@ const SignUp = () => {
     month: '',
     year: '',
     email: '',
-    password: '',
-    referralCode: ''
+    password: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -49,6 +48,12 @@ const SignUp = () => {
       last_name: formData.lastName,
     };
 
+    // Thêm date_of_birth nếu đã nhập đầy đủ
+    if (formData.day && formData.month && formData.year) {
+      const dateOfBirth = `${formData.year}-${String(formData.month).padStart(2, '0')}-${String(formData.day).padStart(2, '0')}`;
+      payload.date_of_birth = dateOfBirth;
+    }
+
     try {
       console.log('Registering with:', API_ENDPOINTS.AUTH.REGISTER);
       const response = await fetch('http://localhost:8000/api/v1/auth/register', {
@@ -60,20 +65,6 @@ const SignUp = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // Apply referral code if provided
-        if (formData.referralCode && data.access_token) {
-          try {
-            await fetch(API_ENDPOINTS.LOYALTY.REFERRALS.APPLY(formData.referralCode), {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${data.access_token}`,
-                'Content-Type': 'application/json'
-              }
-            });
-          } catch (refErr) {
-            console.error('Referral apply error:', refErr);
-          }
-        }
         alert("Đăng ký thành công! Vui lòng kiểm tra email.");
         navigate('/login');
       } else {
@@ -135,16 +126,6 @@ const SignUp = () => {
             <label>Mật khẩu</label>
           </div>
 
-          <div className="input__group">
-            <input
-              type="text"
-              name="referralCode"
-              value={formData.referralCode}
-              onChange={handleChange}
-              required
-            />
-            <label>Mã giới thiệu</label>
-          </div>
 
           {error && <div style={{ color: 'red', marginBottom: '10px', textAlign: 'center' }}>{error}</div>}
 

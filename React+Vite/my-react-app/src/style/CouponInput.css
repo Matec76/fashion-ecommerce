@@ -48,7 +48,7 @@
 }
 
 .apply-coupon-btn {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #000;
     color: white;
     border: none;
     padding: 0.9rem 1.8rem;
@@ -64,7 +64,7 @@
 
 .apply-coupon-btn:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
 .apply-coupon-btn:disabled {
@@ -110,13 +110,13 @@
 
 .coupon-details .coupon-code {
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: 4rem;
     color: #27ae60;
     letter-spacing: 1px;
 }
 
 .coupon-details .coupon-discount {
-    font-size: 0.95rem;
+    font-size: 1.2rem;
     color: #555;
     font-weight: 500;
 }
@@ -125,14 +125,14 @@
     background: #fff;
     color: #e74c3c;
     border: 2px solid #e74c3c;
-    width: 36px;
-    height: 36px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     font-weight: 700;
     transition: all 0.3s ease;
 }

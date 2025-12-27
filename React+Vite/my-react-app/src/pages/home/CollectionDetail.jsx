@@ -5,6 +5,7 @@ import useFetch from '../../components/useFetch';
 import useMutation from '../../components/useMutation';
 import useDelete from '../../components/useDelete';
 import '../../style/SanPham.css';
+import '../../style/Collections.css';
 
 // ==========================================
 // SUB-COMPONENT: PRODUCT CARD (giống SanPham.jsx)
@@ -118,9 +119,22 @@ const ProductCard = memo(({ product }) => {
                 <div className="product-info">
                     <h3 className="product-name">{product.name}</h3>
                     <p className="product-type">{product.type}</p>
-                    <p className="product-price">
-                        {product.price?.toLocaleString('vi-VN')}₫
-                    </p>
+                    <div className="product-price-wrapper">
+                        {product.salePrice ? (
+                            <>
+                                <span className="product-sale-price">
+                                    {product.salePrice.toLocaleString('vi-VN')}₫
+                                </span>
+                                <span className="product-base-price-strikethrough">
+                                    {product.basePrice.toLocaleString('vi-VN')}₫
+                                </span>
+                            </>
+                        ) : (
+                            <span className="product-price">
+                                {product.basePrice.toLocaleString('vi-VN')}₫
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
         </Link>
@@ -142,10 +156,11 @@ function CollectionDetail() {
     const normalizedProducts = useMemo(() => {
         if (!collection?.products) return [];
         return collection.products.map(p => ({
-            id: p.product_id || p.id,
-            slug: p.slug,
+            id: p.id || p.product_id,
             name: p.product_name || p.name,
-            price: typeof p.base_price === 'string' ? parseFloat(p.base_price) : (p.base_price || p.sale_price || 0),
+            slug: p.slug,
+            basePrice: typeof p.base_price === 'string' ? parseFloat(p.base_price) : (p.base_price || 0),
+            salePrice: p.sale_price ? (typeof p.sale_price === 'string' ? parseFloat(p.sale_price) : p.sale_price) : null,
             isNew: p.is_new_arrival || false,
             type: p.category_name || 'Sản phẩm',
             primary_image_url: p.primary_image_url,
@@ -186,45 +201,30 @@ function CollectionDetail() {
     return (
         <div className="san-pham-page">
             {/* Hero Header */}
-            <div className="hero-header">
-                <div
-                    className="hero-product-image"
-                    style={{
-                        backgroundImage: collection.image_url
-                            ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${collection.image_url})`
-                            : undefined,
-                        backgroundColor: collection.image_url ? undefined : '#1a1a2e',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center'
-                    }}
-                >
-                    <div className="hero-overlay"></div>
-                    <div style={{ position: 'absolute', color: 'white', bottom: 20, left: 40 }}>
-                        <nav style={{ fontSize: '0.9rem', marginBottom: '0.5rem', opacity: 0.8 }}>
-                            <Link to="/" style={{ color: 'white', textDecoration: 'none' }}>Trang chủ</Link>
-                            <span> / </span>
-                            <Link to="/collections" style={{ color: 'white', textDecoration: 'none' }}>Bộ sưu tập</Link>
-                            <span> / </span>
-                            <span>{collection.collection_name}</span>
-                        </nav>
-                        <h1 style={{ margin: 0, fontSize: '2.5rem' }}>{collection.collection_name}</h1>
-                        {collection.description && (
-                            <p style={{ margin: '0.5rem 0 0', opacity: 0.9 }}>{collection.description}</p>
-                        )}
-                    </div>
+            <header className="collection-hero-section" style={{
+                backgroundImage: collection.image_url
+                    ? `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url(${collection.image_url})`
+                    : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
+            }}>
+                <div className="collection-hero-content">
+                    <span className="collection-label">BỘ SƯU TẬP</span>
+                    <h1 className="collection-hero-title">{collection.collection_name}</h1>
+                    {collection.description && (
+                        <p className="collection-hero-description">{collection.description}</p>
+                    )}
                 </div>
-            </div>
+            </header>
 
             <div className="content-wrapper">
                 {/* SIDEBAR - Collection Info */}
                 <aside className="sidebar-filters">
                     <div className="filter-section">
-                        <h3>BỘ SƯU TẬP</h3>
+                        <h3 className="sidebar-title">THÔNG TIN</h3>
 
                         <div className="filter-group">
-                            <h4>{collection.collection_name}</h4>
+                            <h4 className="collection-sidebar-name">{collection.collection_name}</h4>
                             {collection.description && (
-                                <p style={{ fontSize: '0.9rem', color: '#666', lineHeight: 1.5 }}>
+                                <p className="collection-sidebar-desc">
                                     {collection.description}
                                 </p>
                             )}
@@ -232,15 +232,19 @@ function CollectionDetail() {
 
                         {collection.start_date && (
                             <div className="filter-group">
-                                <h4>Thời gian</h4>
-                                <p style={{ fontSize: '0.9rem', color: '#666' }}>
-                                    Bắt đầu: {new Date(collection.start_date).toLocaleDateString('vi-VN')}
-                                </p>
-                                {collection.end_date && (
-                                    <p style={{ fontSize: '0.9rem', color: '#e74c3c' }}>
-                                        Kết thúc: {new Date(collection.end_date).toLocaleDateString('vi-VN')}
+                                <h4 className="sidebar-info-label">Thời gian</h4>
+                                <div className="date-info">
+                                    <p className="date-item">
+                                        <span className="dot start"></span>
+                                        Bắt đầu: {new Date(collection.start_date).toLocaleDateString('vi-VN')}
                                     </p>
-                                )}
+                                    {collection.end_date && (
+                                        <p className="date-item">
+                                            <span className="dot end"></span>
+                                            Kết thúc: {new Date(collection.end_date).toLocaleDateString('vi-VN')}
+                                        </p>
+                                    )}
+                                </div>
                             </div>
                         )}
 
