@@ -48,9 +48,9 @@ const ProductCard = memo(({ product }) => {
   // Debug images (chỉ log khi có data để tránh spam)
   useEffect(() => {
     if (imagesData && imagesData.length > 0) {
-      console.log(`🖼️ Images for ${product.name}:`, imagesData);
+      console.log(`Images for ${product.name}:`, imagesData);
     } else if (imagesData) {
-      console.log(`⚠️ No images for ${product.name}`);
+      console.log(`No images for ${product.name}`);
     }
   }, [imagesData, product.name]);
 

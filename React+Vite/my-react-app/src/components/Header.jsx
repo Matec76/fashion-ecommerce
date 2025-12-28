@@ -207,7 +207,7 @@ const Header = ({
                     {searchHistory.length > 0 && (
                       <div className="search-section">
                         <div className="search-section-title">
-                          <span>🕐 Tìm kiếm gần đây</span>
+                          <span>Tìm kiếm gần đây</span>
                         </div>
                         {searchHistory.map((item, index) => (
                           <div
@@ -225,7 +225,7 @@ const Header = ({
                     {popularSearches.length > 0 && (
                       <div className="search-section">
                         <div className="search-section-title">
-                          <span>🔥 Tìm kiếm phổ biến</span>
+                          <span>Tìm kiếm phổ biến</span>
                         </div>
                         {popularSearches.map((item, index) => (
                           <div
@@ -244,7 +244,7 @@ const Header = ({
                     {recentlyViewed.length > 0 && (
                       <div className="search-section">
                         <div className="search-section-title">
-                          <span>👀 Sản phẩm đã xem</span>
+                          <span>Sản phẩm đã xem</span>
                         </div>
                         <div className="recent-products-grid">
                           {recentlyViewed.map((product) => (
@@ -285,11 +285,12 @@ const Header = ({
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
+                {itemCount > 0 && <span className="user-icon-badge">{itemCount}</span>}
               </button>
               {isMenuOpen && (
                 <div className="user-dropdown">
                   <div className="user-info">
-                    <span className="user-name">👋 Hi, {user.username}</span>
+                    <span className="user-name">Hi, {user.first_name && user.last_name ? `${user.first_name} ${user.last_name}` : user.username}</span>
                   </div>
                   <div className="dropdown-divider"></div>
                   <Link to="/profile" className="dropdown-item" onClick={closeMenu}>

@@ -15,28 +15,29 @@ const Wishlist = () => {
     const [newWishlistDescription, setNewWishlistDescription] = useState('');
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [productDetails, setProductDetails] = useState({}); // Cache product details
+    const [removingItems, setRemovingItems] = useState([]); // Track items being removed for optimistic update
 
     const token = localStorage.getItem('authToken');
     const { mutate, loading: mutateLoading } = useMutation();
     const { remove } = useDelete();
 
-    // Fetch all wishlists
+    // Fetch all wishlists - always fresh data
     const { data: wishlists, loading, refetch: refetchWishlists } = useFetch(
         API_ENDPOINTS.WISHLIST.LIST,
-        { auth: true }
+        { auth: true, skipCache: true }
     );
 
-    // Fetch default wishlist (all favorites)
+    // Fetch default wishlist (all favorites) - always fresh data
     const { data: defaultWishlist, refetch: refetchDefault } = useFetch(
         API_ENDPOINTS.WISHLIST.DEFAULT,
-        { auth: true }
+        { auth: true, skipCache: true }
     );
 
     // Fetch active wishlist details
     const activeWishlistId = activeSection !== 'favorites' ? activeSection : null;
     const { data: activeWishlistData, refetch: refetchActive } = useFetch(
         activeWishlistId ? API_ENDPOINTS.WISHLIST.DETAIL(activeWishlistId) : null,
-        { auth: true }
+        { auth: true, skipCache: true }
     );
 
     // Redirect if not logged in
@@ -45,6 +46,19 @@ const Wishlist = () => {
             navigate('/login');
         }
     }, [token, navigate]);
+
+    // Force refetch when component mounts to ensure fresh data
+    useEffect(() => {
+        if (token && refetchWishlists && refetchDefault) {
+            // Small delay to ensure hooks are fully initialized
+            const timer = setTimeout(() => {
+                console.log('Force refetching wishlist data...');
+                refetchWishlists();
+                refetchDefault();
+            }, 100);
+            return () => clearTimeout(timer);
+        }
+    }, [token, refetchWishlists, refetchDefault]);
 
     // Fetch product details for wishlist items
     useEffect(() => {
@@ -82,14 +96,17 @@ const Wishlist = () => {
             ? (defaultWishlist?.items || [])
             : (activeWishlistData?.items || []);
 
+        // Filter out items that are being removed (optimistic update)
+        const filteredItems = items.filter(item => !removingItems.includes(item.wishlist_item_id));
+
         // Enrich items with fetched product details
-        return items.map(item => ({
+        return filteredItems.map(item => ({
             ...item,
             product: item.product?.product_name
                 ? item.product
                 : productDetails[item.product_id] || item.product
         }));
-    }, [activeSection, defaultWishlist, activeWishlistData, productDetails]);
+    }, [activeSection, defaultWishlist, activeWishlistData, productDetails, removingItems]);
 
     // Filter wishlists (exclude default)
     const customWishlists = useMemo(() => {
@@ -119,15 +136,34 @@ const Wishlist = () => {
         }
     };
 
-    // Remove item from wishlist
+    // Remove item from wishlist (with optimistic update)
     const handleRemoveItem = async (itemId) => {
         if (!window.confirm('Bạn có chắc muốn xóa sản phẩm này?')) return;
 
-        const result = await remove(API_ENDPOINTS.WISHLIST.REMOVE_ITEM(itemId));
-        if (result.success) {
-            refetchDefault();
-            refetchActive();
-            refetchWishlists();
+        // Debug log
+        console.log('Removing item with ID:', itemId);
+        console.log('DELETE URL:', API_ENDPOINTS.WISHLIST.REMOVE_ITEM(itemId));
+
+        // Optimistic update: immediately hide the item from UI
+        setRemovingItems(prev => [...prev, itemId]);
+
+        try {
+            const result = await remove(API_ENDPOINTS.WISHLIST.REMOVE_ITEM(itemId));
+
+            if (result.success) {
+                // Refetch in background - keep item hidden via removingItems
+                // Don't cleanup removingItems here, item stays hidden
+                refetchDefault();
+                refetchActive();
+                refetchWishlists();
+            } else {
+                // Only revert if API explicitly failed (not 404)
+                setRemovingItems(prev => prev.filter(id => id !== itemId));
+            }
+        } catch (error) {
+            console.error('Error removing item:', error);
+            // Revert optimistic update if network error
+            setRemovingItems(prev => prev.filter(id => id !== itemId));
         }
     };
 
@@ -368,21 +404,34 @@ const Wishlist = () => {
                                     const currentListProductIds = (activeWishlistData?.items || []).map(i => i.product_id);
                                     return !currentListProductIds.includes(item.product_id);
                                 })
-                                .map(item => (
-                                    <label key={item.wishlist_item_id} className="product-select-item">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedProducts.includes(item.product_id)}
-                                            onChange={() => toggleProductSelection(item.product_id)}
-                                        />
-                                        <img
-                                            src={item.product?.images?.[0]?.image_url || 'https://placehold.co/60x60?text=No+Image'}
-                                            alt={item.product?.product_name}
-                                        />
-                                        <span className="product-select-name">{item.product?.product_name}</span>
-                                        <span className="product-select-price">{formatPrice(item.product?.base_price || 0)}</span>
-                                    </label>
-                                ))}
+                                .map(item => {
+                                    // Get product from fetched details or fallback to item.product
+                                    const product = productDetails[item.product_id] || item.product;
+                                    return (
+                                        <label key={item.wishlist_item_id} className="product-select-item">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedProducts.includes(item.product_id)}
+                                                onChange={() => toggleProductSelection(item.product_id)}
+                                            />
+                                            {product?.images?.[0]?.image_url ? (
+                                                <img
+                                                    src={product.images[0].image_url}
+                                                    alt={product?.product_name}
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.parentElement.insertAdjacentHTML('afterbegin',
+                                                            '<div style="width: 50px; height: 50px; background-color: #e0e0e0; border-radius: 6px;"></div>'
+                                                        );
+                                                    }}
+                                                />
+                                            ) : (
+                                                <div className="no-image-placeholder" style={{ width: 50, height: 50, backgroundColor: '#e0e0e0', borderRadius: 6 }} />
+                                            )}
+                                            <span className="product-select-name">{product?.product_name || 'Đang tải...'}</span>
+                                        </label>
+                                    );
+                                })}
                         </div>
 
                         <div className="modal-actions">

@@ -207,10 +207,10 @@ const Checkout = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('💰 Processing fee response:', data);
+                console.log('Processing fee response:', data);
                 setProcessingFee(parseFloat(data.processing_fee || data.fee || 0));
             } else {
-                console.warn('⚠️ Could not calculate fee, using 0');
+                console.warn('Could not calculate fee, using 0');
                 setProcessingFee(0);
             }
         } catch (error) {
@@ -295,14 +295,14 @@ const Checkout = () => {
 
             const responseData = await orderResponse.json();
 
-            console.log('📦 Full order response:', responseData);
+            console.log('Full order response:', responseData);
 
             // Backend returns: { order: {...}, payment: {...} }
             const order = responseData.order;
             const payment = responseData.payment;
 
-            console.log('📋 Order data:', order);
-            console.log('💳 Payment data:', payment);
+            console.log('Order data:', order);
+            console.log('Payment data:', payment);
 
             const orderId = order.order_id;
 
@@ -310,25 +310,25 @@ const Checkout = () => {
             let transactionCode = null;
             if (order.payment_transactions?.length > 0) {
                 transactionCode = order.payment_transactions[0].transaction_code;
-                console.log('✅ Found transaction_code in order.payment_transactions[0]:', transactionCode);
+                console.log('Found transaction_code in order.payment_transactions[0]:', transactionCode);
             } else if (payment.transaction_id) {
                 transactionCode = String(payment.transaction_id);
-                console.log('⚠️ Using payment.transaction_id as fallback:', transactionCode);
+                console.log('Using payment.transaction_id as fallback:', transactionCode);
             } else {
-                console.error('❌ No transaction_code found!');
+                console.error('No transaction_code found!');
             }
 
             const paymentUrl = payment.payment_url || order.payment_transactions?.[0]?.payment_url;
             const qrCode = payment.qr_code || order.payment_transactions?.[0]?.qr_code;
 
-            console.log('🔑 Transaction code:', transactionCode);
-            console.log('🔗 Payment URL:', paymentUrl);
-            console.log('📱 QR Code:', qrCode ? 'Available' : 'Not available');
+            console.log('Transaction code:', transactionCode);
+            console.log('Payment URL:', paymentUrl);
+            console.log('QR Code:', qrCode ? 'Available' : 'Not available');
 
             // Check if payment method is COD (Cash on Delivery)
             const selectedMethod = paymentMethods.find(m => m.payment_method_id === selectedPaymentMethod);
-            console.log('🔍 Selected payment method:', selectedMethod);
-            console.log('📝 Method name:', selectedMethod?.method_name);
+            console.log('Selected payment method:', selectedMethod);
+            console.log('Method name:', selectedMethod?.method_name);
 
             const isCOD = selectedMethod?.method_name?.toLowerCase().includes('cod') ||
                 selectedMethod?.method_name?.toLowerCase().includes('nhận hàng') ||
@@ -340,7 +340,7 @@ const Checkout = () => {
                 selectedMethod?.method_name?.toLowerCase().includes('cash on delivery') ||
                 selectedMethod?.payment_method_id === 1; // Thường COD có ID = 1
 
-            console.log('💰 Is COD?', isCOD);
+            console.log('Is COD?', isCOD);
 
             if (isCOD) {
                 // COD: Clear cart and navigate to success page
@@ -368,7 +368,7 @@ const Checkout = () => {
             }
 
         } catch (error) {
-            console.error('💥 Error placing order:', error);
+            console.error('Error placing order:', error);
             alert(`Lỗi: ${error.message}`);
         } finally {
             setLoading(false);
@@ -380,7 +380,7 @@ const Checkout = () => {
     const finalTotal = Number(selectedTotal) + Number(shippingFee) + Number(processingFee) - totalDiscount;
 
     // Debug log
-    console.log('💰 Price Debug:', {
+    console.log('Price Debug:', {
         selectedTotal,
         shippingFee,
         processingFee,

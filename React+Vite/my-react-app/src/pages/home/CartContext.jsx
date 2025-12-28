@@ -39,10 +39,10 @@ export const CartProvider = ({ children }) => {
     // Fetch cart từ API
     const fetchCart = useCallback(async () => {
         const token = getAuthToken();
-        console.log('🛒 fetchCart called, token:', token ? 'EXISTS' : 'MISSING');
+        console.log('fetchCart called, token:', token ? 'EXISTS' : 'MISSING');
 
         if (!token) {
-            console.warn('⚠️ No auth token, setting empty cart');
+            console.warn('No auth token, setting empty cart');
             setCartItems([]);
             setCartSummary({ total_items: 0, total_amount: 0 });
             return;
@@ -50,20 +50,20 @@ export const CartProvider = ({ children }) => {
 
         setLoading(true);
         try {
-            console.log('📡 Fetching cart from:', API_ENDPOINTS.CART.DETAIL);
+            console.log('Fetching cart from:', API_ENDPOINTS.CART.DETAIL);
             const response = await fetch(API_ENDPOINTS.CART.DETAIL, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
-            console.log('📥 Cart response status:', response.status);
+            console.log('Cart response status:', response.status);
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('✅ Cart data received:', data);
-                console.log('📦 Cart items:', data.items);
+                console.log('Cart data received:', data);
+                console.log('Cart items:', data.items);
                 setCartItems(data.items || data || []);
             } else {
-                console.error('❌ Cart fetch failed:', response.status);
+                console.error('Cart fetch failed:', response.status);
             }
 
             // Fetch summary
@@ -72,11 +72,11 @@ export const CartProvider = ({ children }) => {
             });
             if (summaryRes.ok) {
                 const summaryData = await summaryRes.json();
-                console.log('📊 Cart summary:', summaryData);
+                console.log('Cart summary:', summaryData);
                 setCartSummary(summaryData);
             }
         } catch (err) {
-            console.error('💥 Error fetching cart:', err);
+            console.error('Error fetching cart:', err);
             setError(err.message);
         } finally {
             setLoading(false);
@@ -250,7 +250,7 @@ export const CartProvider = ({ children }) => {
             return;
         }
 
-        console.log('🔄 Merging guest cart, session_id:', guestSessionId);
+        console.log('Merging guest cart, session_id:', guestSessionId);
 
         try {
             const response = await fetch(`${API_ENDPOINTS.CART.MERGE}?session_id=${guestSessionId}`, {
@@ -263,7 +263,7 @@ export const CartProvider = ({ children }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('✅ Guest cart merged successfully:', data);
+                console.log('Guest cart merged successfully:', data);
 
                 // Xóa guest session sau khi merge thành công
                 localStorage.removeItem('guestSessionId');
@@ -271,10 +271,10 @@ export const CartProvider = ({ children }) => {
                 // Refresh cart để hiển thị items mới
                 await fetchCart();
             } else {
-                console.error('❌ Failed to merge guest cart:', response.status);
+                console.error('Failed to merge guest cart:', response.status);
             }
         } catch (err) {
-            console.error('💥 Error merging guest cart:', err);
+            console.error('Error merging guest cart:', err);
         }
     };
 

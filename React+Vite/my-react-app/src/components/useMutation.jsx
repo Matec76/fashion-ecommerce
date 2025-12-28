@@ -1,56 +1,27 @@
 import { useState, useCallback } from 'react';
+import logger from '../utils/logger';
 
 /**
- * useMutation Hook - Xử lý POST, PUT, PATCH, DELETE requests
+ * useMutation Hook - POST, PUT, PATCH, DELETE requests
  * @returns {Object} { mutate, loading, error, data, reset }
- * 
- * @example
- * const { mutate, loading, error } = useMutation();
- * 
- * const handleSubmit = async () => {
- *   const result = await mutate('/api/users', {
- *     method: 'POST',
- *     body: { name: 'John' }
- *   });
- *   if (result.success) {
- *     console.log('Created:', result.data);
- *   }
- * };
  */
 const useMutation = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [data, setData] = useState(null);
 
-    /**
-     * Thực hiện mutation request
-     * @param {string} url - API endpoint
-     * @param {Object} options - Request options
-     * @param {string} options.method - HTTP method (POST, PUT, PATCH, DELETE)
-     * @param {Object} options.body - Request body (will be JSON stringified)
-     * @param {Object} options.headers - Additional headers
-     * @param {boolean} options.auth - Include auth token (default: true)
-     * @returns {Promise<{success: boolean, data?: any, error?: string}>}
-     */
     const mutate = useCallback(async (url, options = {}) => {
-        const {
-            method = 'POST',
-            body,
-            headers = {},
-            auth = true
-        } = options;
+        const { method = 'POST', body, headers = {}, auth = true } = options;
 
         setLoading(true);
         setError(null);
 
         try {
-            // Build headers
             const requestHeaders = {
                 'Content-Type': 'application/json',
                 ...headers
             };
 
-            // Add auth token if needed
             if (auth) {
                 const token = localStorage.getItem('authToken');
                 if (token) {
@@ -58,7 +29,7 @@ const useMutation = () => {
                 }
             }
 
-            console.log(`🚀 ${method}:`, url);
+            logger.log(`${method}:`, url);
 
             const response = await fetch(url, {
                 method,
@@ -68,7 +39,7 @@ const useMutation = () => {
 
             // Handle 401 Unauthorized - Chỉ báo lỗi, không xóa token
             if (response.status === 401) {
-                console.warn('401 Unauthorized for:', url);
+                logger.warn('401 Unauthorized for:', url);
                 setError('Không có quyền truy cập');
                 return { success: false, error: 'Không có quyền truy cập', status: 401 };
             }
@@ -95,17 +66,17 @@ const useMutation = () => {
                     }
                 }
 
-                console.error(`❌ ${method} failed:`, errorMessage);
+                logger.error(`${method} failed:`, errorMessage);
                 setError(errorMessage);
                 return { success: false, error: errorMessage, status: response.status };
             }
 
-            console.log(`✅ ${method} success:`, url);
+            logger.log(`${method} success:`, url);
             setData(responseData);
             return { success: true, data: responseData, status: response.status };
 
         } catch (err) {
-            console.error(`💥 ${method} error:`, err);
+            logger.error(`${method} error:`, err);
             const errorMessage = err.message || 'Lỗi kết nối server';
             setError(errorMessage);
             return { success: false, error: errorMessage };

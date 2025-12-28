@@ -1,31 +1,15 @@
 import { useState, useCallback } from 'react';
+import logger from '../utils/logger';
 
 /**
- * usePatch Hook - Chuyên xử lý PATCH requests (cập nhật dữ liệu)
+ * usePatch Hook - PATCH requests
  * @returns {Object} { patch, loading, error, data, reset }
- * 
- * @example
- * const { patch, loading, error } = usePatch();
- * 
- * const handleUpdate = async () => {
- *   const result = await patch('/api/users/1', { name: 'John Updated' });
- *   if (result.success) {
- *     console.log('Updated:', result.data);
- *   }
- * };
  */
 const usePatch = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [data, setData] = useState(null);
 
-    /**
-     * Thực hiện PATCH request
-     * @param {string} url - API endpoint
-     * @param {Object} body - Request body
-     * @param {Object} options - Additional options
-     * @returns {Promise<{success: boolean, data?: any, error?: string}>}
-     */
     const patch = useCallback(async (url, body, options = {}) => {
         const { headers = {}, auth = true } = options;
 
@@ -45,7 +29,7 @@ const usePatch = () => {
                 }
             }
 
-            console.log('🔄 PATCH:', url);
+            logger.log('PATCH:', url);
 
             const response = await fetch(url, {
                 method: 'PATCH',
@@ -54,7 +38,7 @@ const usePatch = () => {
             });
 
             if (response.status === 401) {
-                console.warn('401 Unauthorized for:', url);
+                logger.warn('401 Unauthorized for:', url);
                 setError('Không có quyền truy cập');
                 return { success: false, error: 'Không có quyền truy cập', status: 401 };
             }
@@ -74,17 +58,17 @@ const usePatch = () => {
                         errorMessage = responseData.detail.map(e => e.msg).join(', ');
                     }
                 }
-                console.error('❌ PATCH failed:', errorMessage);
+                logger.error('PATCH failed:', errorMessage);
                 setError(errorMessage);
                 return { success: false, error: errorMessage, status: response.status };
             }
 
-            console.log('✅ PATCH success:', url);
+            logger.log('PATCH success:', url);
             setData(responseData);
             return { success: true, data: responseData, status: response.status };
 
         } catch (err) {
-            console.error('💥 PATCH error:', err);
+            logger.error('PATCH error:', err);
             const errorMessage = err.message || 'Lỗi kết nối server';
             setError(errorMessage);
             return { success: false, error: errorMessage };

@@ -1,29 +1,14 @@
 import { useState, useCallback } from 'react';
+import logger from '../utils/logger';
 
 /**
- * useDelete Hook - Chuyên xử lý DELETE requests (xóa dữ liệu)
+ * useDelete Hook - DELETE requests
  * @returns {Object} { remove, loading, error, reset }
- * 
- * @example
- * const { remove, loading, error } = useDelete();
- * 
- * const handleDelete = async () => {
- *   const result = await remove('/api/users/1');
- *   if (result.success) {
- *     console.log('Deleted successfully');
- *   }
- * };
  */
 const useDelete = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    /**
-     * Thực hiện DELETE request
-     * @param {string} url - API endpoint
-     * @param {Object} options - Additional options
-     * @returns {Promise<{success: boolean, error?: string}>}
-     */
     const remove = useCallback(async (url, options = {}) => {
         const { headers = {}, auth = true } = options;
 
@@ -40,7 +25,7 @@ const useDelete = () => {
                 }
             }
 
-            console.log('🗑️ DELETE:', url);
+            logger.log('DELETE:', url);
 
             const response = await fetch(url, {
                 method: 'DELETE',
@@ -48,14 +33,15 @@ const useDelete = () => {
             });
 
             if (response.status === 401) {
-                console.warn('401 Unauthorized for:', url);
+                logger.warn('401 Unauthorized for:', url);
                 setError('Không có quyền truy cập');
                 return { success: false, error: 'Không có quyền truy cập', status: 401 };
             }
 
             // DELETE thường trả về 204 No Content
-            if (response.status === 204 || response.ok) {
-                console.log('✅ DELETE success:', url);
+            // 404 cũng được coi là thành công vì item đã không tồn tại
+            if (response.status === 204 || response.status === 404 || response.ok) {
+                logger.log('DELETE success:', url, '(status:', response.status + ')');
                 return { success: true, status: response.status };
             }
 
@@ -75,12 +61,12 @@ const useDelete = () => {
                 }
             }
 
-            console.error('❌ DELETE failed:', errorMessage);
+            logger.error('DELETE failed:', errorMessage);
             setError(errorMessage);
             return { success: false, error: errorMessage, status: response.status };
 
         } catch (err) {
-            console.error('💥 DELETE error:', err);
+            logger.error('DELETE error:', err);
             const errorMessage = err.message || 'Lỗi kết nối server';
             setError(errorMessage);
             return { success: false, error: errorMessage };
