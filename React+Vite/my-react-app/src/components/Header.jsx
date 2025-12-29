@@ -4,6 +4,7 @@ import { useCart } from '../pages/home/CartContext';
 import NotificationBell from './NotificationBell';
 import ChangePasswordModal from './ChangePasswordModal';
 import { API_ENDPOINTS } from '../config/api.config';
+import { authFetch } from '../utils/authInterceptor';
 import '/src/style/main.css';
 
 const Header = ({
@@ -17,7 +18,6 @@ const Header = ({
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isEmailVerified, setIsEmailVerified] = useState(false);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
-  const [popularSearches, setPopularSearches] = useState([]);
   const [searchHistory, setSearchHistory] = useState([]);
   const [recentlyViewed, setRecentlyViewed] = useState([]);
   const [loadingSearchData, setLoadingSearchData] = useState(false);
@@ -57,13 +57,6 @@ const Header = ({
     const token = localStorage.getItem('authToken');
 
     try {
-      // Fetch popular searches (public)
-      const popularRes = await fetch(`${API_ENDPOINTS.ANALYTICS.POPULAR_SEARCHES}?limit=5`);
-      if (popularRes.ok) {
-        const data = await popularRes.json();
-        setPopularSearches(data);
-      }
-
       // Fetch search history (authenticated users only)
       if (token) {
         const historyRes = await fetch(`${API_ENDPOINTS.ANALYTICS.SEARCH_HISTORY}?limit=5`, {
@@ -71,6 +64,7 @@ const Header = ({
         });
         if (historyRes.ok) {
           const data = await historyRes.json();
+          // console.log('Search History Data:', data);
           setSearchHistory(data);
         }
 
@@ -80,6 +74,7 @@ const Header = ({
         });
         if (recentRes.ok) {
           const data = await recentRes.json();
+          // console.log('Recently Viewed Data:', data);
           setRecentlyViewed(data);
         }
       }
@@ -95,10 +90,32 @@ const Header = ({
     fetchSearchSuggestions();
   };
 
+  // Track search query
+  const trackSearch = async (query) => {
+    try {
+      const token = localStorage.getItem('authToken');
+      await fetch(API_ENDPOINTS.ANALYTICS.TRACK_SEARCH, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          query: query,
+          results_count: 0
+        })
+      });
+    } catch (error) {
+      console.error('Error tracking search:', error);
+    }
+  };
+
   // Search handlers
   const handleSearchKeyDown = (e) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
-      navigate(`/product?search=${encodeURIComponent(searchQuery.trim())}`);
+      const query = searchQuery.trim();
+      trackSearch(query);
+      navigate(`/product?search=${encodeURIComponent(query)}`);
       setSearchQuery('');
       setShowSearchDropdown(false);
     }
@@ -106,7 +123,9 @@ const Header = ({
 
   const handleSearchClick = () => {
     if (searchQuery.trim()) {
-      navigate(`/product?search=${encodeURIComponent(searchQuery.trim())}`);
+      const query = searchQuery.trim();
+      trackSearch(query);
+      navigate(`/product?search=${encodeURIComponent(query)}`);
       setSearchQuery('');
       setShowSearchDropdown(false);
     }
@@ -114,6 +133,7 @@ const Header = ({
 
   // Handle suggestion click
   const handleSuggestionClick = (query) => {
+    trackSearch(query);
     navigate(`/product?search=${encodeURIComponent(query)}`);
     setSearchQuery('');
     setShowSearchDropdown(false);
@@ -209,34 +229,19 @@ const Header = ({
                         <div className="search-section-title">
                           <span>Tìm kiếm gần đây</span>
                         </div>
-                        {searchHistory.map((item, index) => (
-                          <div
-                            key={index}
-                            className="search-suggestion-item history-item"
-                            onClick={() => handleSuggestionClick(item.query || item.search_term || item)}
-                          >
-                            <span className="suggestion-text">{item.query || item.search_term || item}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Popular Searches */}
-                    {popularSearches.length > 0 && (
-                      <div className="search-section">
-                        <div className="search-section-title">
-                          <span>Tìm kiếm phổ biến</span>
-                        </div>
-                        {popularSearches.map((item, index) => (
-                          <div
-                            key={index}
-                            className="search-suggestion-item popular-item"
-                            onClick={() => handleSuggestionClick(item.query || item.search_term || item)}
-                          >
-                            <span className="suggestion-text">{item.query || item.search_term || item}</span>
-                            {item.count && <span className="suggestion-count">{item.count}</span>}
-                          </div>
-                        ))}
+                        {searchHistory.map((item, index) => {
+                          const displayText = typeof item === 'string' ? item : (item.search_query || item.query || item.search_term || item.keyword || item.text || '');
+                          if (!displayText) return null;
+                          return (
+                            <div
+                              key={index}
+                              className="search-suggestion-item history-item"
+                              onClick={() => handleSuggestionClick(displayText)}
+                            >
+                              <span className="suggestion-text">{displayText}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
 
@@ -246,31 +251,32 @@ const Header = ({
                         <div className="search-section-title">
                           <span>Sản phẩm đã xem</span>
                         </div>
-                        <div className="recent-products-grid">
-                          {recentlyViewed.map((product) => (
-                            <Link
-                              key={product.id}
-                              to={`/product/${product.slug}`}
-                              className="recent-product-item"
-                              onClick={() => setShowSearchDropdown(false)}
+                        {recentlyViewed.map((item, index) => {
+                          // Handle both flat product object and nested { product: ... } structure
+                          const product = item.product || item;
+                          const productName = product.name || product.product_name || '';
+                          const productSlug = product.slug || product.product_id || product.id;
+
+                          if (!productName) return null;
+
+                          return (
+                            <div
+                              key={product.id || index}
+                              className="search-suggestion-item recent-item"
+                              onClick={() => {
+                                navigate(`/products/${productSlug}`);
+                                setShowSearchDropdown(false);
+                              }}
                             >
-                              <div className="recent-product-image">
-                                <img src={product.thumbnail_url || product.image_url} alt={product.name} />
-                              </div>
-                              <div className="recent-product-info">
-                                <div className="recent-product-name">{product.name}</div>
-                                <div className="recent-product-price">
-                                  {product.price?.toLocaleString()}đ
-                                </div>
-                              </div>
-                            </Link>
-                          ))}
-                        </div>
+                              <span className="suggestion-text">{productName}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
 
                     {/* No suggestions */}
-                    {searchHistory.length === 0 && popularSearches.length === 0 && recentlyViewed.length === 0 && (
+                    {searchHistory.length === 0 && recentlyViewed.length === 0 && (
                       <div className="no-suggestions">Nhập từ khóa để tìm kiếm</div>
                     )}
                   </>
@@ -306,6 +312,13 @@ const Header = ({
                       <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
                     </svg>
                     Đơn hàng
+                  </Link>
+                  <Link to="/returns" className="dropdown-item" onClick={closeMenu}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                    Đơn trả hàng
                   </Link>
                   <Link to="/wishlist" className="dropdown-item" onClick={closeMenu}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

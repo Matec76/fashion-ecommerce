@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './Header';
-import Footer_1 from './Footer_1'; // 1. Đổi tên import này cho rõ
-import Footer_2 from './Footer_2'; // 2. Import thêm Footer_2
+import Footer_1 from './Footer_1';
+import Footer_2 from './Footer_2';
 
 import {
   TOP_LINKS,
@@ -12,34 +12,75 @@ import {
   SOCIAL_LINKS,
 } from '../constants/siteContent';
 
-// 3. Thêm prop "isSubPage" (mặc định là false)
-const Layout = ({ user, onLogout, isSubPage = false }) => (
-  <>
-    <Header
-      topLinks={TOP_LINKS}
-      menuLinks={MENU_LINKS}
-      user={user}
-      onLogout={onLogout}
-    />
+const Layout = ({ user, onLogout, isSubPage = false }) => {
+  const [socialLinks, setSocialLinks] = useState([]);
+  const [contactHotline, setContactHotline] = useState('+84 28 44581937');
 
-    <main>
-      <Outlet />
-    </main>
+  useEffect(() => {
+    const fetchSocialLinks = async () => {
+      try {
+        const response = await fetch('/api/v1/system/settings/public');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('🔍 API Response:', data);
 
-    {/* 4. Logic chọn Footer: */}
-    {/* Nếu là trang phụ (isSubPage = true) -> Hiện Footer 2 */}
-    {/* Nếu là trang chủ (isSubPage = false) -> Hiện Footer 1 */}
-    {isSubPage ? (
-      <Footer_2 />
-    ) : (
-      <Footer_1
-        brandInfo={BRAND_INFO}
-        footerSections={FOOTER_SECTIONS}
-        socialLinks={SOCIAL_LINKS}
+          // Build social links từ API data
+          const apiSocialLinks = [];
+          if (data.social_facebook) {
+            apiSocialLinks.push({ type: 'facebook', href: data.social_facebook });
+          }
+          if (data.social_instagram) {
+            apiSocialLinks.push({ type: 'instagram', href: data.social_instagram });
+          }
+          if (data.social_twitter) {
+            apiSocialLinks.push({ type: 'twitter', href: data.social_twitter });
+          }
+
+          console.log('📱 Social Links:', apiSocialLinks);
+
+          // Always update với API data
+          setSocialLinks(apiSocialLinks);
+
+          // Update contact hotline nếu có
+          if (data.contact_hotline) {
+            setContactHotline(data.contact_hotline);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching social links:', error);
+        // Giữ nguyên default SOCIAL_LINKS nếu lỗi
+      }
+    };
+
+    fetchSocialLinks();
+  }, []);
+
+  return (
+    <>
+      <Header
+        topLinks={TOP_LINKS}
+        menuLinks={MENU_LINKS}
+        user={user}
+        onLogout={onLogout}
       />
-    )}
-  </>
-);
+
+      <main>
+        <Outlet />
+      </main>
+
+      {isSubPage ? (
+        <Footer_2 contactHotline={contactHotline} />
+      ) : (
+        <Footer_1
+          brandInfo={BRAND_INFO}
+          footerSections={FOOTER_SECTIONS}
+          socialLinks={socialLinks}
+          contactHotline={contactHotline}
+        />
+      )}
+    </>
+  );
+};
 
 export default Layout;
 

@@ -3,7 +3,9 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import '../../style/Checkout.css';
 import '../../style/Loyalty.css';
 import { API_ENDPOINTS, getAuthHeaders } from '../../config/api.config';
+import { authFetch } from '../../utils/authInterceptor';
 import CouponInput from '../../components/CouponInput';
+import VoucherPickerModal from '../../components/VoucherPickerModal';
 import { useCart } from './CartContext';
 
 const Checkout = () => {
@@ -50,12 +52,15 @@ const Checkout = () => {
     const [pointsDiscount, setPointsDiscount] = useState(0);
     const [pointsApplied, setPointsApplied] = useState(false);
 
+    //  Voucher picker modal state
+    const [isVoucherModalOpen, setIsVoucherModalOpen] = useState(false);
+
     // Fetch user addresses
     useEffect(() => {
         const fetchAddresses = async () => {
             try {
                 const token = localStorage.getItem('authToken');
-                const response = await fetch(API_ENDPOINTS.USERS.ADDRESSES, {
+                const response = await authFetch(API_ENDPOINTS.USERS.ADDRESSES, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -88,7 +93,7 @@ const Checkout = () => {
         const fetchShippingMethods = async () => {
             try {
                 const token = localStorage.getItem('authToken');
-                const response = await fetch(API_ENDPOINTS.ORDERS.SHIPPING_METHODS, {
+                const response = await authFetch(API_ENDPOINTS.ORDERS.SHIPPING_METHODS, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -116,7 +121,7 @@ const Checkout = () => {
         const fetchPaymentMethods = async () => {
             try {
                 const token = localStorage.getItem('authToken');
-                const response = await fetch(API_ENDPOINTS.PAYMENT.METHODS, {
+                const response = await authFetch(API_ENDPOINTS.PAYMENT.METHODS, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -149,7 +154,7 @@ const Checkout = () => {
                 const token = localStorage.getItem('authToken');
                 if (!token) return;
 
-                const response = await fetch(API_ENDPOINTS.LOYALTY.ME, {
+                const response = await authFetch(API_ENDPOINTS.LOYALTY.ME, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -194,7 +199,7 @@ const Checkout = () => {
     const calculateFee = async (methodId) => {
         try {
             const token = localStorage.getItem('authToken');
-            const response = await fetch(
+            const response = await authFetch(
                 API_ENDPOINTS.PAYMENT.CALCULATE_FEE(methodId, selectedTotal),
                 {
                     method: 'POST',
@@ -272,7 +277,7 @@ const Checkout = () => {
             const token = localStorage.getItem('authToken');
 
             // Create Order - Backend creates order AND payment transaction together
-            const orderResponse = await fetch(API_ENDPOINTS.ORDERS.CREATE, {
+            const orderResponse = await authFetch(API_ENDPOINTS.ORDERS.CREATE, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -377,13 +382,15 @@ const Checkout = () => {
 
     const discountAmount = Number(appliedCoupon?.discount_amount) || 0;
     const totalDiscount = discountAmount + pointsDiscount;
-    const finalTotal = Number(selectedTotal) + Number(shippingFee) + Number(processingFee) - totalDiscount;
+    const taxAmount = Number(selectedTotal) * 0.1; // VAT 10%
+    const finalTotal = Number(selectedTotal) + Number(shippingFee) + Number(processingFee) + taxAmount - totalDiscount;
 
     // Debug log
     console.log('Price Debug:', {
         selectedTotal,
         shippingFee,
         processingFee,
+        taxAmount,
         discountAmount,
         pointsDiscount,
         totalDiscount,
@@ -551,6 +558,16 @@ const Checkout = () => {
                                 onApply={(couponData) => setAppliedCoupon(couponData)}
                                 onRemove={() => setAppliedCoupon(null)}
                                 appliedCoupon={appliedCoupon}
+                                onOpenPicker={() => setIsVoucherModalOpen(true)}
+                            />
+
+                            {/* Voucher Picker Modal */}
+                            <VoucherPickerModal
+                                isOpen={isVoucherModalOpen}
+                                onClose={() => setIsVoucherModalOpen(false)}
+                                onSelectVoucher={(voucher) => setAppliedCoupon(voucher)}
+                                orderAmount={selectedTotal}
+                                currentCoupon={appliedCoupon}
                             />
 
                             {/* Points Redemption - Tạm ẩn
@@ -606,6 +623,10 @@ const Checkout = () => {
                                 <div className="summary-row">
                                     <span>Phí vận chuyển</span>
                                     <span>{shippingFee > 0 ? formatPrice(shippingFee) : 'Miễn phí'}</span>
+                                </div>
+                                <div className="summary-row">
+                                    <span>Thuế VAT (10%)</span>
+                                    <span>{formatPrice(taxAmount)}</span>
                                 </div>
                                 {processingFee > 0 && (
                                     <div className="summary-row">

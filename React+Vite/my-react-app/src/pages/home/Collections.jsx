@@ -6,7 +6,11 @@ import '../../style/SanPham.css';
 import '../../style/Collections.css';
 
 const Collections = () => {
-    const { data: collections, loading, error } = useFetch(API_ENDPOINTS.COLLECTIONS.LIST);
+    //  Fetch collections with 5-minute cache - collections rarely change
+    const { data: collections, loading, error } = useFetch(
+        API_ENDPOINTS.COLLECTIONS.LIST,
+        { cacheTime: 300000 } // 5 minutes cache
+    );
 
     if (loading) {
         return (

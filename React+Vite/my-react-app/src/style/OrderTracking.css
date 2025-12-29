@@ -309,7 +309,7 @@
 .item-price {
     font-weight: 600;
     color: #e74c3c;
-    font-size: 14px;
+    font-size: 18px;
 }
 
 .more-items {
@@ -427,6 +427,27 @@
     background: #dc3545;
     color: white;
 }
+
+.btn-return-request {
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    color: white;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-return-request:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
 
 /* Responsive */
 @media (max-width: 600px) {
@@ -609,7 +630,7 @@
 }
 
 .order-item-detail .item-price {
-    font-size: 16px;
+    font-size: 18px;
 }
 
 .order-summary-detail {

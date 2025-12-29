@@ -25,6 +25,11 @@ export const API_ENDPOINTS = {
         RESEND_VERIFICATION: `${API_BASE_URL}/auth/resend-verification`,
     },
 
+    // Chatbot
+    CHATBOT: {
+        CHAT: `${API_BASE_URL}/chatbot/`,
+    },
+
     // Products
     PRODUCTS: {
         LIST: `${API_BASE_URL}/products`,
@@ -137,6 +142,7 @@ export const API_ENDPOINTS = {
     // Coupons
     COUPONS: {
         PUBLIC: `${API_BASE_URL}/coupons/public`,
+        AVAILABLE: `${API_BASE_URL}/coupons/available`, // Lấy voucher khả dụng (Public + Tier + Private)
         VALIDATE: `${API_BASE_URL}/coupons/validate`,
         BY_CODE: (code) => `${API_BASE_URL}/coupons/code/${code}`,
         LIST: `${API_BASE_URL}/coupons`,
@@ -221,6 +227,17 @@ export const API_ENDPOINTS = {
         MOST_VIEWED_PRODUCTS: `${API_BASE_URL}/analytics/most-viewed-products`,
         DASHBOARD: `${API_BASE_URL}/analytics/dashboard`,
         SEARCH_ANALYTICS: `${API_BASE_URL}/analytics/search/analytics`,
+        // Tracking
+        TRACK_PRODUCT: (productId) => `${API_BASE_URL}/analytics/track/product/${productId}`,
+        TRACK_SEARCH: `${API_BASE_URL}/analytics/track/search`,
+    },
+
+    // Return & Refunds
+    RETURN_REFUNDS: {
+        CREATE: `${API_BASE_URL}/return_refunds/returns`,
+        MY_RETURNS: `${API_BASE_URL}/return_refunds/returns/me`,
+        RETURN_DETAIL: (returnId) => `${API_BASE_URL}/return_refunds/returns/${returnId}`,
+        REFUND_STATUS: (refundId) => `${API_BASE_URL}/return_refunds/refunds/${refundId}`,
     },
 };
 

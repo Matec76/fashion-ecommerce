@@ -49,8 +49,8 @@ export const FOOTER_SECTIONS = Object.freeze([
 
 export const SOCIAL_LINKS = Object.freeze([
   { type: 'facebook', href: 'https://www.facebook.com/profile.php?id=61577069013431' },
-  { type: 'instagram', href: '#' },
-  { type: 'twitter', href: '#' }
+  { type: 'instagram', href: 'https://www.instagram.com/yourpage' },
+  { type: 'twitter', href: 'https://twitter.com/yourpage' }
 ]);
 
 

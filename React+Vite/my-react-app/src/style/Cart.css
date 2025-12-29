@@ -71,7 +71,7 @@
 
 .cart-item {
     display: grid;
-    grid-template-columns: auto 120px 1fr auto auto auto;
+    grid-template-columns: auto 120px 1fr auto auto auto auto;
     gap: 20px;
     align-items: center;
     background: white;
@@ -128,7 +128,7 @@
 }
 
 .item-price {
-    font-size: 15px;
+    font-size: 18px;
     font-weight: 600;
     color: #e74c3c;
     margin: 0;

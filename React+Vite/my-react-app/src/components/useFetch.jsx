@@ -5,9 +5,12 @@ import logger from '../utils/logger';
 const cache = new Map();
 
 /**
- * useFetch Hook - AbortController, Caching, Auth
+ * useFetch Hook - AbortController, Caching, Auth, TTL
  * @param {string} url - API endpoint
- * @param {Object} options - { auth, skipCache, ...fetchOptions }
+ * @param {Object} options - { auth, skipCache, cacheTime, ...fetchOptions }
+ *   - auth: boolean - Require authentication token
+ *   - skipCache: boolean - Always fetch fresh data, never use cache
+ *   - cacheTime: number - Cache TTL in milliseconds (default: infinite, 0 = no cache)
  * @returns {Object} { data, loading, error, refetch }
  */
 const useFetch = (url, options = {}) => {
@@ -22,7 +25,7 @@ const useFetch = (url, options = {}) => {
             return;
         }
 
-        const { auth = false, skipCache = false, ...fetchOptions } = options;
+        const { auth = false, skipCache = false, cacheTime, ...fetchOptions } = options;
 
         // Kiểm tra auth
         if (auth) {
@@ -38,7 +41,7 @@ const useFetch = (url, options = {}) => {
             };
         }
 
-        // 1. Nếu có trong cache và không bắt buộc tải lại -> Lấy từ cache ngay lập tức
+        // 1. Cache key và kiểm tra cache với TTL
         const cacheKey = auth ? `${url}:auth` : url;
 
         // Clear cache if force update is requested or skipCache is enabled
@@ -47,12 +50,35 @@ const useFetch = (url, options = {}) => {
             logger.log('Cache cleared for:', url);
         }
 
-        // Skip cache check entirely if skipCache is enabled
+        // Check cache with TTL support
         if (cache.has(cacheKey) && !forceUpdate && !skipCache) {
-            setData(cache.get(cacheKey));
-            setLoading(false);
-            logger.log('Load from Cache:', url);
-            return;
+            const cachedEntry = cache.get(cacheKey);
+            const now = Date.now();
+
+            // Check if cache has expired based on cacheTime
+            if (cacheTime !== undefined && cacheTime > 0) {
+                const isCacheValid = (now - cachedEntry.timestamp) < cacheTime;
+                if (isCacheValid) {
+                    setData(cachedEntry.data);
+                    setLoading(false);
+                    logger.log('Load from TTL Cache:', url, `(age: ${now - cachedEntry.timestamp}ms)`);
+                    return;
+                } else {
+                    // Cache expired, delete it
+                    cache.delete(cacheKey);
+                    logger.log('Cache expired for:', url);
+                }
+            } else if (cacheTime === 0) {
+                // cacheTime = 0 means no cache
+                cache.delete(cacheKey);
+            } else {
+                // No cacheTime specified, use cache indefinitely (backward compatibility)
+                const data = cachedEntry.data !== undefined ? cachedEntry.data : cachedEntry;
+                setData(data);
+                setLoading(false);
+                logger.log('Load from Infinite Cache:', url);
+                return;
+            }
         }
 
         // 2. Hủy request cũ nếu đang chạy (Tránh Race Condition)
@@ -102,9 +128,12 @@ const useFetch = (url, options = {}) => {
 
             const result = await response.json();
 
-            // 3. Lưu vào Cache (chỉ khi không skipCache)
+            // 3. Lưu vào Cache với timestamp (chỉ khi không skipCache)
             if (!skipCache) {
-                cache.set(cacheKey, result);
+                cache.set(cacheKey, {
+                    data: result,
+                    timestamp: Date.now()
+                });
             }
 
             setData(result);
@@ -122,7 +151,7 @@ const useFetch = (url, options = {}) => {
                 setLoading(false);
             }
         }
-    }, [url, options.auth, options.skipCache]);
+    }, [url, options.auth, options.skipCache, options.cacheTime]);
 
     useEffect(() => {
         fetchData();

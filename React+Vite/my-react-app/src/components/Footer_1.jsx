@@ -50,16 +50,18 @@ const Footer = ({ brandInfo, footerSections = [], socialLinks = [] }) => (
           </div>
         ))}
 
-        <div className="footer-column">
-          <h4 className="footer-heading">Theo dõi</h4>
-          <div className="social-icons">
-            {socialLinks.map(({ type, href }) => (
-              <a key={type} href={href} className="social-link">
-                {SOCIAL_ICONS[type]}
-              </a>
-            ))}
+        {socialLinks.length > 0 && (
+          <div className="footer-column">
+            <h4 className="footer-heading">Theo dõi</h4>
+            <div className="social-icons">
+              {socialLinks.map(({ type, href }) => (
+                <a key={type} href={href} className="social-link">
+                  {SOCIAL_ICONS[type]}
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
       <div className="footer-bottom">
         <p>&copy; 2025 STYLEX Vietnam. Mọi quyền được bảo lưu.</p>

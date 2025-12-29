@@ -221,6 +221,7 @@
 
 .no-vouchers p {
     color: #777;
+    font-size: 14px;
 }
 
 @keyframes spin {

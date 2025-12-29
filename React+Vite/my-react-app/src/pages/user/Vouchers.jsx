@@ -1,35 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { API_ENDPOINTS } from '../../config/api.config';
+import useFetch from '../../components/useFetch';
 import '../../style/Vouchers.css';
 
 const Vouchers = () => {
-    const [vouchers, setVouchers] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [copySuccess, setCopySuccess] = useState('');
 
-    useEffect(() => {
-        fetchVouchers();
-    }, []);
-
-    const fetchVouchers = async () => {
-        const token = localStorage.getItem('authToken');
-        try {
-            // Sử dụng endpoint PUBLIC coupons như yêu cầu
-            const response = await fetch(`${API_ENDPOINTS.COUPONS.PUBLIC}?limit=50`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setVouchers(data);
-            }
-        } catch (error) {
-            console.error('Error fetching vouchers:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    // Fetch vouchers with skipCache to always get fresh data from database
+    const { data: vouchers, loading } = useFetch(
+        `${API_ENDPOINTS.COUPONS.AVAILABLE}?limit=50`,
+        { auth: true, skipCache: true }
+    );
 
     const handleCopyCode = (code) => {
         navigator.clipboard.writeText(code);

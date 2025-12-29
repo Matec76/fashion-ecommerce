@@ -18,7 +18,8 @@ const ProductCard = memo(({ product }) => {
     const wishlistLoading = addLoading || removeLoading;
 
     const { data: imagesData, loading } = useFetch(
-        API_ENDPOINTS.PRODUCTS.IMAGES(product.id)
+        API_ENDPOINTS.PRODUCTS.IMAGES(product.id),
+        { cacheTime: 300000 } // 5 minutes cache - images rarely change
     );
 
     const imageUrl = useMemo(() => {
@@ -146,7 +147,11 @@ const ProductCard = memo(({ product }) => {
 // ==========================================
 function CollectionDetail() {
     const { slug } = useParams();
-    const { data: collection, loading, error } = useFetch(API_ENDPOINTS.COLLECTIONS.BY_SLUG(slug));
+    // Fetch collection data with 5-minute cache
+    const { data: collection, loading, error } = useFetch(
+        API_ENDPOINTS.COLLECTIONS.BY_SLUG(slug),
+        { cacheTime: 300000 } // 5 minutes cache
+    );
 
     // Pagination
     const [currentPage, setCurrentPage] = useState(1);

@@ -20,9 +20,10 @@ const ProductCard = memo(({ product }) => {
 
   const wishlistLoading = addLoading || removeLoading;
 
-  // Gọi API lấy ảnh cho từng sản phẩm (Sẽ tự động cache lại)
+  // Gọi API lấy ảnh cho từng sản phẩm với 5-minute cache
   const { data: imagesData, loading } = useFetch(
-    API_ENDPOINTS.PRODUCTS.IMAGES(product.id)
+    API_ENDPOINTS.PRODUCTS.IMAGES(product.id),
+    { cacheTime: 300000 } // 5 minutes cache - images rarely change
   );
 
   // Logic chọn ảnh: Ưu tiên ảnh primary, không thì lấy cái đầu tiên
@@ -180,6 +181,13 @@ function SanPham() {
   const [activeTab, setActiveTab] = useState('all'); // 'all', 'featured', 'best-sellers', 'new'
   const [priceSort, setPriceSort] = useState('none'); // 'none', 'asc', 'desc'
 
+  // --- SYNC FILTERS WITH URL WHEN URL CHANGES ---
+  useEffect(() => {
+    const filters = getInitialFilters();
+    setSelectedGenders(filters.genders);
+    setSelectedTypes(filters.types);
+  }, [location.search]);
+
   // --- API 1: LẤY DANH MỤC (Để lấy tên loại sản phẩm) ---
   useEffect(() => {
     const fetchCats = async () => {
@@ -230,7 +238,8 @@ function SanPham() {
     }
   }, [activeTab, location.search]);
 
-  const { data, loading, error, refetch } = useFetch(apiUrl);
+  // Fetch products with 2-minute cache
+  const { data, loading, error, refetch } = useFetch(apiUrl, { cacheTime: 120000 });
 
   // --- LOGIC LỌC SẢN PHẨM (Dùng useMemo để tối ưu hiệu năng) ---
   const filteredProducts = useMemo(() => {

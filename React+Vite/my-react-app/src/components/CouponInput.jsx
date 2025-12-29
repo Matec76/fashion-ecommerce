@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { API_ENDPOINTS } from '../config/api.config';
 import '../style/CouponInput.css';
 
-const CouponInput = ({ orderAmount, onApply, onRemove, appliedCoupon }) => {
+const CouponInput = ({ orderAmount, onApply, onRemove, appliedCoupon, onOpenPicker }) => {
     const [couponCode, setCouponCode] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -22,7 +22,7 @@ const CouponInput = ({ orderAmount, onApply, onRemove, appliedCoupon }) => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    ...(token && { 'Authorization': `Bearer ${token}` })
+                    ...(token && { 'Authorization': `Bearer ${token} ` })
                 },
                 body: JSON.stringify({
                     coupon_code: couponCode.trim().toUpperCase(),
@@ -36,12 +36,20 @@ const CouponInput = ({ orderAmount, onApply, onRemove, appliedCoupon }) => {
                 throw new Error(data.detail || data.message || 'Mã giảm giá không hợp lệ');
             }
 
+            // Calculate discount and ensure it doesn't exceed order amount
+            const calculatedDiscount = data.discount_amount || calculateDiscount(data, orderAmount);
+
+            // IMPORTANT: Voucher discount should not exceed the order subtotal
+            if (calculatedDiscount > orderAmount) {
+                throw new Error(`Mã giảm giá này chỉ áp dụng cho đơn hàng từ ${formatPrice(calculatedDiscount)} trở lên. Giá trị đơn hàng hiện tại: ${formatPrice(orderAmount)}`);
+            }
+
             // Call parent callback with coupon data
             onApply({
                 code: couponCode.trim().toUpperCase(),
                 discount_type: data.discount_type,
                 discount_value: data.discount_value,
-                discount_amount: data.discount_amount || calculateDiscount(data, orderAmount),
+                discount_amount: Math.min(calculatedDiscount, orderAmount), // Cap at order amount
                 min_order_amount: data.min_order_amount,
                 max_discount: data.max_discount,
                 ...data
@@ -54,6 +62,10 @@ const CouponInput = ({ orderAmount, onApply, onRemove, appliedCoupon }) => {
         } finally {
             setLoading(false);
         }
+    };
+
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
     };
 
     const calculateDiscount = (coupon, amount) => {
@@ -74,7 +86,6 @@ const CouponInput = ({ orderAmount, onApply, onRemove, appliedCoupon }) => {
         return (
             <div className="coupon-applied">
                 <div className="coupon-info">
-                    <span className="coupon-icon">🎫</span>
                     <div className="coupon-details">
                         <span className="coupon-code">{appliedCoupon.code}</span>
                     </div>
@@ -114,6 +125,17 @@ const CouponInput = ({ orderAmount, onApply, onRemove, appliedCoupon }) => {
                 </button>
             </div>
             {error && <div className="coupon-error">{error}</div>}
+
+            {/* Voucher Picker Button */}
+            {onOpenPicker && (
+                <button
+                    type="button"
+                    className="voucher-picker-btn"
+                    onClick={onOpenPicker}
+                >
+                    Chọn Voucher của bạn
+                </button>
+            )}
         </div>
     );
 };

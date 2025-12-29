@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import useFetch from '../../components/useFetch';
-import { API_ENDPOINTS } from '../../config/api.config';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { API_ENDPOINTS, API_CONFIG } from '../../config/api.config';
+import { authFetch } from '../../utils/authInterceptor';
 import { useCart } from './CartContext';
 import '../../style/ProductDetail.css';
+import '../../style/Chatbot.css';
+import facebookIcon from '../../images/social-facebook.png';
 
 // ==========================================
 // SUB-COMPONENT: IMAGE GALLERY
@@ -777,8 +779,11 @@ const ProductDetail = () => {
         ? API_ENDPOINTS.PRODUCTS.DETAIL(identifier)
         : API_ENDPOINTS.PRODUCTS.BY_SLUG(identifier);
 
-    // Fetch product data
-    const { data: product, loading: productLoading, error: productError } = useFetch(productUrl);
+    // Fetch product data with 3-minute cache
+    const { data: product, loading: productLoading, error: productError } = useFetch(
+        productUrl,
+        { cacheTime: 180000 } // 3 minutes cache
+    );
 
     // Lấy product ID từ data để fetch thêm thông tin (API trả về product_id)
     const productId = product?.product_id || product?.id;
@@ -796,16 +801,37 @@ const ProductDetail = () => {
     const colorsUrl = API_ENDPOINTS.ATTRIBUTES.COLORS.LIST;
     const sizesUrl = API_ENDPOINTS.ATTRIBUTES.SIZES.LIST;
 
+    // Track product view
+    useEffect(() => {
+        const trackView = async () => {
+            if (productId) {
+                try {
+                    const token = localStorage.getItem('authToken');
+                    await fetch(API_ENDPOINTS.ANALYTICS.TRACK_PRODUCT(productId), {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error tracking product view:', error);
+                }
+            }
+        };
+        trackView();
+    }, [productId]);
+
     // Fetch images riêng nếu product không có images
     const imagesUrl = (!productImages || productImages.length === 0) && productId
         ? API_ENDPOINTS.PRODUCTS.IMAGES(productId)
         : '';
 
-    const { data: fetchedImages, loading: imagesLoading } = useFetch(imagesUrl || null);
-    const { data: variantsData } = useFetch(variantsUrl || null);
-    const { data: colorsData } = useFetch(colorsUrl);
-    const { data: sizesData } = useFetch(sizesUrl);
-    const { data: relatedProducts } = useFetch(relatedUrl || null);
+    const { data: fetchedImages, loading: imagesLoading } = useFetch(imagesUrl || null, { cacheTime: 300000 });
+    const { data: variantsData } = useFetch(variantsUrl || null, { cacheTime: 300000 });
+    const { data: colorsData } = useFetch(colorsUrl, { cacheTime: 300000 });
+    const { data: sizesData } = useFetch(sizesUrl, { cacheTime: 300000 });
+    const { data: relatedProducts } = useFetch(relatedUrl || null, { cacheTime: 180000 });
     const { data: reviews } = useFetch(reviewsUrl || null);
     const { data: reviewSummary } = useFetch(reviewSummaryUrl || null);
 

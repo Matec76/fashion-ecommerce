@@ -22,6 +22,8 @@ import UserProfile from './pages/user/UserProfile';
 import Wishlist from './pages/user/Wishlist';
 import Loyalty from './pages/user/Loyalty';
 import Vouchers from './pages/user/Vouchers';
+import ReturnRefunds from './pages/user/ReturnRefunds';
+import ReturnRefundDetail from './pages/user/ReturnRefundDetail';
 import RedeemSuccess from './pages/user/RedeemSuccess';
 import AddressManagement from './pages/home/AddressManagement';
 import OrderTracking from './pages/home/OrderTracking';
@@ -38,6 +40,7 @@ import ChinhSach from './pages/info/ChinhSach';
 import DieuKhoan from './pages/info/DieuKhoan';
 import CongTy from './pages/info/CongTy';
 import Layout from './components/Layout';
+import ChatbotWidget from './components/common/ChatbotWidget';
 
 // Context
 import { CartProvider } from './pages/home/CartContext';
@@ -128,6 +131,8 @@ function App() {
               <Route path="/loyalty" element={<Loyalty />} />
               <Route path="/loyalty/success" element={<RedeemSuccess />} />
               <Route path="/vouchers" element={<Vouchers />} />
+              <Route path="/returns" element={<ReturnRefunds />} />
+              <Route path="/returns/:returnId" element={<ReturnRefundDetail />} />
               <Route path="/flash-sales" element={<FlashSales />} />
               <Route path="/collections" element={<Collections />} />
               <Route path="/collections/:slug" element={<CollectionDetail />} />
@@ -136,9 +141,10 @@ function App() {
             {/* 404 Route */}
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
+          <ChatbotWidget />
         </Router>
       </NotificationProvider>
-    </CartProvider>
+    </CartProvider >
   );
 }
 

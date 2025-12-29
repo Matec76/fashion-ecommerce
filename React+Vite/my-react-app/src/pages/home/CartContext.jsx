@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
+import { authFetch } from '../../utils/authInterceptor';
 
 const API_BASE_URL = "http://localhost:8000/api/v1";
 
@@ -51,7 +52,7 @@ export const CartProvider = ({ children }) => {
         setLoading(true);
         try {
             console.log('Fetching cart from:', API_ENDPOINTS.CART.DETAIL);
-            const response = await fetch(API_ENDPOINTS.CART.DETAIL, {
+            const response = await authFetch(API_ENDPOINTS.CART.DETAIL, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -67,7 +68,7 @@ export const CartProvider = ({ children }) => {
             }
 
             // Fetch summary
-            const summaryRes = await fetch(API_ENDPOINTS.CART.SUMMARY, {
+            const summaryRes = await authFetch(API_ENDPOINTS.CART.SUMMARY, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (summaryRes.ok) {
@@ -105,7 +106,7 @@ export const CartProvider = ({ children }) => {
             console.log("Đang gọi API:", API_ENDPOINTS.CART.ADD_ITEM);
             console.log("Payload:", payload);
 
-            const response = await fetch(API_ENDPOINTS.CART.ADD_ITEM, {
+            const response = await authFetch(API_ENDPOINTS.CART.ADD_ITEM, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -161,7 +162,7 @@ export const CartProvider = ({ children }) => {
 
         setLoading(true);
         try {
-            const response = await fetch(API_ENDPOINTS.CART.UPDATE_ITEM(cartItemId), {
+            const response = await authFetch(API_ENDPOINTS.CART.UPDATE_ITEM(cartItemId), {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -192,7 +193,7 @@ export const CartProvider = ({ children }) => {
 
         setLoading(true);
         try {
-            const response = await fetch(API_ENDPOINTS.CART.REMOVE_ITEM(cartItemId), {
+            const response = await authFetch(API_ENDPOINTS.CART.REMOVE_ITEM(cartItemId), {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -219,7 +220,7 @@ export const CartProvider = ({ children }) => {
 
         setLoading(true);
         try {
-            const response = await fetch(API_ENDPOINTS.CART.CLEAR, {
+            const response = await authFetch(API_ENDPOINTS.CART.CLEAR, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -253,7 +254,7 @@ export const CartProvider = ({ children }) => {
         console.log('Merging guest cart, session_id:', guestSessionId);
 
         try {
-            const response = await fetch(`${API_ENDPOINTS.CART.MERGE}?session_id=${guestSessionId}`, {
+            const response = await authFetch(`${API_ENDPOINTS.CART.MERGE}?session_id=${guestSessionId}`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,

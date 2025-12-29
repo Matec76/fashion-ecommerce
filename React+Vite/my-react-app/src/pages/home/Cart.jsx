@@ -171,10 +171,11 @@ const Cart = () => {
                                                 {item.variant.size && typeof item.variant.size === 'string' && ` | Size: ${item.variant.size}`}
                                             </p>
                                         )}
-                                        <p className="item-price">
-                                            {formatPrice(getItemPrice(item))}
-                                        </p>
                                     </div>
+
+                                    <p className="item-price">
+                                        {formatPrice(getItemPrice(item))}
+                                    </p>
 
                                     <div className="item-quantity">
                                         <button
@@ -218,10 +219,7 @@ const Cart = () => {
                             <span>{formatPrice(selectedTotal)}</span>
                         </div>
 
-                        <div className="summary-row">
-                            <span>Phí vận chuyển</span>
-                            <span className="free-shipping">Miễn phí</span>
-                        </div>
+
 
                         <div className="summary-divider"></div>
 

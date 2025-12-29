@@ -97,8 +97,11 @@ const TrangChu = () => {
     setFlashLoading(false);
   }, []);
 
-  // Fetch most viewed products
-  const { data: mostViewed, loading: mostViewedLoading } = useFetch(`${API_ENDPOINTS.ANALYTICS.MOST_VIEWED_PRODUCTS}?limit=4&days=7`);
+  // Fetch most viewed products with 3-minute cache
+  const { data: mostViewed, loading: mostViewedLoading } = useFetch(
+    `${API_ENDPOINTS.ANALYTICS.MOST_VIEWED_PRODUCTS}?limit=4&days=7`,
+    { cacheTime: 180000, auth: true } // 3 minutes cache, requires auth
+  );
 
   // Check email verification status
   useEffect(() => {
