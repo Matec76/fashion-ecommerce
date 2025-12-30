@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../config/api.config';
-import useMutation from '../../components/useMutation';
+import useMutation from '../../hooks/useMutation';
 import '/src/style/style.css';
 
 const ForgotPassword = () => {

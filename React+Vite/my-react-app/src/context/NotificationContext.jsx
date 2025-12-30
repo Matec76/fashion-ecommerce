@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+﻿import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import logger from '../utils/logger';
 import axios from 'axios';
 import { API_ENDPOINTS, getAuthHeaders } from '../config/api.config';
 
@@ -23,9 +24,9 @@ export const NotificationProvider = ({ children }) => {
             return;
         }
 
-        // Only fetch if forced or if 5 minutes has passed
+        // Only fetch if forced or if 1 minute has passed
         const now = Date.now();
-        if (!force && now - lastFetched < 300000 && unreadCount !== 0) {
+        if (!force && now - lastFetched < 60000 && unreadCount !== 0) {
             return;
         }
 
@@ -36,15 +37,15 @@ export const NotificationProvider = ({ children }) => {
             setUnreadCount(response.data.unread_count || 0);
             setLastFetched(now);
         } catch (error) {
-            console.error('Error fetching unread count:', error);
+            logger.error('Error fetching unread count:', error);
         }
     }, [lastFetched, unreadCount]);
 
     useEffect(() => {
         fetchUnreadCount();
 
-        // Auto-refresh every 5 minutes instead of 2 minutes to reduce load
-        const interval = setInterval(() => fetchUnreadCount(true), 300000);
+        // Auto-refresh every 1 minute for faster notification updates
+        const interval = setInterval(() => fetchUnreadCount(true), 60000);
         return () => clearInterval(interval);
     }, [fetchUnreadCount]);
 

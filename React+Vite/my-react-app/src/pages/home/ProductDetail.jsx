@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { API_ENDPOINTS, API_CONFIG } from '../../config/api.config';
+﻿import { useState, useEffect, useMemo } from 'react';
+import logger from '../../utils/logger';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import useFetch from '../../hooks/useFetch';
+import { API_ENDPOINTS } from '../../config/api.config';
 import { authFetch } from '../../utils/authInterceptor';
 import { useCart } from './CartContext';
 import '../../style/ProductDetail.css';
-import '../../style/Chatbot.css';
-import facebookIcon from '../../images/social-facebook.png';
 
 // ==========================================
 // SUB-COMPONENT: IMAGE GALLERY
@@ -229,7 +229,7 @@ const ReviewSection = ({ reviews, reviewSummary, productRating, reviewCount, pro
                     setCurrentUserId(user.user_id || user.id);
                 }
             } catch (err) {
-                console.error('Error fetching user:', err);
+                logger.error('Error fetching user:', err);
             }
         };
         fetchCurrentUser();
@@ -305,7 +305,7 @@ const ReviewSection = ({ reviews, reviewSummary, productRating, reviewCount, pro
                 }
             }
         } catch (error) {
-            console.error('Error uploading images:', error);
+            logger.error('Error uploading images:', error);
         }
 
         setUploadingImages(false);
@@ -359,7 +359,7 @@ const ReviewSection = ({ reviews, reviewSummary, productRating, reviewCount, pro
             // Reload trang để hiển thị review mới
             window.location.reload();
         } catch (error) {
-            console.error('Error submitting review:', error);
+            logger.error('Error submitting review:', error);
             alert(`Có lỗi xảy ra: ${error.message}`);
         } finally {
             setSubmitting(false);
@@ -557,23 +557,23 @@ const QASection = ({ productId }) => {
 
     // Fetch questions when productId changes
     useEffect(() => {
-        console.log('QASection - productId:', productId);
+        logger.log('QASection - productId:', productId);
         if (!productId) return;
 
         const fetchQuestions = async () => {
             setLoading(true);
             try {
                 const url = API_ENDPOINTS.QUESTIONS.BY_PRODUCT(productId);
-                console.log('Fetching questions from:', url);
+                logger.log('Fetching questions from:', url);
                 const response = await fetch(url);
-                console.log('Questions response status:', response.status);
+                logger.log('Questions response status:', response.status);
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Questions data:', data);
+                    logger.log('Questions data:', data);
                     setQuestions(data || []);
                 }
             } catch (error) {
-                console.error('Error fetching questions:', error);
+                logger.error('Error fetching questions:', error);
             } finally {
                 setLoading(false);
             }
@@ -634,7 +634,7 @@ const QASection = ({ productId }) => {
             setShowQuestionForm(false);
             alert('Câu hỏi của bạn đã được gửi! 🎉');
         } catch (error) {
-            console.error('Error submitting question:', error);
+            logger.error('Error submitting question:', error);
             alert(`Có lỗi xảy ra: ${error.message}`);
         } finally {
             setSubmitting(false);
@@ -815,7 +815,7 @@ const ProductDetail = () => {
                         }
                     });
                 } catch (error) {
-                    console.error('Error tracking product view:', error);
+                    logger.error('Error tracking product view:', error);
                 }
             }
         };
@@ -902,7 +902,7 @@ const ProductDetail = () => {
                     setIsInWishlist(false);
                 }
             } catch (err) {
-                console.error('Error checking wishlist:', err);
+                logger.error('Error checking wishlist:', err);
                 setIsInWishlist(false);
             }
         };
@@ -925,7 +925,7 @@ const ProductDetail = () => {
                     }
                 }
             } catch (err) {
-                console.error('Error checking flash sale:', err);
+                logger.error('Error checking flash sale:', err);
                 setFlashSaleInfo(null);
             }
         };
@@ -1055,7 +1055,7 @@ const ProductDetail = () => {
                 }
             }
         } catch (err) {
-            console.error('Error toggling wishlist:', err);
+            logger.error('Error toggling wishlist:', err);
             alert('Có lỗi xảy ra!');
         } finally {
             setWishlistLoading(false);

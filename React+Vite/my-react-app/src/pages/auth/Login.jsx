@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-// Sửa lại đường dẫn import (giống bên SignUp)
 import { saveAuthTokens, saveUser } from '../../utils/auth.utils';
 import { API_ENDPOINTS } from '../../config/api.config';
-import '/src/style/style.css'; // Đường dẫn CSS giữ nguyên nếu nó đã chạy được
+import logger from '../../utils/logger';
+import '/src/style/style.css';
 
 const Login = ({ onLoginSuccess }) => {
   const navigate = useNavigate();
@@ -37,7 +37,7 @@ const Login = ({ onLoginSuccess }) => {
 
     try {
       // Gọi API Login
-      console.log('Logging in to:', API_ENDPOINTS.AUTH.LOGIN);
+      logger.log('Logging in to:', API_ENDPOINTS.AUTH.LOGIN);
       const response = await fetch(API_ENDPOINTS.AUTH.LOGIN, {
         method: 'POST',
         headers: {
@@ -51,15 +51,15 @@ const Login = ({ onLoginSuccess }) => {
       });
 
       const result = await response.json();
-      console.log('Login API response:', result);
-      console.log('access_token:', result.access_token);
+      logger.log('Login API response:', result);
+      logger.log('access_token:', result.access_token);
 
       if (response.ok && result.access_token) {
         // 1. Lưu token - ALWAYS save to localStorage first
-        console.log('Saving authToken to localStorage...');
+        logger.log('Saving authToken to localStorage...');
         localStorage.setItem('authToken', result.access_token);
         localStorage.setItem('refreshToken', result.refresh_token || '');
-        console.log('authToken saved:', localStorage.getItem('authToken'));
+        logger.log('authToken saved:', localStorage.getItem('authToken'));
 
         // Also call saveAuthTokens if available
         if (typeof saveAuthTokens === 'function') {
@@ -85,7 +85,7 @@ const Login = ({ onLoginSuccess }) => {
             if (onLoginSuccess) onLoginSuccess(basicUser);
           }
         } catch (err) {
-          console.warn('Could not fetch user info', err);
+          logger.warn('Could not fetch user info', err);
         }
 
         // 3. Chuyển hướng
@@ -94,7 +94,7 @@ const Login = ({ onLoginSuccess }) => {
         setErrorMessage(result.detail || result.message || 'Email hoặc mật khẩu không đúng!');
       }
     } catch (error) {
-      console.error('Login error:', error);
+      logger.error('Login error:', error);
       setErrorMessage('Không thể kết nối đến server. Vui lòng kiểm tra mạng!');
     } finally {
       setLoading(false);

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import logger from '../../utils/logger';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../config/api.config';
 import '../../style/LoyaltyPage.css';
@@ -44,7 +45,7 @@ const Loyalty = () => {
                 return data.is_email_verified || false;
             }
         } catch (error) {
-            console.error('Error fetching user profile:', error);
+            logger.error('Error fetching user profile:', error);
         }
         return false;
     };
@@ -63,7 +64,7 @@ const Loyalty = () => {
                 alert(error.detail || 'Không thể gửi email xác thực. Vui lòng thử lại sau.');
             }
         } catch (error) {
-            console.error('Error sending verification email:', error);
+            logger.error('Error sending verification email:', error);
             alert('Có lỗi xảy ra. Vui lòng thử lại sau.');
         }
         setSendingVerification(false);
@@ -99,7 +100,7 @@ const Loyalty = () => {
                 setLoyaltyData(data);
             }
         } catch (error) {
-            console.error('Error fetching loyalty data:', error);
+            logger.error('Error fetching loyalty data:', error);
         }
     };
 
@@ -111,7 +112,7 @@ const Loyalty = () => {
                 setTiers(data);
             }
         } catch (error) {
-            console.error('Error fetching tiers:', error);
+            logger.error('Error fetching tiers:', error);
         }
     };
 
@@ -125,7 +126,7 @@ const Loyalty = () => {
                 setLeaderboard(data);
             }
         } catch (error) {
-            console.error('Error fetching leaderboard:', error);
+            logger.error('Error fetching leaderboard:', error);
         }
     };
 
@@ -139,7 +140,7 @@ const Loyalty = () => {
                 setReferralCode(data.referral_code || data.code || '');
             }
         } catch (error) {
-            console.error('Error fetching referral code:', error);
+            logger.error('Error fetching referral code:', error);
         }
     };
 
@@ -153,7 +154,7 @@ const Loyalty = () => {
                 setReferralStats(data);
             }
         } catch (error) {
-            console.error('Error fetching referral stats:', error);
+            logger.error('Error fetching referral stats:', error);
         }
     };
 
@@ -167,7 +168,7 @@ const Loyalty = () => {
                 setReferralStatus(data);
             }
         } catch (error) {
-            console.error('Error fetching referral status:', error);
+            logger.error('Error fetching referral status:', error);
         }
     };
 
@@ -181,7 +182,7 @@ const Loyalty = () => {
                 setTransactions(data);
             }
         } catch (error) {
-            console.error('Error fetching transactions:', error);
+            logger.error('Error fetching transactions:', error);
         }
     };
 
@@ -213,7 +214,7 @@ const Loyalty = () => {
                 alert(error.detail || 'Không thể áp dụng mã này!');
             }
         } catch (error) {
-            console.error('Error applying referral code:', error);
+            logger.error('Error applying referral code:', error);
             alert('Có lỗi xảy ra!');
         }
     };
@@ -297,7 +298,7 @@ const Loyalty = () => {
                 alert(error.detail || 'Không thể quy đổi điểm. Vui lòng thử lại!');
             }
         } catch (error) {
-            console.error('Error redeeming points:', error);
+            logger.error('Error redeeming points:', error);
         }
         setRedeemingVoucher(false);
     };

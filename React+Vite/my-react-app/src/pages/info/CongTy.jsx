@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import logger from '../../utils/logger';
 import '/src/style/SubPages.css';
 
 const CongTy = () => {
@@ -25,7 +26,7 @@ const CongTy = () => {
           }));
         }
       } catch (error) {
-        console.error('Error fetching company info:', error);
+        logger.error('Error fetching company info:', error);
       }
     };
 

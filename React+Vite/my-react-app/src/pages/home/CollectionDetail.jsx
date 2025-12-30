@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo, memo } from 'react';
+﻿import React, { useState, useEffect, useMemo, memo } from 'react';
+import logger from '../../utils/logger';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS, API_CONFIG } from '../../config/api.config';
-import useFetch from '../../components/useFetch';
-import useMutation from '../../components/useMutation';
-import useDelete from '../../components/useDelete';
+import useFetch from '../../hooks/useFetch';
+import useMutation from '../../hooks/useMutation';
+import useDelete from '../../hooks/useDelete';
 import '../../style/SanPham.css';
 import '../../style/Collections.css';
 
@@ -66,7 +67,7 @@ const ProductCard = memo(({ product }) => {
                     }
                 }
             } catch (err) {
-                console.error('Error removing from wishlist:', err);
+                logger.error('Error removing from wishlist:', err);
             }
         } else {
             const result = await mutate(`${API_CONFIG.BASE_URL}/wishlist/add-to-default`, {

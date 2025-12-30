@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../config/api.config';
+import ScrollDatePicker from '../../components/forms/ScrollDatePicker/ScrollDatePicker';
+import logger from '../../utils/logger';
 import '/src/style/style.css';
 import '/src/style/Loyalty.css';
 
@@ -55,7 +57,7 @@ const SignUp = () => {
     }
 
     try {
-      console.log('Registering with:', API_ENDPOINTS.AUTH.REGISTER);
+      logger.log('Registering with:', API_ENDPOINTS.AUTH.REGISTER);
       const response = await fetch('http://localhost:8000/api/v1/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -71,7 +73,7 @@ const SignUp = () => {
         setError(data.detail || 'Đăng ký thất bại.');
       }
     } catch (err) {
-      console.error(err);
+      logger.error(err);
       setError('Lỗi kết nối server.');
     } finally {
       setLoading(false);
@@ -97,23 +99,17 @@ const SignUp = () => {
           </div>
 
           <div className="signup-container">
-            <label style={{ display: 'block', marginBottom: '5px', color: 'black', fontSize: '14px' }}>
+            <label style={{ display: 'block', marginBottom: '10px', color: 'black', fontSize: '14px' }}>
               Ngày sinh
             </label>
-            <div className="birthdate">
-              <select name="day" value={formData.day} onChange={handleChange} className="date-select">
-                <option value="">Ngày</option>
-                {days.map(day => <option key={day} value={day}>{day}</option>)}
-              </select>
-              <select name="month" value={formData.month} onChange={handleChange} className="date-select">
-                <option value="">Tháng</option>
-                {months.map((month, index) => <option key={index + 1} value={index + 1}>{month}</option>)}
-              </select>
-              <select name="year" value={formData.year} onChange={handleChange} className="date-select">
-                <option value="">Năm</option>
-                {years.map(year => <option key={year} value={year}>{year}</option>)}
-              </select>
-            </div>
+            <ScrollDatePicker
+              day={formData.day}
+              month={formData.month}
+              year={formData.year}
+              onDayChange={(value) => setFormData(prev => ({ ...prev, day: value }))}
+              onMonthChange={(value) => setFormData(prev => ({ ...prev, month: value }))}
+              onYearChange={(value) => setFormData(prev => ({ ...prev, year: value }))}
+            />
           </div>
 
           <div className="input__group">

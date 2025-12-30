@@ -217,11 +217,11 @@ button.dropdown-item {
 }
 
 .notification-item.unread {
-  background: #eff6ff;
+  background: #f3f4f6;
 }
 
 .notification-item.unread:hover {
-  background: #dbeafe;
+  background: #e5e7eb;
 }
 
 .notification-content {

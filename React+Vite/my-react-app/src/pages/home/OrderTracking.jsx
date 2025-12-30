@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import logger from '../../utils/logger';
 import { Link, useParams } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../config/api.config';
 import { authFetch } from '../../utils/authInterceptor';
@@ -31,8 +32,9 @@ const OrderTracking = () => {
         'PROCESSING': { label: 'Đang xử lý', color: '#6f42c1', step: 2 },
         'AWAITING_SHIPMENT': { label: 'Chờ vận chuyển', color: '#fd7e14', step: 3 },
         'SHIPPED': { label: 'Đang vận chuyển', color: '#007bff', step: 4 },
-        'DELIVERED': { label: 'Đã giao hàng', color: '#28a745', step: 5 },
         'COMPLETED': { label: 'Hoàn thành', color: '#28a745', step: 5 },
+        'DELIVERED': { label: 'Đã nhận hàng', color: '#20c997', step: 6 },
+        'RETURN_REQUESTED': { label: 'Hoàn trả', color: '#9b59b6', step: 0 },
         'CANCELLED': { label: 'Đã hủy', color: '#dc3545', step: 0 }
     };
 
@@ -75,7 +77,12 @@ const OrderTracking = () => {
 
         try {
             const response = await authFetch(API_ENDPOINTS.ORDERS.MY_ORDER_DETAIL(id), {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
             });
 
             if (response.ok) {
@@ -85,7 +92,7 @@ const OrderTracking = () => {
                 setError('Không thể tải thông tin đơn hàng');
             }
         } catch (err) {
-            console.error('Error fetching order detail:', err);
+            logger.error('Error fetching order detail:', err);
             setError('Lỗi kết nối server');
         } finally {
             setLoading(false);
@@ -102,7 +109,12 @@ const OrderTracking = () => {
 
         try {
             const response = await authFetch(API_ENDPOINTS.ORDERS.MY_ORDERS, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
             });
 
             if (response.ok) {
@@ -114,7 +126,7 @@ const OrderTracking = () => {
                 setError('Không thể tải đơn hàng');
             }
         } catch (err) {
-            console.error('Error fetching orders:', err);
+            logger.error('Error fetching orders:', err);
             setError('Lỗi kết nối server');
         } finally {
             setLoading(false);
@@ -248,7 +260,7 @@ const OrderTracking = () => {
 
             return product ? (product.product_id || product.id) : null;
         } catch (error) {
-            console.error('Error fetching product_id:', error);
+            logger.error('Error fetching product_id:', error);
             return null;
         }
     };
@@ -334,7 +346,7 @@ const OrderTracking = () => {
                 closeReturnModal();
                 if (orderIdDb) fetchOrderDetail(orderIdDb);
             } else {
-                console.error('❌ API Error:', {
+                logger.error('❌ API Error:', {
                     status: response.status,
                     statusText: response.statusText,
                     data: responseData
@@ -342,7 +354,7 @@ const OrderTracking = () => {
                 alert(`Lỗi: ${responseData.detail || responseData.message || 'Không thể tạo yêu cầu trả hàng'}`);
             }
         } catch (err) {
-            console.error('Submit Error:', err);
+            logger.error('Submit Error:', err);
             alert('Lỗi kết nối server');
         } finally {
             setSubmittingReturn(false);
@@ -391,7 +403,7 @@ const OrderTracking = () => {
                 alert(error.detail || 'Không thể hủy đơn hàng');
             }
         } catch (err) {
-            console.error('Error cancelling order:', err);
+            logger.error('Error cancelling order:', err);
             alert('Lỗi kết nối server');
         }
     };
@@ -474,7 +486,7 @@ const OrderTracking = () => {
                         {/* Progress Tracker */}
                         <div className="progress-tracker">
                             <div className="progress-steps">
-                                {['Đặt hàng', 'Xác nhận', 'Chờ gửi', 'Đang giao', 'Hoàn thành'].map((step, index) => {
+                                {['Đặt hàng', 'Xác nhận', 'Chờ gửi', 'Đang giao', 'Hoàn thành', 'Đã nhận hàng'].map((step, index) => {
                                     const stepNum = index + 1;
                                     const isCompleted = statusInfo.step >= stepNum;
                                     const isCurrent = statusInfo.step === stepNum;
@@ -838,7 +850,7 @@ const OrderTracking = () => {
                                     {/* Progress Tracker */}
                                     <div className="progress-tracker">
                                         <div className="progress-steps">
-                                            {['Đặt hàng', 'Xác nhận', 'Chờ gửi', 'Đang giao', 'Hoàn thành'].map((step, index) => {
+                                            {['Đặt hàng', 'Xác nhận', 'Chờ gửi', 'Đang giao', 'Hoàn thành', 'Đã nhận hàng'].map((step, index) => {
                                                 const stepNum = index + 1;
                                                 const isCompleted = statusInfo.step >= stepNum;
                                                 const isCurrent = statusInfo.step === stepNum;
@@ -861,7 +873,7 @@ const OrderTracking = () => {
                                             <div
                                                 className="progress-fill"
                                                 style={{
-                                                    width: order.order_status === 'CANCELLED' ? '0%' : `${(statusInfo.step - 1) * 25}%`,
+                                                    width: order.order_status === 'CANCELLED' ? '0%' : `${(statusInfo.step - 1) * 20}%`,
                                                     backgroundColor: statusInfo.color
                                                 }}
                                             ></div>

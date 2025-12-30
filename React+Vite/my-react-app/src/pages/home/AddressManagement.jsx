@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import logger from '../../utils/logger';
 import { useNavigate } from 'react-router-dom';
-import useMutation from '../../components/useMutation';
-import usePatch from '../../components/usePatch';
-import useDelete from '../../components/useDelete';
+import useMutation from '../../hooks/useMutation';
+import usePatch from '../../hooks/usePatch';
+import useDelete from '../../hooks/useDelete';
 import '../../style/AddressManagement.css';
 
 const API_BASE_URL = 'http://localhost:8000/api/v1';
@@ -40,14 +41,14 @@ const AddressManagement = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('📍 Addresses from API:', data);
-                console.log('📍 is_default values:', data.map(a => ({ id: a.address_id, is_default: a.is_default })));
+                logger.log('📍 Addresses from API:', data);
+                logger.log('📍 is_default values:', data.map(a => ({ id: a.address_id, is_default: a.is_default })));
                 setAddresses(data);
             } else if (response.status === 401) {
                 navigate('/login');
             }
         } catch (error) {
-            console.error('Error fetching addresses:', error);
+            logger.error('Error fetching addresses:', error);
         } finally {
             setLoading(false);
         }

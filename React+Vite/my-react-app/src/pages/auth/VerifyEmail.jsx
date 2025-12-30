@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
+import logger from '../../utils/logger';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../config/api.config';
 import '/src/style/style.css';
@@ -59,7 +60,7 @@ const VerifyEmail = () => {
                     setMessage(errorMessage);
                 }
             } catch (error) {
-                console.error('Error verifying email:', error);
+                logger.error('Error verifying email:', error);
                 setVerificationStatus('error');
                 setMessage('Có lỗi xảy ra khi xác thực email. Vui lòng thử lại sau.');
             }

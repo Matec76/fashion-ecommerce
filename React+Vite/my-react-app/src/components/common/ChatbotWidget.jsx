@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
+import logger from '../../utils/logger';
 import { API_ENDPOINTS } from '../../config/api.config';
 import '../../style/ChatbotWidget.css';
 
@@ -70,7 +71,7 @@ const ChatbotWidget = () => {
                 throw new Error('Failed to get response');
             }
         } catch (error) {
-            console.error('Chatbot error:', error);
+            logger.error('Chatbot error:', error);
             const errorMessage = { text: "Xin lỗi, mình đang gặp chút sự cố kết nối. Bạn thử lại sau nhé!", sender: 'bot' };
             setMessages(prev => [...prev, errorMessage]);
         } finally {

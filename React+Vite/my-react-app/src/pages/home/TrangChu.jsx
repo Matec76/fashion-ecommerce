@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import logger from '../../utils/logger';
 import '/src/style/main.css';
 import { Link } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../config/api.config';
-import { useFetch } from '../../components/useFetch';
+import { useFetch } from '../../hooks/useFetch';
 
 const SLIDER_CONFIG = {
   TRANSITION_DURATION: 500,
@@ -82,7 +83,7 @@ const TrangChu = () => {
         }
         setFlashSales(fetchedSales);
       } catch (error) {
-        console.error('Error fetching flash sales:', error);
+        logger.error('Error fetching flash sales:', error);
       } finally {
         setFlashLoading(false);
       }
@@ -121,7 +122,7 @@ const TrangChu = () => {
           setIsEmailVerified(data.is_email_verified || false);
         }
       } catch (error) {
-        console.error('Error checking verification:', error);
+        logger.error('Error checking verification:', error);
       }
     };
 
@@ -277,7 +278,7 @@ const TrangChu = () => {
               </div>
             ) : (
               <div className="fs-empty">
-                <p>🔥 Không có Flash Sale nào đang diễn ra</p>
+                <p>Không có Flash Sale nào đang diễn ra</p>
                 <Link to="/flash-sales" className="fs-empty-link">
                   Xem các chương trình sắp tới →
                 </Link>
@@ -291,7 +292,7 @@ const TrangChu = () => {
           <section className="most-viewed-section">
             <div className="container">
               <div className="section-header">
-                <h2 className="section-title">🔥 Đang Xu Hướng</h2>
+                <h2 className="section-title">Đang Xu Hướng</h2>
                 <Link to="/product" className="view-all">Xem tất cả →</Link>
               </div>
 

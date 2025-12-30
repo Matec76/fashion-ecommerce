@@ -1,7 +1,7 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../config/api.config';
-import useFetch from '../../components/useFetch';
+import useFetch from '../../hooks/useFetch';
 import '../../style/SanPham.css';
 import '../../style/Collections.css';
 

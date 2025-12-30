@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import logger from '../../utils/logger';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { QRCodeSVG } from 'qrcode.react';
 import '../../style/Payment.css';
@@ -25,12 +26,12 @@ const PaymentQR = () => {
     // Helper function to cancel order
     const cancelOrder = async () => {
         if (!orderId) {
-            console.warn('No orderId to cancel');
+            logger.warn('No orderId to cancel');
             return false;
         }
         try {
             const token = localStorage.getItem('authToken');
-            console.log('Attempting to cancel order:', orderId);
+            logger.log('Attempting to cancel order:', orderId);
 
             const response = await fetch(`${API_BASE_URL}/orders/me/${orderId}/cancel`, {
                 method: 'POST',
@@ -41,19 +42,19 @@ const PaymentQR = () => {
                 body: JSON.stringify({ is_user_cancel: true })
             });
 
-            console.log('Cancel response status:', response.status);
+            logger.log('Cancel response status:', response.status);
 
             if (response.ok) {
-                console.log('Order cancelled successfully');
+                logger.log('Order cancelled successfully');
                 return true;
             } else {
                 const errorData = await response.json().catch(() => ({}));
-                console.error('Cancel failed:', response.status, errorData);
+                logger.error('Cancel failed:', response.status, errorData);
                 alert(`Không thể hủy đơn hàng: ${errorData.detail || response.statusText}`);
                 return false;
             }
         } catch (error) {
-            console.error('Cancel order error:', error);
+            logger.error('Cancel order error:', error);
             alert('Lỗi khi hủy đơn hàng: ' + error.message);
             return false;
         }
@@ -97,9 +98,9 @@ const PaymentQR = () => {
                             'Content-Type': 'application/json'
                         }
                     });
-                    console.log('Order cancelled due to payment timeout');
+                    logger.log('Order cancelled due to payment timeout');
                 } catch (error) {
-                    console.warn('Could not auto-cancel expired order:', error);
+                    logger.warn('Could not auto-cancel expired order:', error);
                 }
             };
 
@@ -119,38 +120,38 @@ const PaymentQR = () => {
     // Check payment status periodically
     useEffect(() => {
         if (!transactionCode) {
-            console.warn('No transaction code available for status checking');
+            logger.warn('No transaction code available for status checking');
             return;
         }
 
-        console.log('Starting payment status polling for transaction:', transactionCode);
+        logger.log('Starting payment status polling for transaction:', transactionCode);
 
         const checkStatus = async () => {
             try {
                 const token = localStorage.getItem('authToken');
                 const url = `${API_BASE_URL}/payment/payos/check-status/${transactionCode}`;
 
-                console.log('Checking payment status:', url);
+                logger.log('Checking payment status:', url);
 
                 const response = await fetch(url, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                console.log('Response status:', response.status, response.statusText);
+                logger.log('Response status:', response.status, response.statusText);
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Payment status response:', data);
+                    logger.log('Payment status response:', data);
 
                     // Based on PayOS status
                     if (data.status === 'PAID' || data.status === 'success' || data.status === 'COMPLETED') {
-                        console.log('Payment successful!');
+                        logger.log('Payment successful!');
                         setPaymentStatus('success');
                         setTimeout(() => {
                             navigate('/payment/success', { state: { orderId, orderNumber } });
                         }, 2000);
                     } else if (data.status === 'CANCELLED' || data.status === 'failed' || data.status === 'FAILED') {
-                        console.log('Payment failed');
+                        logger.log('Payment failed');
                         setPaymentStatus('failed');
 
                         // Auto-cancel the order when payment fails
@@ -162,9 +163,9 @@ const PaymentQR = () => {
                                     'Content-Type': 'application/json'
                                 }
                             });
-                            console.log('Order cancelled due to payment failure');
+                            logger.log('Order cancelled due to payment failure');
                         } catch (cancelError) {
-                            console.warn('Could not auto-cancel order:', cancelError);
+                            logger.warn('Could not auto-cancel order:', cancelError);
                         }
 
                         setTimeout(() => {
@@ -173,12 +174,12 @@ const PaymentQR = () => {
                             });
                         }, 2000);
                     } else {
-                        console.log('Payment still pending, status:', data.status);
+                        logger.log('Payment still pending, status:', data.status);
                     }
                 } else {
                     // Don't spam console on errors, just log once
                     if (response.status !== 500) {
-                        console.warn('Check status returned:', response.status);
+                        logger.warn('Check status returned:', response.status);
                     }
                 }
             } catch (error) {
@@ -193,7 +194,7 @@ const PaymentQR = () => {
         // Then check every 5 seconds (reduced from 3 to avoid spam)
         const interval = setInterval(checkStatus, 5000);
         return () => {
-            console.log('Stopping payment status polling');
+            logger.log('Stopping payment status polling');
             clearInterval(interval);
         };
     }, [transactionCode, orderId, orderNumber, navigate]);

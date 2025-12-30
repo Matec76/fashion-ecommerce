@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
+import logger from '../../utils/logger';
 import { useNavigate, Link } from 'react-router-dom';
 import { API_ENDPOINTS, API_CONFIG } from '../../config/api.config';
-import useFetch from '../../components/useFetch';
-import useMutation from '../../components/useMutation';
-import useDelete from '../../components/useDelete';
+import useFetch from '../../hooks/useFetch';
+import useMutation from '../../hooks/useMutation';
+import useDelete from '../../hooks/useDelete';
 import '../../style/Wishlist.css';
 
 const Wishlist = () => {
@@ -52,7 +53,7 @@ const Wishlist = () => {
         if (token && refetchWishlists && refetchDefault) {
             // Small delay to ensure hooks are fully initialized
             const timer = setTimeout(() => {
-                console.log('Force refetching wishlist data...');
+                logger.log('Force refetching wishlist data...');
                 refetchWishlists();
                 refetchDefault();
             }, 100);
@@ -79,7 +80,7 @@ const Wishlist = () => {
                             }));
                         }
                     } catch (err) {
-                        console.error('Error fetching product:', err);
+                        logger.error('Error fetching product:', err);
                     }
                 }
             }
@@ -141,8 +142,8 @@ const Wishlist = () => {
         if (!window.confirm('Bạn có chắc muốn xóa sản phẩm này?')) return;
 
         // Debug log
-        console.log('Removing item with ID:', itemId);
-        console.log('DELETE URL:', API_ENDPOINTS.WISHLIST.REMOVE_ITEM(itemId));
+        logger.log('Removing item with ID:', itemId);
+        logger.log('DELETE URL:', API_ENDPOINTS.WISHLIST.REMOVE_ITEM(itemId));
 
         // Optimistic update: immediately hide the item from UI
         setRemovingItems(prev => [...prev, itemId]);
@@ -161,7 +162,7 @@ const Wishlist = () => {
                 setRemovingItems(prev => prev.filter(id => id !== itemId));
             }
         } catch (error) {
-            console.error('Error removing item:', error);
+            logger.error('Error removing item:', error);
             // Revert optimistic update if network error
             setRemovingItems(prev => prev.filter(id => id !== itemId));
         }

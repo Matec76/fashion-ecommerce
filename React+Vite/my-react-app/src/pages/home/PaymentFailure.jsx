@@ -1,4 +1,5 @@
-import React from 'react';
+﻿import React from 'react';
+import logger from '../../utils/logger';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import '../../style/Payment.css';
 
@@ -38,7 +39,7 @@ const PaymentFailure = () => {
                 alert('Không thể thử lại thanh toán. Vui lòng liên hệ hỗ trợ.');
             }
         } catch (error) {
-            console.error('Error retrying payment:', error);
+            logger.error('Error retrying payment:', error);
             alert('Đã có lỗi xảy ra. Vui lòng thử lại sau.');
         }
     };

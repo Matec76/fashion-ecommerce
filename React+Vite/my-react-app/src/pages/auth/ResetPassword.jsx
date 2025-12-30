@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { API_ENDPOINTS } from '../../config/api.config';
-import useMutation from '../../components/useMutation';
+import useMutation from '../../hooks/useMutation';
 import '/src/style/style.css';
 
 const ResetPassword = () => {

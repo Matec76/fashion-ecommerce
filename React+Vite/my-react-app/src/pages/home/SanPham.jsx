@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo, memo } from 'react';
+﻿import { useState, useEffect, useMemo, memo } from 'react';
+import logger from '../../utils/logger';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
-import useFetch from '../../components/useFetch';
-import useMutation from '../../components/useMutation';
-import useDelete from '../../components/useDelete';
+import useFetch from '../../hooks/useFetch';
+import useMutation from '../../hooks/useMutation';
+import useDelete from '../../hooks/useDelete';
 import { API_ENDPOINTS, API_CONFIG } from '/src/config/api.config';
 import '../../style/SanPham.css';
 
@@ -49,9 +50,9 @@ const ProductCard = memo(({ product }) => {
   // Debug images (chỉ log khi có data để tránh spam)
   useEffect(() => {
     if (imagesData && imagesData.length > 0) {
-      console.log(`Images for ${product.name}:`, imagesData);
+      logger.log(`Images for ${product.name}:`, imagesData);
     } else if (imagesData) {
-      console.log(`No images for ${product.name}`);
+      logger.log(`No images for ${product.name}`);
     }
   }, [imagesData, product.name]);
 
@@ -84,7 +85,7 @@ const ProductCard = memo(({ product }) => {
           }
         }
       } catch (err) {
-        console.error('Error removing from wishlist:', err);
+        logger.error('Error removing from wishlist:', err);
       }
     } else {
       // Thêm vào wishlist
@@ -95,7 +96,7 @@ const ProductCard = memo(({ product }) => {
       if (result.success) {
         setIsInWishlist(true);
       } else {
-        console.error('Error adding to wishlist:', result.error);
+        logger.error('Error adding to wishlist:', result.error);
       }
     }
   };
@@ -206,7 +207,7 @@ function SanPham() {
           const roots = Array.isArray(data) ? data : (data.items || data.data || []);
           setCategories(flatten(roots));
         }
-      } catch (e) { console.error("Lỗi tải danh mục", e); }
+      } catch (e) { logger.error("Lỗi tải danh mục", e); }
     };
     fetchCats();
   }, []);

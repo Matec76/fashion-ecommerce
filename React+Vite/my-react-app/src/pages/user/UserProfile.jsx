@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import logger from '../../utils/logger';
 import { useNavigate } from 'react-router-dom';
-import usePatch from '../../components/usePatch';
+import usePatch from '../../hooks/usePatch';
 import { API_ENDPOINTS } from '../../config/api.config';
 import '../../style/UserProfile.css';
 import '../../style/Loyalty.css';
@@ -74,7 +75,7 @@ const UserProfile = () => {
                 alert(error.detail || 'Không thể tải ảnh lên!');
             }
         } catch (error) {
-            console.error('Error uploading avatar:', error);
+            logger.error('Error uploading avatar:', error);
             alert('Có lỗi xảy ra khi tải ảnh!');
         } finally {
             setAvatarUploading(false);
@@ -100,7 +101,7 @@ const UserProfile = () => {
                 setLoyaltyData(data);
             }
         } catch (error) {
-            console.error('Error fetching loyalty data:', error);
+            logger.error('Error fetching loyalty data:', error);
         }
     };
 
@@ -115,7 +116,7 @@ const UserProfile = () => {
                 setReferralCode(data.referral_code || data.code || '');
             }
         } catch (error) {
-            console.error('Error fetching referral code:', error);
+            logger.error('Error fetching referral code:', error);
         }
     };
 
@@ -130,7 +131,7 @@ const UserProfile = () => {
                 setTransactions(data);
             }
         } catch (error) {
-            console.error('Error fetching transactions:', error);
+            logger.error('Error fetching transactions:', error);
         }
     };
 
@@ -158,7 +159,7 @@ const UserProfile = () => {
                 alert(error.detail || 'Không thể gửi email xác thực!');
             }
         } catch (error) {
-            console.error('Error sending verification:', error);
+            logger.error('Error sending verification:', error);
             alert('Có lỗi xảy ra khi gửi email xác thực!');
         } finally {
             setVerificationSending(false);
@@ -196,7 +197,7 @@ const UserProfile = () => {
                 navigate('/login');
             }
         } catch (error) {
-            console.error('Error fetching user data:', error);
+            logger.error('Error fetching user data:', error);
         } finally {
             setLoading(false);
         }
@@ -240,7 +241,7 @@ const UserProfile = () => {
                 setDefaultAddress(defaultAddr);
             }
         } catch (error) {
-            console.error('Error fetching addresses:', error);
+            logger.error('Error fetching addresses:', error);
         }
     };
 

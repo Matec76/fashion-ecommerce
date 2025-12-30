@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import logger from '../../utils/logger';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import '../../style/Checkout.css';
 import '../../style/Loyalty.css';
 import { API_ENDPOINTS, getAuthHeaders } from '../../config/api.config';
 import { authFetch } from '../../utils/authInterceptor';
-import CouponInput from '../../components/CouponInput';
-import VoucherPickerModal from '../../components/VoucherPickerModal';
+import CouponInput from '../../components/forms/CouponInput/CouponInput';
+import VoucherPickerModal from '../../components/modals/VoucherPickerModal/VoucherPickerModal';
 import { useCart } from './CartContext';
 
 const Checkout = () => {
@@ -66,7 +67,7 @@ const Checkout = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Addresses fetched:', data);
+                    logger.log('Addresses fetched:', data);
                     setAddresses(data);
 
                     // Auto-select default address
@@ -81,7 +82,7 @@ const Checkout = () => {
                     }
                 }
             } catch (error) {
-                console.error('Error fetching addresses:', error);
+                logger.error('Error fetching addresses:', error);
             }
         };
 
@@ -99,7 +100,7 @@ const Checkout = () => {
 
                 if (response.ok) {
                     const data = await response.json();
-                    console.log('Shipping methods:', data);
+                    logger.log('Shipping methods:', data);
                     setShippingMethods(data);
 
                     // Auto-select first shipping method
@@ -109,7 +110,7 @@ const Checkout = () => {
                     }
                 }
             } catch (error) {
-                console.error('Error fetching shipping methods:', error);
+                logger.error('Error fetching shipping methods:', error);
             }
         };
 
@@ -131,7 +132,7 @@ const Checkout = () => {
                     const methods = responseData.data || responseData;
                     setPaymentMethods(methods);
 
-                    console.log('Payment methods:', methods);
+                    logger.log('Payment methods:', methods);
 
                     // Auto-select first method
                     if (methods.length > 0) {
@@ -140,7 +141,7 @@ const Checkout = () => {
                     }
                 }
             } catch (error) {
-                console.error('Error fetching payment methods:', error);
+                logger.error('Error fetching payment methods:', error);
             }
         };
 
@@ -163,7 +164,7 @@ const Checkout = () => {
                     setUserPoints(data.points_balance || 0);
                 }
             } catch (error) {
-                console.error('Error fetching user loyalty:', error);
+                logger.error('Error fetching user loyalty:', error);
             }
         };
 
@@ -212,14 +213,14 @@ const Checkout = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log('Processing fee response:', data);
+                logger.log('Processing fee response:', data);
                 setProcessingFee(parseFloat(data.processing_fee || data.fee || 0));
             } else {
-                console.warn('Could not calculate fee, using 0');
+                logger.warn('Could not calculate fee, using 0');
                 setProcessingFee(0);
             }
         } catch (error) {
-            console.error('Error calculating fee:', error);
+            logger.error('Error calculating fee:', error);
             setProcessingFee(0);
         }
     };
@@ -300,14 +301,14 @@ const Checkout = () => {
 
             const responseData = await orderResponse.json();
 
-            console.log('Full order response:', responseData);
+            logger.log('Full order response:', responseData);
 
             // Backend returns: { order: {...}, payment: {...} }
             const order = responseData.order;
             const payment = responseData.payment;
 
-            console.log('Order data:', order);
-            console.log('Payment data:', payment);
+            logger.log('Order data:', order);
+            logger.log('Payment data:', payment);
 
             const orderId = order.order_id;
 
@@ -315,25 +316,25 @@ const Checkout = () => {
             let transactionCode = null;
             if (order.payment_transactions?.length > 0) {
                 transactionCode = order.payment_transactions[0].transaction_code;
-                console.log('Found transaction_code in order.payment_transactions[0]:', transactionCode);
+                logger.log('Found transaction_code in order.payment_transactions[0]:', transactionCode);
             } else if (payment.transaction_id) {
                 transactionCode = String(payment.transaction_id);
-                console.log('Using payment.transaction_id as fallback:', transactionCode);
+                logger.log('Using payment.transaction_id as fallback:', transactionCode);
             } else {
-                console.error('No transaction_code found!');
+                logger.error('No transaction_code found!');
             }
 
             const paymentUrl = payment.payment_url || order.payment_transactions?.[0]?.payment_url;
             const qrCode = payment.qr_code || order.payment_transactions?.[0]?.qr_code;
 
-            console.log('Transaction code:', transactionCode);
-            console.log('Payment URL:', paymentUrl);
-            console.log('QR Code:', qrCode ? 'Available' : 'Not available');
+            logger.log('Transaction code:', transactionCode);
+            logger.log('Payment URL:', paymentUrl);
+            logger.log('QR Code:', qrCode ? 'Available' : 'Not available');
 
             // Check if payment method is COD (Cash on Delivery)
             const selectedMethod = paymentMethods.find(m => m.payment_method_id === selectedPaymentMethod);
-            console.log('Selected payment method:', selectedMethod);
-            console.log('Method name:', selectedMethod?.method_name);
+            logger.log('Selected payment method:', selectedMethod);
+            logger.log('Method name:', selectedMethod?.method_name);
 
             const isCOD = selectedMethod?.method_name?.toLowerCase().includes('cod') ||
                 selectedMethod?.method_name?.toLowerCase().includes('nhận hàng') ||
@@ -345,7 +346,7 @@ const Checkout = () => {
                 selectedMethod?.method_name?.toLowerCase().includes('cash on delivery') ||
                 selectedMethod?.payment_method_id === 1; // Thường COD có ID = 1
 
-            console.log('Is COD?', isCOD);
+            logger.log('Is COD?', isCOD);
 
             if (isCOD) {
                 // COD: Clear cart and navigate to success page
@@ -373,7 +374,7 @@ const Checkout = () => {
             }
 
         } catch (error) {
-            console.error('Error placing order:', error);
+            logger.error('Error placing order:', error);
             alert(`Lỗi: ${error.message}`);
         } finally {
             setLoading(false);
@@ -386,7 +387,7 @@ const Checkout = () => {
     const finalTotal = Number(selectedTotal) + Number(shippingFee) + Number(processingFee) + taxAmount - totalDiscount;
 
     // Debug log
-    console.log('Price Debug:', {
+    logger.log('Price Debug:', {
         selectedTotal,
         shippingFee,
         processingFee,

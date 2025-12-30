@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+﻿import { useState, useEffect, useCallback } from 'react';
+import logger from '../../utils/logger';
 import { Link } from 'react-router-dom';
 import { API_ENDPOINTS, getAuthHeaders } from '../../config/api.config';
 import '../../style/FlashSales.css';
@@ -47,10 +48,10 @@ const FlashSales = () => {
                         setUpcomingFlashSales(upcomingData || []);
                     }
                 } catch (err) {
-                    console.error('Error fetching upcoming flash sales:', err);
+                    logger.error('Error fetching upcoming flash sales:', err);
                 }
             } catch (error) {
-                console.error('Error fetching flash sales:', error);
+                logger.error('Error fetching flash sales:', error);
             } finally {
                 setLoading(false);
             }
