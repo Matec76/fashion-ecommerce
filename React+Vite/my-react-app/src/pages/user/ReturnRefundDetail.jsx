@@ -16,10 +16,11 @@ const ReturnRefundDetail = () => {
 
     // Status configuration
     const statusConfig = {
-        'PENDING': { label: 'Chờ duyệt', color: '#ffc107', step: 1 },
-        'APPROVED': { label: 'Đã duyệt', color: '#28a745', step: 2 },
+        'PENDING': { label: 'Chờ duyệt', color: '#ffc107', step: 2 },
+        'APPROVED': { label: 'Đã duyệt', color: '#28a745', step: 3 },
+        'PROCESSING': { label: 'Đang xử lý', color: '#17a2b8', step: 4 },
         'REJECTED': { label: 'Từ chối', color: '#dc3545', step: 0 },
-        'COMPLETED': { label: 'Hoàn thành', color: '#17a2b8', step: 3 }
+        'COMPLETED': { label: 'Hoàn thành', color: '#17a2b8', step: 5 }
     };
 
     const refundMethodLabels = {
@@ -131,7 +132,7 @@ const ReturnRefundDetail = () => {
                         <div className="detail-section">
                             <h3>Tiến trình xử lý</h3>
                             <div className="timeline">
-                                {['Tạo yêu cầu', 'Chờ duyệt', 'Đã duyệt', 'Hoàn thành'].map((step, index) => {
+                                {['Tạo yêu cầu', 'Chờ duyệt', 'Đã duyệt', 'Đang xử lý', 'Hoàn thành'].map((step, index) => {
                                     const stepNum = index + 1;
                                     const isCompleted = statusInfo.step >= stepNum;
                                     const isCurrent = statusInfo.step === stepNum;
@@ -178,20 +179,32 @@ const ReturnRefundDetail = () => {
                     {/* Refund Information */}
                     <div className="detail-section">
                         <h3>Thông tin hoàn tiền</h3>
-                        <div className="info-grid">
-                            <div className="info-item">
-                                <span className="info-label">Số tiền hoàn:</span>
-                                <span className="info-value amount-highlight">
-                                    {returnDetail.refund_amount ? formatPrice(returnDetail.refund_amount) : 'Chờ xử lý'}
-                                </span>
-                            </div>
-                            <div className="info-item">
-                                <span className="info-label">Phương thức:</span>
-                                <span className="info-value">
-                                    {returnDetail.refund_method ? (refundMethodLabels[returnDetail.refund_method] || returnDetail.refund_method) : 'Chờ xử lý'}
-                                </span>
-                            </div>
-                        </div>
+                        {(() => {
+                            // Logic fallback: Nếu thông tin trên returnDetail chưa có, lấy từ refund transaction mới nhất
+                            const latestRefund = returnDetail.refunds && returnDetail.refunds.length > 0
+                                ? returnDetail.refunds[0]
+                                : null;
+
+                            const displayAmount = returnDetail.refund_amount || (latestRefund ? latestRefund.refund_amount || latestRefund.amount : null);
+                            const displayMethod = returnDetail.refund_method || (latestRefund ? latestRefund.refund_method || latestRefund.method : null);
+
+                            return (
+                                <div className="info-grid">
+                                    <div className="info-item">
+                                        <span className="info-label">Số tiền hoàn:</span>
+                                        <span className="info-value amount-highlight">
+                                            {displayAmount ? formatPrice(displayAmount) : 'Chờ xử lý'}
+                                        </span>
+                                    </div>
+                                    <div className="info-item">
+                                        <span className="info-label">Phương thức:</span>
+                                        <span className="info-value">
+                                            {displayMethod ? (refundMethodLabels[displayMethod] || displayMethod) : 'Chờ xử lý'}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         {/* Refunds List */}
                         {returnDetail.refunds && returnDetail.refunds.length > 0 && (
@@ -202,9 +215,9 @@ const ReturnRefundDetail = () => {
                                         <div className="refund-info">
                                             <span>Mã hoàn tiền: #{refund.refund_id}</span>
                                             <span className={`refund-status ${refund.status}`}>
-                                                {refund.status === 'completed' ? 'Hoàn thành' :
-                                                    refund.status === 'pending' ? 'Chờ xử lý' :
-                                                        refund.status === 'processing' ? 'Đang xử lý' : 'Thất bại'}
+                                                {refund.status === 'COMPLETED' ? 'Hoàn thành' :
+                                                    refund.status === 'PENDING' ? 'Chờ xử lý' :
+                                                        refund.status === 'PROCESSING' ? 'Đang xử lý' : 'Thất bại'}
                                             </span>
                                         </div>
                                         {refund.processed_at && (

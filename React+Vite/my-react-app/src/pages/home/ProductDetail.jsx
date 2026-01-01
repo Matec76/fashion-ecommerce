@@ -140,18 +140,34 @@ const VariantSelector = ({ variants, selectedColor, selectedSize, onColorChange,
 // SUB-COMPONENT: RELATED PRODUCT CARD
 // ==========================================
 const RelatedProductCard = ({ product }) => {
-    const { data: imagesData } = useFetch(API_ENDPOINTS.PRODUCTS.IMAGES(product.id));
+    // Fetch images with error handling for 422 errors
+    // Use product_id (correct field from API) instead of id
+    const productId = product.product_id || product.id;
+    const { data: imagesData, error } = useFetch(
+        API_ENDPOINTS.PRODUCTS.IMAGES(productId),
+        { cacheTime: 300000 }
+    );
 
     const imageUrl = useMemo(() => {
-        if (!imagesData || imagesData.length === 0) return 'https://placehold.co/300x300?text=No+Image';
+        // If API returns error or no data, use placeholder
+        if (error || !imagesData || !Array.isArray(imagesData) || imagesData.length === 0) {
+            return 'https://placehold.co/300x300?text=No+Image';
+        }
         const primary = imagesData.find(img => img.is_primary) || imagesData[0];
         return primary.image_url;
-    }, [imagesData]);
+    }, [imagesData, error]);
+
+    const [imgError, setImgError] = useState(false);
+    const displayImage = imgError ? 'https://placehold.co/300x300?text=No+Image' : imageUrl;
 
     return (
         <Link to={`/products/${product.slug || product.id}`} className="related-card">
             <div className="related-image">
-                <img src={imageUrl} alt={product.product_name} />
+                <img
+                    src={displayImage}
+                    alt={product.product_name}
+                    onError={() => setImgError(true)}
+                />
             </div>
             <div className="related-info">
                 <h4>{product.product_name}</h4>
@@ -1207,8 +1223,8 @@ const ProductDetail = () => {
                 <div className="related-products-section">
                     <h2>Sản phẩm liên quan</h2>
                     <div className="related-products-grid">
-                        {relatedProducts.slice(0, 4).map(prod => (
-                            <RelatedProductCard key={prod.id} product={prod} />
+                        {relatedProducts.slice(0, 4).map((prod, index) => (
+                            <RelatedProductCard key={prod.product_id || prod.id || index} product={prod} />
                         ))}
                     </div>
                 </div>

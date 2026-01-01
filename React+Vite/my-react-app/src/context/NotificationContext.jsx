@@ -42,12 +42,20 @@ export const NotificationProvider = ({ children }) => {
     }, [lastFetched, unreadCount]);
 
     useEffect(() => {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            setUnreadCount(0);
+            return;
+        }
+
+        // Initial fetch
         fetchUnreadCount();
 
         // Auto-refresh every 1 minute for faster notification updates
         const interval = setInterval(() => fetchUnreadCount(true), 60000);
         return () => clearInterval(interval);
-    }, [fetchUnreadCount]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty dependencies - only run on mount
 
     const value = {
         unreadCount,

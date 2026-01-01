@@ -188,6 +188,7 @@
     align-items: center;
     justify-content: center;
     gap: 20px;
+    font-size: 16px;
 }
 
 .vouchers-loader {
@@ -221,7 +222,7 @@
 
 .no-vouchers p {
     color: #777;
-    font-size: 14px;
+    font-size: 16px;
 }
 
 @keyframes spin {

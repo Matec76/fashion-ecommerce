@@ -18,18 +18,22 @@ const ProductCard = memo(({ product }) => {
     const { remove, loading: removeLoading } = useDelete();
     const wishlistLoading = addLoading || removeLoading;
 
-    const { data: imagesData, loading } = useFetch(
-        API_ENDPOINTS.PRODUCTS.IMAGES(product.id),
-        { cacheTime: 300000 } // 5 minutes cache - images rarely change
+    // Fetch images with error handling for 422 errors
+    // Use product_id (correct field from API) instead of id
+    const productId = product.product_id || product.id;
+    const { data: imagesData, loading, error } = useFetch(
+        API_ENDPOINTS.PRODUCTS.IMAGES(productId),
+        { cacheTime: 300000 } // 5 minutes cache
     );
 
     const imageUrl = useMemo(() => {
-        if (!imagesData || !Array.isArray(imagesData) || imagesData.length === 0) {
-            return product.primary_image_url || product.image_url || null;
+        // If API returns 422 error or no data, use placeholder
+        if (error || !imagesData || !Array.isArray(imagesData) || imagesData.length === 0) {
+            return null;
         }
         const primary = imagesData.find(img => img.is_primary) || imagesData[0];
         return primary.image_url;
-    }, [imagesData, product]);
+    }, [imagesData, error]);
 
     const [imgError, setImgError] = useState(false);
 
@@ -213,7 +217,6 @@ function CollectionDetail() {
                     : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)'
             }}>
                 <div className="collection-hero-content">
-                    <span className="collection-label">BỘ SƯU TẬP</span>
                     <h1 className="collection-hero-title">{collection.collection_name}</h1>
                     {collection.description && (
                         <p className="collection-hero-description">{collection.description}</p>

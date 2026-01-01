@@ -13,42 +13,101 @@ const FlashSales = () => {
     const [upcomingFlashSales, setUpcomingFlashSales] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    // Fetch flash sales data by ID
+    // Fetch flash sales data using ACTIVE and UPCOMING APIs
     useEffect(() => {
         const fetchFlashSales = async () => {
             setLoading(true);
-            const fetchedSales = [];
 
             try {
-                // Fetch flash sales by ID (1, 2, 3...)
-                for (let id = 1; id <= 10; id++) {
-                    try {
-                        const response = await fetch(API_ENDPOINTS.FLASH_SALES.DETAIL(id), {
-                            headers: getAuthHeaders()
-                        });
-                        if (response.ok) {
-                            const data = await response.json();
-                            if (data && data.products && data.products.length > 0) {
-                                fetchedSales.push(data);
-                            }
-                        }
-                    } catch (err) {
-                        // Flash sale with this ID doesn't exist, continue
-                    }
-                }
-                setFlashSales(fetchedSales);
-
-                // Fetch upcoming flash sales from API
+                // Fetch ACTIVE flash sales from API
                 try {
-                    const upcomingResponse = await fetch(API_ENDPOINTS.FLASH_SALES.UPCOMING, {
+                    const activeResponse = await fetch(API_ENDPOINTS.FLASH_SALES.ACTIVE, {
                         headers: getAuthHeaders()
                     });
-                    if (upcomingResponse.ok) {
-                        const upcomingData = await upcomingResponse.json();
-                        setUpcomingFlashSales(upcomingData || []);
+                    if (activeResponse.ok) {
+                        const activeData = await activeResponse.json();
+                        const activeSales = Array.isArray(activeData) ? activeData : (activeData ? [activeData] : []);
+
+                        // Fetch detail for each active sale to get products
+                        const detailedActiveSales = await Promise.all(
+                            activeSales.map(async (sale) => {
+                                if (sale.flash_sale_id) {
+                                    try {
+                                        const detailResponse = await fetch(API_ENDPOINTS.FLASH_SALES.DETAIL(sale.flash_sale_id), {
+                                            headers: getAuthHeaders()
+                                        });
+                                        if (detailResponse.ok) {
+                                            return await detailResponse.json();
+                                        }
+                                    } catch (err) {
+                                        logger.error(`Error fetching detail for flash sale ${sale.flash_sale_id}:`, err);
+                                    }
+                                }
+                                return sale;
+                            })
+                        );
+
+                        // Separate into truly active vs upcoming based on current time
+                        const now = new Date();
+                        const trulyActive = detailedActiveSales.filter(sale => {
+                            const startTime = new Date(sale.start_time);
+                            const endTime = new Date(sale.end_time);
+                            return startTime <= now && now <= endTime;
+                        });
+                        const upcomingFromActive = detailedActiveSales.filter(sale => {
+                            const startTime = new Date(sale.start_time);
+                            return startTime > now;
+                        });
+
+                        setFlashSales(trulyActive);
+
+                        // Fetch from /upcoming API (for is_active=false sales)
+                        try {
+                            const upcomingResponse = await fetch(API_ENDPOINTS.FLASH_SALES.UPCOMING, {
+                                headers: getAuthHeaders()
+                            });
+
+                            if (upcomingResponse.ok) {
+                                const upcomingData = await upcomingResponse.json();
+                                const upcomingSales = Array.isArray(upcomingData) ? upcomingData : (upcomingData ? [upcomingData] : []);
+
+                                const detailedUpcomingSales = await Promise.all(
+                                    upcomingSales.map(async (sale) => {
+                                        if (sale.flash_sale_id) {
+                                            try {
+                                                const detailResponse = await fetch(API_ENDPOINTS.FLASH_SALES.DETAIL(sale.flash_sale_id), {
+                                                    headers: getAuthHeaders()
+                                                });
+                                                if (detailResponse.ok) {
+                                                    return await detailResponse.json();
+                                                }
+                                            } catch (err) {
+                                                logger.error(`Error fetching detail for upcoming flash sale ${sale.flash_sale_id}:`, err);
+                                            }
+                                        }
+                                        return sale;
+                                    })
+                                );
+
+                                // Merge: upcoming from active (is_active=true but start_time>now) + upcoming API (is_active=false)
+                                const allUpcoming = [...upcomingFromActive];
+                                detailedUpcomingSales.forEach(sale => {
+                                    if (!allUpcoming.find(s => s.flash_sale_id === sale.flash_sale_id)) {
+                                        allUpcoming.push(sale);
+                                    }
+                                });
+
+                                setUpcomingFlashSales(allUpcoming);
+                            } else {
+                                setUpcomingFlashSales(upcomingFromActive);
+                            }
+                        } catch (err) {
+                            logger.error('Error fetching upcoming flash sales:', err);
+                            setUpcomingFlashSales(upcomingFromActive);
+                        }
                     }
                 } catch (err) {
-                    logger.error('Error fetching upcoming flash sales:', err);
+                    logger.error('Error fetching active flash sales:', err);
                 }
             } catch (error) {
                 logger.error('Error fetching flash sales:', error);
@@ -102,13 +161,41 @@ const FlashSales = () => {
     };
 
     // Product Card Component
-    const ProductCard = ({ product, discountPercent }) => {
+    const ProductCard = ({ product, discountPercent, isUpcoming = false }) => {
         const originalPrice = parseFloat(product.price) || 0;
         const salePrice = originalPrice * (1 - discountPercent / 100);
         const soldPercent = product.quantity_sold && product.quantity_limit
             ? Math.min(Math.round((product.quantity_sold / product.quantity_limit) * 100), 100)
             : Math.floor(Math.random() * 60) + 40;
-        const productImage = product.images && product.images.length > 0 ? product.images[0] : null;
+        const productImage = product.images && product.images.length > 0 ? product.images[0].image_url : null;
+
+        // Mystery price masking function for upcoming sales
+        const maskPrice = (price) => {
+            const priceStr = Math.round(price).toString();
+            if (priceStr.length <= 3) return priceStr; // Too short to mask
+
+            // Mask 2nd and 3rd digits: "1234567" -> "1??4567"
+            const first = priceStr[0];
+            const rest = priceStr.substring(3);
+
+            return first + '??' + rest;
+        };
+
+        const formatMaskedPrice = (price) => {
+            const masked = maskPrice(price);
+            // Format with dots: "382??000" -> "38.2??.000đ"
+            let result = '';
+            let count = 0;
+            for (let i = masked.length - 1; i >= 0; i--) {
+                if (count === 3 && masked[i] !== '?') {
+                    result = '.' + result;
+                    count = 0;
+                }
+                result = masked[i] + result;
+                if (masked[i] !== '?') count++;
+            }
+            return result + 'đ';
+        };
 
         return (
             <Link
@@ -121,7 +208,9 @@ const FlashSales = () => {
                     ) : (
                         <div className="fsp-no-image"></div>
                     )}
-                    <span className="fsp-discount-tag">-{discountPercent}%</span>
+                    <span className="fsp-discount-tag">
+                        {isUpcoming ? 'X%' : `-${discountPercent}%`}
+                    </span>
                 </div>
 
                 <div className="fsp-product-content">
@@ -139,7 +228,9 @@ const FlashSales = () => {
 
                     <div className="fsp-price-row">
                         <div className="fsp-prices">
-                            <span className="fsp-sale-price">{formatPrice(salePrice)}</span>
+                            <span className="fsp-sale-price">
+                                {isUpcoming ? formatMaskedPrice(salePrice) : formatPrice(salePrice)}
+                            </span>
                             <span className="fsp-original-price">{formatPrice(originalPrice)}</span>
                         </div>
                     </div>
@@ -181,7 +272,7 @@ const FlashSales = () => {
             <div className="fsp-hero">
                 <div className="fsp-hero-content">
                     <h1 className="fsp-hero-title">
-                        Flash Sale
+                        {firstSale ? firstSale.sale_name : 'Flash Sale'}
                     </h1>
                     <p className="fsp-hero-subtitle">Săn deal khủng - Giá sốc mỗi ngày!</p>
                 </div>
@@ -267,6 +358,7 @@ const FlashSales = () => {
                                         key={`${product.product_id}-${index}`}
                                         product={product}
                                         discountPercent={product.discountPercent}
+                                        isUpcoming={activeTab === 'upcoming'}
                                     />
                                 ))}
                         </div>

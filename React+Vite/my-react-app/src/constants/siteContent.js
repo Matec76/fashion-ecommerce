@@ -8,7 +8,6 @@ export const MENU_LINKS = Object.freeze([
   { to: '/product?gender=Nam', label: 'NAM' },
   { to: '/product?gender=Nữ', label: 'NỮ' },
   { to: '/product?gender=Trẻ em', label: 'TRẺ EM' },
-  { to: '/product', label: 'PHỤ KIỆN' },
   { to: '/collections', label: 'BỘ SƯU TẬP' },
   { to: '/product?new=true', label: 'OUTLET', className: 'outlet' }
 ]);

@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react';
 import logger from '../../../utils/logger';
 import { API_ENDPOINTS } from '../../../config/api.config';
-import '../style/CreateReturnModal.css';
+import './CreateReturnModal.css';
 
 const CreateReturnModal = ({ isOpen, onClose, order, onSuccess }) => {
     const [selectedItems, setSelectedItems] = useState([]);

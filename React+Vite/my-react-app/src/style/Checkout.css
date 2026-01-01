@@ -456,6 +456,7 @@
 .add-address-link {
     color: #667eea;
     font-weight: 600;
+    font-size: 14px;
     text-decoration: none;
     transition: color 0.2s;
 }

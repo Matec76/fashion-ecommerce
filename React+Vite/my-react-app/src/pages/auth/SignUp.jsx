@@ -21,6 +21,7 @@ const SignUp = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   // Data ngày tháng năm
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -67,8 +68,10 @@ const SignUp = () => {
       const data = await response.json();
 
       if (response.ok) {
-        alert("Đăng ký thành công! Vui lòng kiểm tra email.");
-        navigate('/login');
+        setSuccess("Đăng ký thành công! Vui lòng kiểm tra email.");
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
       } else {
         setError(data.detail || 'Đăng ký thất bại.');
       }
@@ -123,17 +126,60 @@ const SignUp = () => {
           </div>
 
 
-          {error && <div style={{ color: 'red', marginBottom: '10px', textAlign: 'center' }}>{error}</div>}
+          {error && <div style={{ color: 'red', marginTop: '20px', marginBottom: '20px', padding: '12px', textAlign: 'center', fontSize: '16px', backgroundColor: 'rgba(255, 0, 0, 0.1)', borderRadius: '8px', fontWeight: '500' }}>{error}</div>}
 
           <button type="submit" className="login-btn" disabled={loading}>
             {loading ? 'Đang xử lý...' : 'Đăng ký'}
           </button>
         </form>
 
-        <div className="login-sign-up">
+        <div className="login-sign-up" style={{ fontSize: '16px' }}>
           <Link to="/login">Bạn đã có tài khoản? Đăng nhập ngay</Link>
         </div>
       </div>
+
+      {/* Success Modal */}
+      {success && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+            minWidth: '400px',
+            textAlign: 'center'
+          }}>
+            <h3 style={{ margin: '0 0 20px 0', fontSize: '20px', fontWeight: '600', color: '#000' }}>Thông báo</h3>
+            <p style={{ margin: '0 0 20px 0', fontSize: '16px', color: '#333' }}>{success}</p>
+            <button
+              onClick={() => navigate('/login')}
+              style={{
+                padding: '12px 30px',
+                backgroundColor: '#000',
+                color: 'white',
+                border: 'none',
+                borderRadius: '25px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

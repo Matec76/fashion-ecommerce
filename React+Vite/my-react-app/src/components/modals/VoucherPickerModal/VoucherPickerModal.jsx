@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from 'react';
 import logger from '../../../utils/logger';
 import { API_ENDPOINTS } from '../../../config/api.config';
-import '../style/VoucherPickerModal.css';
+import './VoucherPickerModal.css';
 
 const VoucherPickerModal = ({ isOpen, onClose, onSelectVoucher, orderAmount, currentCoupon }) => {
     const [vouchers, setVouchers] = useState([]);

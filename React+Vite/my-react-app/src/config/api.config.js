@@ -239,6 +239,31 @@ export const API_ENDPOINTS = {
         RETURN_DETAIL: (returnId) => `${API_BASE_URL}/return_refunds/returns/${returnId}`,
         REFUND_STATUS: (refundId) => `${API_BASE_URL}/return_refunds/refunds/${refundId}`,
     },
+
+    // CMS (Content Management System)
+    CMS: {
+        // Banners
+        BANNERS: {
+            LIST: `${API_BASE_URL}/cms/banners`,
+            ACTIVE: `${API_BASE_URL}/cms/banners?is_active=true`,
+            DETAIL: (bannerId) => `${API_BASE_URL}/cms/banners/${bannerId}`,
+        },
+        // Pages
+        PAGES: {
+            LIST: `${API_BASE_URL}/cms/pages`,
+            SEARCH: `${API_BASE_URL}/cms/pages/search`,
+            BY_SLUG: (slug) => `${API_BASE_URL}/cms/pages/slug/${slug}`,
+            DETAIL: (pageId) => `${API_BASE_URL}/cms/pages/${pageId}`,
+        },
+        // Menus
+        MENUS: {
+            LIST: `${API_BASE_URL}/cms/menus`,
+            BY_LOCATION: (location) => `${API_BASE_URL}/cms/menus/location/${location}`,
+            DETAIL: (menuId) => `${API_BASE_URL}/cms/menus/${menuId}`,
+            TREE: (menuId) => `${API_BASE_URL}/cms/menus/${menuId}/tree`,
+            ITEMS: (menuId) => `${API_BASE_URL}/cms/menu-items/${menuId}`,
+        },
+    },
 };
 
 export const getAuthToken = () => {

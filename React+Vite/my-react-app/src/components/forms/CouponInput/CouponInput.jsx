@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react';
 import { API_ENDPOINTS } from '../../../config/api.config';
-import '../style/CouponInput.css';
+import './CouponInput.css';
 
 const CouponInput = ({ orderAmount, onApply, onRemove, appliedCoupon, onOpenPicker }) => {
     const [couponCode, setCouponCode] = useState('');

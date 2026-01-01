@@ -58,32 +58,103 @@ const TrangChu = () => {
   const [flashSales, setFlashSales] = useState([]);
   const [flashLoading, setFlashLoading] = useState(true);
 
-  // Fetch Flash Sales data by ID (since /active may be empty)
-  // TODO: Uncomment khi có dữ liệu flash sales trong database
-  /*
+  // Banner state
+  const [banners, setBanners] = useState([]);
+  const [bannersLoading, setBannersLoading] = useState(true);
+
+  // Default fallback banners
+  const defaultBanners = useMemo(() => [
+    {
+      image_url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600',
+      title: 'LIGHT THE BAY',
+      description: 'Sẵn sàng tăng tốc cùng bộ sưu tập thời trang mới nhất',
+      link_url: '/product',
+      button_text: 'Mua ngay'
+    },
+    {
+      image_url: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600',
+      title: 'NEW ARRIVALS',
+      description: 'Khám phá xu hướng thời trang mới nhất mùa xuân hè',
+      link_url: '/product',
+      button_text: 'Khám phá'
+    },
+    {
+      image_url: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=1600',
+      title: 'SUMMER COLLECTION',
+      description: 'Bộ sưu tập hè 2026 đã có mặt',
+      link_url: '/collections',
+      button_text: 'Xem ngay'
+    },
+    {
+      image_url: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600',
+      title: 'FLASH SALE',
+      description: 'Giảm giá đến 50% - Chỉ trong tuần này',
+      link_url: '/flash-sales',
+      button_text: 'Săn deal'
+    }
+  ], []);
+
+  // Fetch Banners from CMS API
+  useEffect(() => {
+    const fetchBanners = async () => {
+      setBannersLoading(true);
+      try {
+        const response = await fetch(API_ENDPOINTS.CMS.BANNERS.ACTIVE);
+        if (response.ok) {
+          const data = await response.json();
+          // Sort by display_order and filter active banners
+          const sortedBanners = Array.isArray(data)
+            ? data.sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+            : [];
+          setBanners(sortedBanners.length > 0 ? sortedBanners : defaultBanners);
+        } else {
+          setBanners(defaultBanners);
+        }
+      } catch (error) {
+        logger.error('Error fetching banners:', error);
+        setBanners(defaultBanners);
+      } finally {
+        setBannersLoading(false);
+      }
+    };
+
+    fetchBanners();
+  }, [defaultBanners]);
+
+  // Fetch Flash Sales data using ACTIVE API then DETAIL API
   useEffect(() => {
     const fetchFlashSales = async () => {
       setFlashLoading(true);
-      const fetchedSales = [];
 
       try {
-        // Fetch flash sales by ID (1, 2, 3...)
-        for (let id = 1; id <= 5; id++) {
-          try {
-            const response = await fetch(API_ENDPOINTS.FLASH_SALES.DETAIL(id));
-            if (response.ok) {
-              const data = await response.json();
-              if (data && data.products && data.products.length > 0) {
-                fetchedSales.push(data);
-              }
+        // Step 1: Get active flash sale
+        const activeResponse = await fetch(API_ENDPOINTS.FLASH_SALES.ACTIVE);
+        if (activeResponse.ok) {
+          const activeData = await activeResponse.json();
+
+          // API returns an array, get the first active sale
+          const firstActiveSale = Array.isArray(activeData) && activeData.length > 0 ? activeData[0] : null;
+
+          if (firstActiveSale && firstActiveSale.flash_sale_id) {
+            // Step 2: Get detailed info with products using the ID
+            const detailResponse = await fetch(API_ENDPOINTS.FLASH_SALES.DETAIL(firstActiveSale.flash_sale_id));
+            if (detailResponse.ok) {
+              const detailData = await detailResponse.json();
+              // Wrap in array for consistent handling
+              setFlashSales([detailData]);
+            } else {
+              // Fallback to active data if detail fails
+              setFlashSales([firstActiveSale]);
             }
-          } catch (err) {
-            // Flash sale with this ID doesn't exist
+          } else {
+            setFlashSales([]);
           }
+        } else {
+          setFlashSales([]);
         }
-        setFlashSales(fetchedSales);
       } catch (error) {
         logger.error('Error fetching flash sales:', error);
+        setFlashSales([]);
       } finally {
         setFlashLoading(false);
       }
@@ -91,18 +162,6 @@ const TrangChu = () => {
 
     fetchFlashSales();
   }, []);
-  */
-
-  // Tạm thời set loading = false vì đã comment đoạn fetch
-  useEffect(() => {
-    setFlashLoading(false);
-  }, []);
-
-  // Fetch most viewed products with 3-minute cache
-  const { data: mostViewed, loading: mostViewedLoading } = useFetch(
-    `${API_ENDPOINTS.ANALYTICS.MOST_VIEWED_PRODUCTS}?limit=4&days=7`,
-    { cacheTime: 180000, auth: true } // 3 minutes cache, requires auth
-  );
 
   // Check email verification status
   useEffect(() => {
@@ -129,16 +188,12 @@ const TrangChu = () => {
     checkVerification();
   }, []);
 
-  const heroImages = useMemo(() => [
-    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1600',
-    'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600',
-    'https://images.unsplash.com/photo-1445205170230-053b83016050?w=1600',
-    'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=1600'
-  ], []);
+  // Use banners for slider (from API or fallback)
+  const slideBanners = banners.length > 0 ? banners : defaultBanners;
 
   const nextSlide = useCallback(() => {
-    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % heroImages.length);
-  }, [heroImages.length]);
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % slideBanners.length);
+  }, [slideBanners.length]);
 
   const stopAutoSlide = useCallback(() => {
     if (intervalRef.current) {
@@ -181,11 +236,11 @@ const TrangChu = () => {
               className="hero-track"
               style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
             >
-              {heroImages.map((image, index) => (
+              {slideBanners.map((banner, index) => (
                 <div
-                  key={index}
+                  key={banner.banner_id || index}
                   className="hero-slide"
-                  style={{ backgroundImage: `url(${image})` }}
+                  style={{ backgroundImage: `url(${banner.image_url})` }}
                 />
               ))}
             </div>
@@ -193,19 +248,21 @@ const TrangChu = () => {
 
           <div className="hero-overlay"></div>
           <div className="container hero-container">
-            <div className="hero-content-box">
-              <h1 className="hero-title">LIGHT THE BAY</h1>
-              <p className="hero-subtitle">
-                Sẵn sàng tăng tốc cùng bộ sưu tập Adidas x Mercedes-AMG PETRONAS F1 Team
-              </p>
-              <Link to="/product" className="hero-button">
-                Mua ngay <span className="arrow">&#8594;</span>
-              </Link>
-            </div>
+            {slideBanners[currentImageIndex] && (
+              <div className="hero-content-box">
+                <h1 className="hero-title">{slideBanners[currentImageIndex].title}</h1>
+                <p className="hero-subtitle">
+                  {slideBanners[currentImageIndex].description}
+                </p>
+                <Link to={slideBanners[currentImageIndex].link_url || '/product'} className="hero-button">
+                  {slideBanners[currentImageIndex].button_text || 'Mua ngay'} <span className="arrow">&#8594;</span>
+                </Link>
+              </div>
+            )}
           </div>
 
           <div className="hero-indicators">
-            {heroImages.map((_, index) => (
+            {slideBanners.map((_, index) => (
               <button
                 key={index}
                 className={`indicator-dot ${index === currentImageIndex ? 'active' : ''}`}
@@ -244,7 +301,7 @@ const TrangChu = () => {
                   const originalPrice = parseFloat(product.price) || 0;
                   const discountValue = parseFloat(activeFlashSale.discount_value) || 0;
                   const salePrice = originalPrice * (1 - discountValue / 100);
-                  const productImage = product.images && product.images.length > 0 ? product.images[0] : null;
+                  const productImage = product.images && product.images.length > 0 ? product.images[0].image_url : null;
 
                   return (
                     <Link
@@ -286,43 +343,6 @@ const TrangChu = () => {
             )}
           </div>
         </section>
-
-        {/* Most Viewed Products Section */}
-        {mostViewed && mostViewed.length > 0 && (
-          <section className="most-viewed-section">
-            <div className="container">
-              <div className="section-header">
-                <h2 className="section-title">Đang Xu Hướng</h2>
-                <Link to="/product" className="view-all">Xem tất cả →</Link>
-              </div>
-
-              {mostViewedLoading ? (
-                <div className="loading-grid">Đang tải...</div>
-              ) : (
-                <div className="products-grid">
-                  {mostViewed.map((product) => (
-                    <Link
-                      to={`/product/${product.slug}`}
-                      key={product.id}
-                      className="product-card"
-                    >
-                      <div className="product-image">
-                        <img src={product.thumbnail_url || product.image_url} alt={product.name} />
-                      </div>
-                      <div className="product-info">
-                        <h3 className="product-name">{product.name}</h3>
-                        <div className="product-price">{formatPrice(product.price)}</div>
-                        <div className="product-views">
-                          <span>👁️ {product.view_count || product.total_views || 0} lượt xem</span>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-        )}
 
 
         <section className="featured-section">

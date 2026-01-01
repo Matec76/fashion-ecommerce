@@ -5,7 +5,7 @@ import { API_ENDPOINTS } from '../../config/api.config';
 import { authFetch } from '../../utils/authInterceptor';
 // Xóa import CreateReturnModal cũ vì sẽ gộp trực tiếp vào đây
 import '../../style/OrderTracking.css';
-import '../../style/CreateReturnModal.css';
+import '../../components/modals/CreateReturnModal/CreateReturnModal.css';
 
 const OrderTracking = () => {
     const { orderId } = useParams(); // Get orderId from URL if viewing single order
@@ -60,6 +60,8 @@ const OrderTracking = () => {
     ];
 
     useEffect(() => {
+        // Reset loading state when switching views
+        setLoading(true);
         if (orderId) {
             fetchOrderDetail(orderId);
         } else {
@@ -76,7 +78,9 @@ const OrderTracking = () => {
         }
 
         try {
-            const response = await authFetch(API_ENDPOINTS.ORDERS.MY_ORDER_DETAIL(id), {
+            // Add timestamp to prevent browser cache
+            const url = `${API_ENDPOINTS.ORDERS.MY_ORDER_DETAIL(id)}?_t=${Date.now()}`;
+            const response = await authFetch(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -108,7 +112,9 @@ const OrderTracking = () => {
         }
 
         try {
-            const response = await authFetch(API_ENDPOINTS.ORDERS.MY_ORDERS, {
+            // Add timestamp to prevent browser cache
+            const url = `${API_ENDPOINTS.ORDERS.MY_ORDERS}?_t=${Date.now()}`;
+            const response = await authFetch(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Cache-Control': 'no-cache, no-store, must-revalidate',
@@ -119,8 +125,13 @@ const OrderTracking = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                // Handle both array and object with items property
-                const ordersList = Array.isArray(data) ? data : (data.items || data.orders || []);
+
+                // API trả về trực tiếp mảng đơn hàng (JSON Array)
+                // Hoặc object có chứa items/orders/data (fallback)
+                const ordersList = Array.isArray(data)
+                    ? data
+                    : (data.items || data.orders || data.data || []);
+
                 setOrders(ordersList);
             } else {
                 setError('Không thể tải đơn hàng');
@@ -331,10 +342,12 @@ const OrderTracking = () => {
                 return;
             }
 
+            const token = localStorage.getItem('authToken');
             const response = await authFetch(API_ENDPOINTS.RETURN_REFUNDS.CREATE, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify(payload)
             });
@@ -370,7 +383,7 @@ const OrderTracking = () => {
         setImages([]);
     };
 
-    const handleCancelOrder = async (orderId, paymentStatus) => {
+    const handleCancelOrder = async (orderIdToCancel, paymentStatus) => {
         // Different confirm message for paid orders
         const isPaid = paymentStatus === 'COMPLETED';
         const confirmMessage = isPaid
@@ -383,7 +396,7 @@ const OrderTracking = () => {
 
         const token = localStorage.getItem('authToken');
         try {
-            const response = await authFetch(API_ENDPOINTS.ORDERS.CANCEL_ORDER(orderId), {
+            const response = await authFetch(API_ENDPOINTS.ORDERS.CANCEL_ORDER(orderIdToCancel), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -397,7 +410,15 @@ const OrderTracking = () => {
                 } else {
                     alert('Đã hủy đơn hàng thành công!');
                 }
-                fetchOrders(); // Refresh orders
+
+                // Refresh data immediately based on current view
+                if (orderId && selectedOrder) {
+                    // If viewing order detail, refresh the detail
+                    fetchOrderDetail(orderIdToCancel);
+                } else {
+                    // If viewing orders list, refresh the list
+                    fetchOrders();
+                }
             } else {
                 const error = await response.json();
                 alert(error.detail || 'Không thể hủy đơn hàng');
@@ -578,7 +599,7 @@ const OrderTracking = () => {
                                         className="btn-return-request"
                                         onClick={() => setIsReturnModalOpen(true)}
                                     >
-                                        📦 Yêu cầu trả hàng
+                                        Yêu cầu trả hàng
                                     </button>
                                 </div>
                             )}

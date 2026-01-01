@@ -464,8 +464,8 @@
 
 .btn-return-request {
     padding: 12px 24px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border: none;
+    background: black;
+    border: 2px solid black;
     color: white;
     border-radius: 8px;
     font-weight: 600;
@@ -478,8 +478,10 @@
 }
 
 .btn-return-request:hover {
+    background: #333;
+    border-color: #333;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 
@@ -536,17 +538,20 @@
 }
 
 .back-btn {
-    color: #333;
+    color: white;
     text-decoration: none;
     font-weight: 600;
+    font-size: 16px;
     padding: 10px 16px;
-    background: white;
+    background: black;
+    border: 2px solid black;
     border-radius: 8px;
     transition: all 0.2s ease;
 }
 
 .back-btn:hover {
-    background: #f0f0f0;
+    background: #333;
+    border-color: #333;
 }
 
 .order-detail-card {
@@ -661,6 +666,27 @@
 
 .order-item-detail .item-info {
     flex: 1;
+}
+
+.order-item-detail .item-info .item-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.order-item-detail .item-info .item-variant {
+    font-size: 14px;
+    color: #888;
+    display: block;
+    margin-bottom: 4px;
+}
+
+.order-item-detail .item-info .item-qty {
+    font-size: 14px;
+    color: #666;
+    display: block;
 }
 
 .order-item-detail .item-price {

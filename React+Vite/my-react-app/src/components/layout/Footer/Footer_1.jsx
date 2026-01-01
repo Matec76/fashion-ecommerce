@@ -28,47 +28,52 @@ const SOCIAL_ICONS = {
   ),
 };
 
-const Footer = ({ brandInfo, footerSections = [], socialLinks = [] }) => (
-  <footer className="site-footer">
-    <div className="container">
-      <div className="footer-grid">
-        <div className="footer-column brand-column">
-          <h3 className="brand-title">{brandInfo?.name}</h3>
-          <p className="brand-slogan">{brandInfo?.slogan}</p>
-        </div>
-
-        {footerSections.map(({ heading, links }) => (
-          <div className="footer-column" key={heading}>
-            <h4 className="footer-heading">{heading}</h4>
-            <ul className="footer-links">
-              {links.map(({ to, label }) => (
-                <li key={`${heading}-${label}`}>
-                  <Link to={to}>{label}</Link>
-                </li>
-              ))}
-            </ul>
+const Footer = ({
+  brandInfo = { name: 'STYLEX', slogan: 'Phong cách của bạn, đẳng cấp của chúng tôi' },
+  footerSections = [],
+  socialLinks = []
+}) => {
+  return (
+    <footer className="site-footer">
+      <div className="container">
+        <div className="footer-grid">
+          <div className="footer-column brand-column">
+            <h3 className="brand-title">{brandInfo?.name}</h3>
+            <p className="brand-slogan">{brandInfo?.slogan}</p>
           </div>
-        ))}
 
-        {socialLinks.length > 0 && (
-          <div className="footer-column">
-            <h4 className="footer-heading">Theo dõi</h4>
-            <div className="social-icons">
-              {socialLinks.map(({ type, href }) => (
-                <a key={type} href={href} className="social-link">
-                  {SOCIAL_ICONS[type]}
-                </a>
-              ))}
+          {footerSections.map(({ heading, links }) => (
+            <div className="footer-column" key={heading}>
+              <h4 className="footer-heading">{heading}</h4>
+              <ul className="footer-links">
+                {links.map(({ to, label }) => (
+                  <li key={`${heading}-${label}`}>
+                    <Link to={to}>{label}</Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-          </div>
-        )}
+          ))}
+
+          {socialLinks.length > 0 && (
+            <div className="footer-column">
+              <h4 className="footer-heading">Theo dõi</h4>
+              <div className="social-icons">
+                {socialLinks.map(({ type, href }) => (
+                  <a key={type} href={href} className="social-link">
+                    {SOCIAL_ICONS[type]}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="footer-bottom">
+          <p>&copy; 2025 STYLEX Vietnam. Mọi quyền được bảo lưu.</p>
+        </div>
       </div>
-      <div className="footer-bottom">
-        <p>&copy; 2025 STYLEX Vietnam. Mọi quyền được bảo lưu.</p>
-      </div>
-    </div>
-  </footer>
-);
+    </footer>
+  );
+};
 
 export default Footer;
-

@@ -21,20 +21,22 @@ const ProductCard = memo(({ product }) => {
 
   const wishlistLoading = addLoading || removeLoading;
 
-  // Gọi API lấy ảnh cho từng sản phẩm với 5-minute cache
-  const { data: imagesData, loading } = useFetch(
-    API_ENDPOINTS.PRODUCTS.IMAGES(product.id),
-    { cacheTime: 300000 } // 5 minutes cache - images rarely change
+  // Fetch images with error handling for 422 errors
+  // Use product_id (correct field from API) instead of id
+  const productId = product.product_id || product.id;
+  const { data: imagesData, loading, error } = useFetch(
+    API_ENDPOINTS.PRODUCTS.IMAGES(productId),
+    { cacheTime: 300000 } // 5 minutes cache
   );
 
-  // Logic chọn ảnh: Ưu tiên ảnh primary, không thì lấy cái đầu tiên
   const imageUrl = useMemo(() => {
-    if (!imagesData || !Array.isArray(imagesData) || imagesData.length === 0) {
+    // If API returns 422 error or no data, use placeholder
+    if (error || !imagesData || !Array.isArray(imagesData) || imagesData.length === 0) {
       return null;
     }
     const primary = imagesData.find(img => img.is_primary) || imagesData[0];
     return primary.image_url;
-  }, [imagesData]);
+  }, [imagesData, error]);
 
   const [imgError, setImgError] = useState(false);
 
@@ -46,15 +48,6 @@ const ProductCard = memo(({ product }) => {
   // Ảnh hiển thị (Fallback nếu chưa có hoặc lỗi)
   const displayImage = (imageUrl && !imgError) ? imageUrl : 'https://placehold.co/600x600?text=No+Image';
   const isPlaceholder = !imageUrl || imgError;
-
-  // Debug images (chỉ log khi có data để tránh spam)
-  useEffect(() => {
-    if (imagesData && imagesData.length > 0) {
-      logger.log(`Images for ${product.name}:`, imagesData);
-    } else if (imagesData) {
-      logger.log(`No images for ${product.name}`);
-    }
-  }, [imagesData, product.name]);
 
   // Toggle wishlist
   const handleWishlistClick = async (e) => {
@@ -280,7 +273,10 @@ function SanPham() {
         })(),
         // Lấy tên loại (Ưu tiên tên tìm được trong bảng Category)
         type: catObj?.category_name || p.category_name || 'Khác',
-        sizes: p.variants ? p.variants.map(v => v.size) : []
+        sizes: p.variants ? p.variants.map(v => v.size) : [],
+        // Add image URLs from API response
+        primary_image_url: p.primary_image_url,
+        image_url: p.image_url
       };
     });
 

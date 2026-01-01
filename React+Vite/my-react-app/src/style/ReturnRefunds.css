@@ -44,7 +44,7 @@
     box-shadow: none;
 }
 
-.filter-btn {
+.return-refunds-page .filter-btn {
     padding: 0.75rem 2rem;
     border: 2px solid #e0e0e0;
     background: white;
@@ -52,18 +52,18 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 1.1rem;
+    font-size: 16px;
 }
 
-.filter-btn:hover {
+.return-refunds-page .filter-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.filter-btn.active {
-    background: var(--btn-color, #007bff);
+.return-refunds-page .filter-btn.active {
+    background: black;
     color: white;
-    border-color: var(--btn-color, #007bff);
+    border-color: black;
 }
 
 /* Returns Grid */
@@ -354,9 +354,9 @@
     display: inline-flex;
     align-items: center;
     padding: 0.5rem 1rem;
-    background: white;
-    color: #667eea;
-    border: 2px solid #667eea;
+    background: black;
+    color: white;
+    border: 2px solid black;
     border-radius: 8px;
     font-weight: 600;
     text-decoration: none;
@@ -365,8 +365,9 @@
 }
 
 .back-btn:hover {
-    background: #667eea;
+    background: #333;
     color: white;
+    border-color: #333;
     transform: translateX(-4px);
 }
 
@@ -380,7 +381,7 @@
 .detail-card {
     background: white;
     border-radius: 16px;
-    padding: 2rem;
+    padding: 6rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
@@ -481,7 +482,7 @@
 .timeline::before {
     content: '';
     position: absolute;
-    top: 40px;
+    top: 30px;
     left: 1rem;
     right: 1rem;
     height: 6px;
@@ -500,8 +501,8 @@
 }
 
 .timeline-dot {
-    width: 80px;
-    height: 80px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     background: white;
     border: 6px solid #e0e0e0;
@@ -567,7 +568,7 @@
 .refunds-list h4 {
     color: #2c3e50;
     margin-bottom: 1rem;
-    font-size: 1rem;
+    font-size: 16px;
 }
 
 .refund-item {
@@ -587,26 +588,27 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.5rem;
+    font-size: 16px;
 }
 
 .refund-status {
     padding: 0.3rem 0.8rem;
     border-radius: 12px;
-    font-size: 0.85rem;
+    font-size: 16px;
     font-weight: 600;
 }
 
-.refund-status.completed {
+.refund-status.COMPLETED {
     background: #d4edda;
     color: #28a745;
 }
 
-.refund-status.pending {
+.refund-status.PENDING {
     background: #fff3cd;
     color: #856404;
 }
 
-.refund-status.processing {
+.refund-status.PROCESSING {
     background: #d1ecf1;
     color: #0c5460;
 }
