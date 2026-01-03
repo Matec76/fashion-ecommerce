@@ -1,0 +1,575 @@
+/* ==========================================
+   FLASH SALES PAGE - NEW DESIGN (4X SIZE)
+   ========================================== */
+
+.fsp-page {
+    min-height: 100vh;
+    background: #f5f5f5;
+}
+
+/* Hero Section */
+.fsp-hero {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ff6b35 100%);
+    background-size: 200% 200%;
+    animation: fspGradient 3s ease infinite;
+    padding: 8rem;
+    text-align: center;
+}
+
+@keyframes fspGradient {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.fsp-hero-title {
+    font-size: 10rem;
+    font-weight: 800;
+    color: white;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3rem;
+}
+
+.fsp-flash-icon {
+    font-size: 10rem;
+    animation: fspPulse 1s ease-in-out infinite;
+}
+
+@keyframes fspPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+}
+
+.fsp-hero-subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    margin: 2rem 0 0;
+    font-size: 4rem;
+}
+
+/* Timer Bar */
+.fsp-timer-bar {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 4rem 6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4rem;
+}
+
+.fsp-timer-info {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    color: white;
+}
+
+.fsp-timer-icon {
+    font-size: 6rem;
+}
+
+.fsp-timer-text {
+    font-size: 4rem;
+}
+
+.fsp-timer-text strong {
+    color: #f7931e;
+}
+
+.fsp-timer-countdown {
+    display: flex;
+    align-items: center;
+    gap: 4rem;
+}
+
+.fsp-timer-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 3.6rem;
+}
+
+.fsp-countdown {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.fsp-time-box {
+    background: #f7931e;
+    color: white;
+    padding: 1.6rem 2.4rem;
+    border-radius: 1.5rem;
+    font-size: 4.4rem;
+    font-weight: 700;
+    min-width: 10rem;
+    text-align: center;
+}
+
+.fsp-colon {
+    color: white;
+    font-weight: 700;
+    font-size: 4.8rem;
+}
+
+.fsp-expired {
+    color: #e74c3c;
+    font-weight: 600;
+    font-size: 4rem;
+}
+
+/* Tabs */
+.fsp-tabs-container {
+    display: flex;
+    background: white;
+    border-bottom: 4px solid #e0e0e0;
+}
+
+.fsp-time-tab {
+    flex: 1;
+    padding: 4rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s;
+    border-bottom: 12px solid transparent;
+}
+
+.fsp-time-tab:hover {
+    background: #f9f9f9;
+}
+
+.fsp-time-tab.active {
+    background: #fff5f0;
+    border-bottom-color: #ff6b35;
+}
+
+.fsp-tab-times {
+    display: flex;
+    flex-direction: row;
+    gap: 4rem;
+    margin-top: 0.5rem;
+}
+
+.fsp-tab-time {
+    font-size: 4.2rem;
+    color: #000;
+    font-weight: 500;
+    display: block;
+}
+
+.fsp-tab-label {
+    font-size: 4.4rem;
+    color: #000;
+    font-weight: 500;
+}
+
+.fsp-time-tab.active .fsp-tab-label {
+    color: #000;
+    font-weight: 600;
+}
+
+/* Content */
+.fsp-content {
+    padding: 4rem;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Products List */
+.fsp-products-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3rem;
+}
+
+/* Product Card */
+.fsp-product-card {
+    display: flex;
+    flex-direction: column;
+    background: white;
+    border-radius: 2rem;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.fsp-product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.fsp-product-card:hover .fsp-product-image img {
+    transform: scale(1.1);
+}
+
+.fsp-product-image {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    overflow: hidden;
+    border-radius: 2rem 2rem 0 0;
+}
+
+.fsp-product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.fsp-no-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    font-size: 12rem;
+    color: #ccc;
+}
+
+.fsp-discount-tag {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    padding: 1.2rem 2.4rem;
+    border-radius: 1.2rem;
+    font-size: 4rem;
+    font-weight: 700;
+}
+
+/* Product Content */
+.fsp-product-content {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.fsp-product-name {
+    margin: 0;
+    font-size: 3.2rem;
+    font-weight: 600;
+    color: #333;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 5.2rem;
+}
+
+/* Tags */
+.fsp-product-tags {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.fsp-tag {
+    padding: 0.5rem 1.2rem;
+    border-radius: 0.6rem;
+    font-size: 2rem;
+    font-weight: 600;
+}
+
+.fsp-tag-freeship {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.fsp-tag-cod {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+/* Progress Bar */
+.fsp-progress-container {
+    margin: 0;
+}
+
+.fsp-progress-bar {
+    height: 14px;
+    background: #e0e0e0;
+    border-radius: 7px;
+    overflow: hidden;
+    margin-bottom: 0.6rem;
+}
+
+.fsp-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b35, #f7931e);
+    border-radius: 7px;
+    transition: width 0.5s ease;
+}
+
+.fsp-sold-text {
+    font-size: 2.6rem;
+    color: #ff6b35;
+    font-weight: 600;
+}
+
+/* Price Row */
+.fsp-price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.fsp-prices {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 1.4rem;
+}
+
+.fsp-sale-price {
+    font-size: 3.8rem;
+    font-weight: 700;
+    color: #e74c3c;
+}
+
+.fsp-original-price {
+    font-size: 3rem;
+    color: #999;
+    text-decoration: line-through;
+}
+
+/* Buy Button */
+.fsp-buy-btn {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    border: none;
+    padding: 2.4rem 4rem;
+    border-radius: 1.5rem;
+    font-weight: 600;
+    font-size: 3.4rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 1.6rem;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.fsp-buy-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 16px 48px rgba(255, 107, 53, 0.4);
+}
+
+.fsp-discount-badge {
+    background: rgba(255, 255, 255, 0.25);
+    padding: 0.6rem 1.6rem;
+    border-radius: 1rem;
+    font-size: 2.8rem;
+}
+
+/* Loading */
+.fsp-loading {
+    text-align: center;
+    padding: 16rem 8rem;
+}
+
+.fsp-spinner {
+    width: 200px;
+    height: 200px;
+    border: 16px solid #e0e0e0;
+    border-top-color: #ff6b35;
+    border-radius: 50%;
+    animation: fspSpin 1s linear infinite;
+    margin: 0 auto 4rem;
+}
+
+@keyframes fspSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.fsp-loading p {
+    color: #666;
+    font-size: 4rem;
+}
+
+/* Empty State */
+.fsp-empty {
+    text-align: center;
+    padding: 16rem 8rem;
+    background: white;
+    border-radius: 4rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* Removed fire icon */
+/* .fsp-empty-icon {
+    font-size: 16rem;
+    display: block;
+    margin-bottom: 4rem;
+} */
+
+
+.fsp-empty h3 {
+    margin: 0 0 2rem;
+    color: #333;
+    font-size: 5rem;
+}
+
+.fsp-empty p {
+    margin: 0 0 6rem;
+    color: #666;
+    font-size: 3.5rem;
+}
+
+.fsp-back-home {
+    display: inline-block;
+    color: #ff6b35;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 4rem;
+    transition: color 0.2s;
+}
+
+.fsp-back-home:hover {
+    color: #e55a2b;
+    text-decoration: underline;
+}
+
+/* Pagination */
+.fsp-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    margin-top: 5rem;
+    padding: 3rem 0;
+}
+
+.fsp-page-btn {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    border: none;
+    padding: 1.4rem 2.8rem;
+    border-radius: 1rem;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fsp-page-btn:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(255, 107, 53, 0.4);
+}
+
+.fsp-page-btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.fsp-page-numbers {
+    display: flex;
+    gap: 1rem;
+}
+
+.fsp-page-number {
+    width: 5rem;
+    height: 5rem;
+    border: 2px solid #ff6b35;
+    background: white;
+    color: #ff6b35;
+    border-radius: 0.8rem;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fsp-page-number:hover {
+    background: #fff5f0;
+    border-color: #f7931e;
+    transform: translateY(-2px);
+}
+
+.fsp-page-number.active {
+    background: linear-gradient(135deg, #ff6b35, #f7931e);
+    color: white;
+    border-color: transparent;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .fsp-hero-title {
+        font-size: 7rem;
+    }
+
+    .fsp-flash-icon {
+        font-size: 7rem;
+    }
+
+    .fsp-timer-bar {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .fsp-products-list {
+        grid-template-columns: 1fr;
+    }
+
+    .fsp-product-card {
+        flex-direction: column;
+    }
+
+    .fsp-product-image {
+        width: 100%;
+        height: 300px;
+    }
+
+    .fsp-price-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1.5rem;
+    }
+
+    .fsp-buy-btn {
+        justify-content: center;
+    }
+
+    .fsp-pagination {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .fsp-page-btn {
+        padding: 1rem 2rem;
+        font-size: 2.2rem;
+    }
+
+    .fsp-page-number {
+        width: 4rem;
+        height: 4rem;
+        font-size: 2rem;
+    }
+}

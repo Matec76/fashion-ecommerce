@@ -1,0 +1,261 @@
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/* Modal Content */
+.modal-content {
+    background: white;
+    padding: 40px;
+    border-radius: 0;
+    max-width: 600px;
+    width: 90%;
+    position: relative;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Close Button */
+.modal-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: transparent;
+    border: 2px solid black;
+    font-size: 24px;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    line-height: 1;
+    padding: 0;
+}
+
+.modal-close:hover {
+    background: black;
+    color: white;
+}
+
+/* Modal Header */
+.modal-header {
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e0e0e0;
+    margin-bottom: 30px;
+}
+
+.modal-main-title {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin: 0;
+    color: #000;
+    text-transform: uppercase;
+}
+
+/* Modal Title */
+.modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 30px;
+    text-align: left;
+    color: #000;
+    text-transform: uppercase;
+}
+
+/* Form */
+.modal-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Input Group */
+.modal-input-group {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.modal-input-group input {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+    background: white;
+    color: #000;
+}
+
+.modal-input-group input:focus {
+    border-color: #000;
+}
+
+.modal-input-group label {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    padding: 0 5px;
+    color: #999;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.modal-input-group input:focus+label,
+.modal-input-group input:not(:placeholder-shown)+label {
+    top: 0;
+    font-size: 12px;
+    color: #000;
+}
+
+/* Error Message */
+.modal-error {
+    background-color: #ffebee;
+    color: #f44336;
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    border: 1px solid #ffcdd2;
+    text-align: center;
+}
+
+/* Success Message */
+.modal-success {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: #4caf50;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    margin: 0 auto 20px;
+    animation: scaleIn 0.4s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+    }
+
+    to {
+        transform: scale(1);
+    }
+}
+
+.modal-success p {
+    font-size: 16px;
+    color: #333;
+}
+
+/* Buttons */
+.modal-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.modal-btn {
+    padding: 15px 30px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-transform: uppercase;
+}
+
+.modal-btn-primary {
+    background: black;
+    color: white;
+}
+
+.modal-btn-primary:hover {
+    background: #333;
+}
+
+.modal-btn-primary:disabled {
+    background: #999;
+    cursor: not-allowed;
+}
+
+.modal-btn-secondary {
+    background: transparent;
+    color: black;
+    border: 1px solid black;
+}
+
+.modal-btn-secondary:hover {
+    background: black;
+    color: white;
+}
+
+.btn-arrow {
+    font-size: 18px;
+    transition: transform 0.3s ease;
+}
+
+.modal-btn:hover .btn-arrow {
+    transform: translateX(5px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 30px 20px;
+        width: 95%;
+    }
+
+    .modal-title {
+        font-size: 18px;
+    }
+}

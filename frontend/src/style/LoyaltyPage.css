@@ -1,0 +1,971 @@
+/* Loyalty Page Styles */
+.loyalty-page {
+    min-height: 100vh;
+    background-color: #ffffff;
+}
+
+/* Hero Section */
+.loyalty-hero {
+    background: transparent;
+    color: #1a1a1a;
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.loyalty-hero h1 {
+    font-size: 10rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    margin: 0 0 20px 0;
+}
+
+.loyalty-hero p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.loyalty-hero em {
+    font-style: italic;
+    color: #ffd700;
+}
+
+/* Benefits Section */
+.benefits-section {
+    max-width: 1200px;
+    margin: -40px auto 0;
+    padding: 0 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+}
+
+.benefit-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.benefit-card h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 12px 0;
+    color: #1a1a1a;
+}
+
+.benefit-card p {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Tabs */
+.loyalty-tabs {
+    max-width: 1200px;
+    margin: 40px auto 0;
+    padding: 0 20px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.loyalty-tabs button {
+    padding: 12px 24px;
+    background: white;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.loyalty-tabs button:hover {
+    border-color: #1a1a1a;
+    color: #1a1a1a;
+}
+
+.loyalty-tabs button.active {
+    background: #1a1a1a;
+    color: white;
+    border-color: #1a1a1a;
+}
+
+/* Content */
+.loyalty-content {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 0 20px;
+}
+
+/* Overview Tab */
+.points-card {
+    background: white;
+    color: #1a1a1a;
+    border: 1px solid #eee;
+    padding: 40px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.points-main {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.points-value {
+    font-size: 48px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.points-label {
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+.tier-badge {
+    padding: 12px 30px;
+    background: #f0f0f0;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+}
+
+.tier-badge[data-tier="bronze"] {
+    background: linear-gradient(135deg, #cd7f32, #a0522d);
+    color: #fff;
+}
+
+.tier-badge[data-tier="silver"] {
+    background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+    color: #333;
+}
+
+.tier-badge[data-tier="gold"] {
+    background: linear-gradient(135deg, #ffd700, #ffb347);
+    color: #333;
+}
+
+.tier-badge[data-tier="diamond"] {
+    background: linear-gradient(135deg, #1e90ff, #4169e1);
+    color: #fff;
+}
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.stat-box {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.stat-box .stat-value {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 8px;
+}
+
+.stat-box .stat-label {
+    font-size: 14px;
+    color: #666;
+}
+
+/* Tiers Tab */
+.tiers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 25px;
+}
+
+.tier-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    border: 2px solid #eee;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.tier-card.current {
+    border-color: #667eea;
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.2);
+}
+
+.tier-card h3 {
+    font-size: 22px;
+    margin: 0 0 10px 0;
+}
+
+.tier-card[data-tier="bronze"] h3 {
+    color: #cd7f32;
+}
+
+.tier-card[data-tier="silver"] h3 {
+    color: #808080;
+}
+
+.tier-card[data-tier="gold"] h3 {
+    color: #ffd700;
+}
+
+.tier-card[data-tier="diamond"] h3 {
+    color: #1e90ff;
+}
+
+.tier-requirement {
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 20px 0;
+}
+
+.tier-benefits {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.tier-benefits li {
+    padding: 8px 0;
+    font-size: 14px;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.tier-benefits li:last-child {
+    border-bottom: none;
+}
+
+.current-badge {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: #667eea;
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Referral Tab */
+.referral-card {
+    background: white;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.referral-card h3 {
+    font-size: 20px;
+    margin: 0 0 20px 0;
+}
+
+.referral-code-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 15px;
+    background: #f5f5f5;
+    padding: 15px 25px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.referral-code-box code {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #667eea;
+}
+
+.referral-code-box button {
+    padding: 10px 20px;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.referral-hint {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+.referral-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.ref-stat {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.ref-stat .ref-value {
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    color: #667eea;
+    margin-bottom: 8px;
+}
+
+.ref-stat .ref-label {
+    font-size: 14px;
+    color: #666;
+}
+
+/* History Tab */
+.transactions-list {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.transaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.tx-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.tx-points {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.tx-points.earn {
+    color: #27ae60;
+}
+
+.tx-points.spend {
+    color: #e74c3c;
+}
+
+.tx-desc {
+    font-size: 14px;
+    color: #666;
+}
+
+.tx-date {
+    font-size: 13px;
+    color: #999;
+}
+
+.no-data {
+    text-align: center;
+    padding: 120px 40px;
+    color: #666;
+    background: white;
+    border-radius: 12px;
+    font-size: 32px;
+}
+
+/* Loading & Login Prompt */
+.loading-state,
+.login-prompt {
+    text-align: center;
+    padding: 100px 20px;
+}
+
+.loading-state .spinner {
+    width: 60px;
+    height: 60px;
+    border: 4.5px solid #eee;
+    border-top-color: #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.login-prompt button {
+    margin-top: 20px;
+    padding: 12px 30px;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .loyalty-hero h1 {
+        font-size: 1.8rem;
+    }
+
+    .benefits-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stats-row {
+        grid-template-columns: 1fr;
+    }
+
+    .points-card {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
+    }
+
+    .referral-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .loyalty-tabs {
+        justify-content: center;
+    }
+}
+
+/* Referral Input Styling */
+.referral-input-box {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.referral-input-box input {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.referral-input-box input:focus {
+    border-color: #667eea;
+}
+
+.referral-input-box button {
+    padding: 12px 25px;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.referral-input-box button:hover {
+    background: #333;
+}
+
+/* Verification Prompt */
+.verification-prompt {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.verification-card {
+    background: white;
+    padding: 50px 40px;
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.verification-card h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 15px 0;
+    color: #1a1a1a;
+}
+
+.verification-card p {
+    font-size: 16px;
+    color: #666;
+    margin: 0 0 30px 0;
+    line-height: 1.6;
+}
+
+.verify-btn {
+    padding: 16px 40px;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.verify-btn:hover:not(:disabled) {
+    background: #333;
+}
+
+.verify-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+/* Leaderboard Table */
+.leaderboard-title {
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+    margin: 0 0 30px 0;
+    color: #1a1a1a;
+}
+
+.leaderboard-table-wrapper {
+    background: white;
+    border-radius: 2px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.leaderboard-table thead {
+    background: #1a1a1a;
+    color: white;
+}
+
+.leaderboard-table th {
+    padding: 16px 20px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.leaderboard-table th:first-child {
+    border-top-left-radius: 2px;
+}
+
+.leaderboard-table th:last-child {
+    border-top-right-radius: 2px;
+}
+
+.leaderboard-table td {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+}
+
+.leaderboard-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.leaderboard-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+/* Top 3 Rankings */
+.leaderboard-table tbody tr.top-1 {
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.1), transparent);
+}
+
+.leaderboard-table tbody tr.top-2 {
+    background: linear-gradient(90deg, rgba(192, 192, 192, 0.1), transparent);
+}
+
+.leaderboard-table tbody tr.top-3 {
+    background: linear-gradient(90deg, rgba(205, 127, 50, 0.1), transparent);
+}
+
+.rank-cell {
+    width: 80px;
+    text-align: center;
+}
+
+.rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-weight: 700;
+    color: white;
+}
+
+.rank-badge.rank-1 {
+    background: linear-gradient(135deg, #ffd700, #ffb347);
+    color: #333;
+}
+
+.rank-badge.rank-2 {
+    background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+    color: #333;
+}
+
+.rank-badge.rank-3 {
+    background: linear-gradient(135deg, #cd7f32, #a0522d);
+}
+
+.name-cell {
+    font-weight: 600;
+    color: #1a1a1a;
+}
+
+.points-cell {
+    font-weight: 700;
+    color: #667eea;
+}
+
+.tier-cell .tier-name {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.tier-cell .tier-name[data-tier="bronze"] {
+    background: linear-gradient(135deg, #cd7f32, #a0522d);
+    color: white;
+}
+
+.tier-cell .tier-name[data-tier="silver"] {
+    background: linear-gradient(135deg, #c0c0c0, #a8a8a8);
+    color: #333;
+}
+
+.tier-cell .tier-name[data-tier="gold"] {
+    background: linear-gradient(135deg, #ffd700, #ffb347);
+    color: #333;
+}
+
+.tier-cell .tier-name[data-tier="diamond"] {
+    background: linear-gradient(135deg, #1e90ff, #4169e1);
+    color: white;
+}
+
+@media (max-width: 768px) {
+
+    .leaderboard-table th,
+    .leaderboard-table td {
+        padding: 12px 10px;
+        font-size: 13px;
+    }
+
+    .rank-badge {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+}
+
+/* Redeem Shop */
+.redeem-shop {
+    margin-bottom: 40px;
+}
+
+.shop-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.shop-header h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+    color: #1a1a1a;
+}
+
+.current-points {
+    background: #1a1a1a;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.current-points strong {
+    font-size: 18px;
+    font-weight: 700;
+}
+
+/* Redeem Form Container */
+.redeem-form-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.redeem-form {
+    background: white;
+    border: 2px solid #eee;
+    border-radius: 16px;
+    padding: 40px;
+    margin-bottom: 30px;
+}
+
+.redeem-form h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 10px 0;
+    color: #1a1a1a;
+    text-align: center;
+}
+
+.redeem-hint {
+    text-align: center;
+    font-size: 14px;
+    color: #666;
+    margin: 0 0 30px 0;
+}
+
+.points-input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.points-input-group input {
+    flex: 1;
+    padding: 16px 20px;
+    border: 2px solid #eee;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: 600;
+    outline: none;
+    transition: all 0.2s;
+    -moz-appearance: textfield;
+}
+
+.points-input-group input::-webkit-outer-spin-button,
+.points-input-group input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.points-input-group input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.points-input-group input:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+}
+
+.points-input-group .points-label {
+    font-size: 16px;
+    color: #666;
+    font-weight: 500;
+}
+
+.redeem-submit-btn {
+    width: 100%;
+    padding: 16px 20px;
+    background: #1a1a1a;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.redeem-submit-btn:hover:not(:disabled) {
+    background: #333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.redeem-submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Coupon Result */
+.coupon-result {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 40px;
+    text-align: center;
+    animation: slideIn 0.5s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.coupon-result h3 {
+    font-size: 24px;
+    margin: 0 0 20px 0;
+    font-weight: 700;
+}
+
+.coupon-code-box {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.coupon-label {
+    font-size: 14px;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.coupon-code {
+    display: block;
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    font-family: 'Courier New', monospace;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.copy-coupon-btn {
+    padding: 12px 30px;
+    background: white;
+    color: #667eea;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.copy-coupon-btn:hover {
+    background: #f0f0f0;
+    transform: scale(1.05);
+}
+
+.coupon-points {
+    font-size: 14px;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* Responsive for redeem form */
+@media (max-width: 768px) {
+    .redeem-form {
+        padding: 25px 20px;
+    }
+
+    .redeem-form h3 {
+        font-size: 20px;
+    }
+
+    .points-input-group input {
+        font-size: 16px;
+        padding: 14px 16px;
+    }
+
+    .coupon-code {
+        font-size: 24px;
+        letter-spacing: 2px;
+    }
+
+    .coupon-result {
+        padding: 30px 20px;
+    }
+}
+
+/* Transaction History Section */
+.transaction-history {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.transaction-history h3,
+.transaction-history h2 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 20px 0;
+    color: #1a1a1a;
+}
+
+@media (max-width: 768px) {
+    .shop-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .voucher-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .voucher-value {
+        font-size: 28px;
+    }
+}
