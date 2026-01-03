@@ -14,11 +14,12 @@ from app.api.deps import (
     CurrentUser,
     PaginationDep,
     require_permission,
+    _get_user_permissions,
 )
 from app.crud.order import order as order_crud
 from app.crud.order import order_status_history as status_history_crud
 from app.crud.order import shipping_method as shipping_crud
-from app.crud.cart import cart as cart_crud
+from app.crud.cart import cart as cart_crud, cart_item as cart_item_crud
 from app.crud.payment import payment_transaction as payment_crud
 from app.crud.payment_method import payment_method as payment_method_crud
 from app.models.product import ProductVariant
@@ -324,6 +325,18 @@ async def create_order(
         if not payment_method:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid payment method")
         
+        if payment_method.method_code == PaymentMethodType.COD.value:
+            cart_items = await cart_item_crud.get_by_cart(db=db, cart_id=cart.cart_id)
+            
+            if cart_items:
+                purchased_variant_ids = [item.variant_id for item in cart_items]
+
+                await cart_crud.remove_items_after_checkout(
+                    db=db,
+                    user_id=current_user.user_id,
+                    variant_ids=purchased_variant_ids
+                )
+        
         payment_response = await initiate_payment_transaction(
             db=db,
             order=order,
@@ -335,6 +348,14 @@ async def create_order(
         await db.refresh(order)
         
         order_detail = await order_crud.get_with_details(db=db, id=order.order_id)
+
+        if order_detail and order_detail.items:
+            prefix = FastAPICache.get_prefix() or ""
+            unique_product_ids = {item.variant.product_id for item in order_detail.items if item.variant}
+            
+            for pid in unique_product_ids:
+                await FastAPICache.clear(key=f"{prefix}:product:variants:{pid}")
+                await FastAPICache.clear(key=f"{prefix}:product:detail:{pid}")
         
         background_tasks.add_task(
             invalidate_order_caches,
@@ -374,8 +395,10 @@ async def repay_order(
     if not order:
         raise HTTPException(status_code=404, detail="Không tìm thấy đơn hàng")
     
-    if order.user_id != current_user.user_id and not current_user.is_superuser:
-        raise HTTPException(status_code=403, detail="Không có quyền truy cập đơn hàng này")
+    if order.user_id != current_user.user_id:
+        user_perms = await _get_user_permissions(db, current_user)
+        if "*" not in user_perms and "order.update" not in user_perms:
+            raise HTTPException(status_code=403, detail="Không có quyền truy cập đơn hàng này")
 
     if order.order_status != OrderStatusEnum.PENDING:
          raise HTTPException(status_code=400, detail="Đơn hàng không ở trạng thái chờ thanh toán")
@@ -421,7 +444,7 @@ async def payos_return_handler(
     if not transaction:
         raise HTTPException(status_code=404, detail="Transaction not found")
     
-    order = await order_crud.get(db=db, id=transaction.order_id)
+    order = await order_crud.get_with_details(db=db, id=transaction.order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
@@ -871,11 +894,13 @@ async def get_order_history(
             detail="Order not found"
         )
     
-    if order.user_id != current_user.user_id and not current_user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to view this order"
-        )
+    if order.user_id != current_user.user_id:
+        user_perms = await _get_user_permissions(db, current_user)
+        if "*" not in user_perms and "order.view" not in user_perms:
+             raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to view this order"
+            )
     
     history = await status_history_crud.get_by_order(db=db, order_id=order_id)
     

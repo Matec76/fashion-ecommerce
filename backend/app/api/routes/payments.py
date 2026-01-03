@@ -13,6 +13,7 @@ from app.api.deps import (
     CurrentUser,
     PaginationDep,
     require_permission,
+    _get_user_permissions,
 )
 from app.crud.payment import payment_transaction as payment_crud
 from app.crud.payment_method import payment_method as payment_method_crud
@@ -305,11 +306,13 @@ async def get_order_transactions(
             detail="Order not found"
         )
     
-    if order.user_id != current_user.user_id and not current_user.is_superuser:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to view this order's transactions"
-        )
+    if order.user_id != current_user.user_id:
+        user_perms = await _get_user_permissions(db, current_user)
+        if "*" not in user_perms and "payment.view" not in user_perms:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to view this order's transactions"
+            )
     
     transactions = await payment_crud.get_by_order(db=db, order_id=order_id)
     

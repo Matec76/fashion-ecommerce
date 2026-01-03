@@ -5,13 +5,13 @@
 **Bước 1: Tạo bản ghi nhận hiện trạng**
 ```bash
 alembic revision --autogenerate -m "baseline_initial"
-docker exec fashion_backend alembic revision --autogenerate -m "baseline_initial" # Nếu dùng Docker
+docker exec backend alembic revision --autogenerate -m "baseline_initial" # Nếu dùng Docker
 ```
 
 **Bước 1: Tạo version**
 ```bash
 alembic upgrade head
-docker exec fashion_backend alembic upgrade head # Nếu dùng Docker
+docker exec backend alembic upgrade head # Nếu dùng Docker
 ```
 
 ## 2. CÁC LỆNH QUẢN LÝ

@@ -2,7 +2,7 @@ services:
   db:
     image: postgres:17
     restart: always
-    container_name: fashion_db
+    container_name: db
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -23,7 +23,7 @@ services:
     build: 
       context: ./backend
       dockerfile: Dockerfile
-    container_name: fashion_backend
+    container_name: backend
     restart: always
     depends_on:
       db:
@@ -40,9 +40,7 @@ services:
   #   build:
   #     context: ./frontend
   #     dockerfile: Dockerfile
-  #     args:
-  #       - VITE_API_URL=${VITE_API_URL}
-  #   container_name: fashion_frontend
+  #   container_name: frontend
   #   restart: always
   #   ports:
   #     - "127.0.0.1:5173:80"
@@ -50,7 +48,7 @@ services:
   adminer:
     image: adminer
     restart: always
-    container_name: fashion_adminer
+    container_name: adminer
     ports:
       - "127.0.0.1:8080:8080"
     environment:
