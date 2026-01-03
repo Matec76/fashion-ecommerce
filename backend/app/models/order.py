@@ -171,6 +171,7 @@ class OrderCreate(SQLModel):
     payment_method_id: int
     notes: Optional[str] = None
     coupon_code: Optional[str] = None
+    variant_ids: Optional[List[int]] = None
 
 
 class OrderUpdate(SQLModel):

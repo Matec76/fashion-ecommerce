@@ -316,6 +316,7 @@ async def create_order(
             payment_method_id=order_in.payment_method_id,
             notes=order_in.notes,
             coupon_code=order_in.coupon_code,
+            variant_ids=order_in.variant_ids,
             order_ip=order_ip,
             order_device=order_device,
             commit=False
@@ -326,15 +327,15 @@ async def create_order(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid payment method")
         
         if payment_method.method_code == PaymentMethodType.COD.value:
-            cart_items = await cart_item_crud.get_by_cart(db=db, cart_id=cart.cart_id)
-            
-            if cart_items:
-                purchased_variant_ids = [item.variant_id for item in cart_items]
-
+            order_details = await order_crud.get_with_details(db=db, id=order.order_id)
+    
+            if order_details and order_details.items:
+                purchased_ids = [item.variant_id for item in order_details.items]
+                
                 await cart_crud.remove_items_after_checkout(
                     db=db,
                     user_id=current_user.user_id,
-                    variant_ids=purchased_variant_ids
+                    variant_ids=purchased_ids
                 )
         
         payment_response = await initiate_payment_transaction(

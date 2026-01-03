@@ -143,6 +143,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         payment_method_id: int,
         notes: Optional[str] = None,
         coupon_code: Optional[str] = None,
+        variant_ids: Optional[List[int]] = None,
         order_ip: Optional[str] = None,
         order_device: Optional[str] = None,
         commit: bool = True
@@ -189,10 +190,21 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
                 detail=f"Payment method '{payment_method_obj.method_code}' is not supported"
             )
         
+        if variant_ids:
+            items_to_process = [
+                item for item in cart_items 
+                if item.variant_id in variant_ids
+            ]
+            
+            if not items_to_process:
+                raise HTTPException(status_code=400, detail="No valid items selected from cart")
+        else:
+            items_to_process = cart_items
+        
         subtotal = Decimal("0.00")
         validated_items = []
         
-        for cart_item in cart_items:
+        for cart_item in items_to_process:
             variant = await product_variant.get_with_details(db=db, id=cart_item.variant_id)
             
             if not variant:
