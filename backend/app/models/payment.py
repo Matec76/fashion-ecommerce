@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, List, Dict, Any
 
@@ -33,11 +33,10 @@ class PaymentTransactionBase(SQLModel):
     payment_gateway: Optional[str] = Field(default=None, max_length=50)
     
     amount: Decimal = Field(sa_column=Column(Numeric(18, 2)), ge=0)
-    currency: str = Field(default="VND", max_length=10)
     
     status: PaymentStatusEnum = Field(
         default=PaymentStatusEnum.PENDING,
-        sa_column=Column(PgEnum(PaymentStatusEnum, name="payment_status_enum", create_type=False), nullable=False)
+        sa_column=Column(PgEnum(PaymentStatusEnum, name="payment_status_enum", create_type=True), nullable=False)
     )
     
     payment_url: Optional[str] = Field(default=None, sa_column=Column(Text))
@@ -46,7 +45,7 @@ class PaymentTransactionBase(SQLModel):
     notes: Optional[str] = Field(default=None, sa_column=Column(Text))
     gateway_response: Optional[str] = Field(default=None, sa_column=Column(Text))
     
-    metadata: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSONB))
+    payment_metadata: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSONB))
 
 
 class PaymentTransaction(PaymentTransactionBase, table=True):
@@ -57,11 +56,11 @@ class PaymentTransaction(PaymentTransactionBase, table=True):
     paid_at: Optional[datetime] = Field(default=None, sa_column=Column(TIMESTAMP(timezone=True)))
     
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
     updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))
     )
 
@@ -87,13 +86,12 @@ class PaymentTransactionUpdate(SQLModel):
     payment_method_id: Optional[int] = None
     payment_gateway: Optional[str] = None
     amount: Optional[Decimal] = None
-    currency: Optional[str] = None
     status: Optional[PaymentStatusEnum] = None
     payment_url: Optional[str] = None
     qr_code: Optional[str] = None
     notes: Optional[str] = None
     gateway_response: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    payment_metadata: Optional[Dict[str, Any]] = None
     paid_at: Optional[datetime] = None
 
 

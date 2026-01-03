@@ -2,22 +2,23 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 import secrets
 import jwt
+import uuid
 from passlib.context import CryptContext
 
 from app.core.config import settings
 
-# Cấu hình password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# Thuật toán JWT
-ALGORITHM = "HS256"
 
-
-def create_access_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
+def create_access_token(
+        subject: str | Any, 
+        expires_delta: timedelta | None = None,
+        role_id: int = None
+    ) -> str:
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(timezone(timedelta(hours=7))) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(
+        expire = datetime.now(timezone(timedelta(hours=7))) + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
     
@@ -26,24 +27,30 @@ def create_access_token(subject: str | Any, expires_delta: timedelta | None = No
         "sub": str(subject),
         "type": "access"
     }
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+
+    if role_id is not None:
+        to_encode["role_id"] = role_id
+        
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 
 def create_refresh_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
     if expires_delta:
-        expire = datetime.now(timezone.utc) + expires_delta
+        expire = datetime.now(timezone(timedelta(hours=7))) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(
+        expire = datetime.now(timezone(timedelta(hours=7))) + timedelta(
             days=settings.REFRESH_TOKEN_EXPIRE_DAYS
         )
     
+    token_id = str(uuid.uuid4())
     to_encode = {
         "exp": expire,
         "sub": str(subject),
-        "type": "refresh"
+        "type": "refresh",
+        "jti": token_id
     }
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 
 
@@ -52,29 +59,14 @@ def decode_token(token: str) -> dict[str, Any] | None:
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
-            algorithms=[ALGORITHM]
+            algorithms=[settings.ALGORITHM]
         )
         return payload
     except jwt.ExpiredSignatureError:
-        # Token đã hết hạn
         return None
     except jwt.JWTError:
-        # Token không hợp lệ
         return None
 
-
-def verify_token(token: str, token_type: str = "access") -> str | None:
-    payload = decode_token(token)
-    if payload is None:
-        return None
-    
-    # Kiểm tra loại token
-    if payload.get("type") != token_type:
-        return None
-    
-    # Lấy subject (user_id)
-    token_data: str | None = payload.get("sub")
-    return token_data
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -86,23 +78,18 @@ def get_password_hash(password: str) -> str:
 
 
 def validate_password_strength(password: str) -> tuple[bool, str]:
-    # Kiểm tra độ dài tối thiểu
     if len(password) < 8:
         return False, "Mật khẩu phải có ít nhất 8 ký tự"
     
-    # Kiểm tra độ dài tối đa
     if len(password) > 40:
         return False, "Mật khẩu không được quá 40 ký tự"
     
-    # Kiểm tra có chứa chữ hoa
     if not any(c.isupper() for c in password):
         return False, "Mật khẩu phải có ít nhất 1 chữ hoa"
     
-    # Kiểm tra có chứa chữ thường
     if not any(c.islower() for c in password):
         return False, "Mật khẩu phải có ít nhất 1 chữ thường"
     
-    # Kiểm tra có chứa số
     if not any(c.isdigit() for c in password):
         return False, "Mật khẩu phải có ít nhất 1 chữ số"
     
@@ -115,74 +102,42 @@ def validate_password_strength(password: str) -> tuple[bool, str]:
 
 def generate_password_reset_token(email: str) -> str:
     delta = timedelta(hours=settings.EMAIL_RESET_TOKEN_EXPIRE_HOURS)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone(timedelta(hours=7)))
     expires = now + delta
-    exp = expires.timestamp()
     
+    token_id = str(uuid.uuid4())
     encoded_jwt = jwt.encode(
         {
-            "exp": exp,
-            "nbf": now.timestamp(),
+            "exp": expires,
+            "nbf": now,
             "sub": email,
-            "type": "password_reset"
+            "type": "password_reset",
+            "jti": token_id
         },
         settings.SECRET_KEY,
-        algorithm=ALGORITHM,
+        algorithm=settings.ALGORITHM,
     )
     return encoded_jwt
-
-
-def verify_password_reset_token(token: str) -> str | None:
-    try:
-        decoded_token = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[ALGORITHM]
-        )
-        
-        # Kiểm tra loại token
-        if decoded_token.get("type") != "password_reset":
-            return None
-        
-        return decoded_token["sub"]
-    except jwt.JWTError:
-        return None
 
 
 def generate_email_verification_token(email: str) -> str:
     delta = timedelta(hours=settings.EMAIL_VERIFICATION_TOKEN_EXPIRE_HOURS)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(timezone(timedelta(hours=7)))
     expires = now + delta
-    exp = expires.timestamp()
     
+    token_id = str(uuid.uuid4())
     encoded_jwt = jwt.encode(
         {
-            "exp": exp,
-            "nbf": now.timestamp(),
+            "exp": expires,
+            "nbf": now,
             "sub": email,
-            "type": "email_verification"
+            "type": "email_verification",
+            "jti": token_id
         },
         settings.SECRET_KEY,
-        algorithm=ALGORITHM,
+        algorithm=settings.ALGORITHM,
     )
     return encoded_jwt
-
-
-def verify_email_verification_token(token: str) -> str | None:
-    try:
-        decoded_token = jwt.decode(
-            token,
-            settings.SECRET_KEY,
-            algorithms=[ALGORITHM]
-        )
-        
-        # Kiểm tra loại token
-        if decoded_token.get("type") != "email_verification":
-            return None
-        
-        return decoded_token["sub"]
-    except jwt.JWTError:
-        return None
 
 
 def generate_random_token(length: int = 32) -> str:
@@ -190,52 +145,27 @@ def generate_random_token(length: int = 32) -> str:
 
 
 def generate_coupon_code(length: int = 8) -> str:
-    """
-    Tạo mã coupon ngẫu nhiên.
-    Chỉ bao gồm chữ in hoa và số để dễ đọc và nhập.
-    
-    Args:
-        length: Độ dài của mã coupon
-        
-    Returns:
-        str: Mã coupon ngẫu nhiên
-    """
-    # Chỉ sử dụng chữ in hoa và số, loại bỏ các ký tự dễ nhầm lẫn (0, O, I, 1)
+    """Generate coupon code using config length default."""
     characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
     return ''.join(secrets.choice(characters) for _ in range(length))
 
 
 def generate_order_number() -> str:
     """
-    Tạo mã đơn hàng unique.
-    Format: PREFIX + TIMESTAMP + RANDOM
-    Ví dụ: FE20251022174059ABC123
-    
-    Returns:
-        str: Mã đơn hàng unique
+    Generate random order number (Utility fallback).
+    Note: Main logic is usually in CRUDOrder using DB sequence.
     """
-    # Lấy timestamp hiện tại
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    timestamp = datetime.now(timezone(timedelta(hours=7))).strftime("%Y%m%d%H%M%S")
     
-    # Tạo phần random 6 ký tự
     random_part = ''.join(secrets.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(6))
     
-    # Kết hợp: PREFIX + TIMESTAMP + RANDOM
     order_number = f"{settings.ORDER_NUMBER_PREFIX}{timestamp}{random_part}"
     
     return order_number
 
 
 def generate_transaction_code() -> str:
-    """
-    Tạo mã giao dịch thanh toán unique.
-    Format: TXN + TIMESTAMP + RANDOM
-    Ví dụ: TXN20251022174059XYZ789
-    
-    Returns:
-        str: Mã giao dịch unique
-    """
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    timestamp = datetime.now(timezone(timedelta(hours=7))).strftime("%Y%m%d%H%M%S")
     random_part = ''.join(secrets.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(6))
     
     return f"TXN{timestamp}{random_part}"
@@ -246,23 +176,8 @@ def generate_sku(
     color_code: str = "00",
     size_code: str = "00"
 ) -> str:
-    """
-    Tạo SKU (Stock Keeping Unit) cho biến thể sản phẩm.
-    Format: CATEGORY-COLOR-SIZE-RANDOM
-    Ví dụ: SHOE-RED-42-ABC123
-    
-    Args:
-        category_code: Mã danh mục sản phẩm
-        color_code: Mã màu sắc
-        size_code: Mã kích cỡ
-        
-    Returns:
-        str: SKU unique
-    """
-    # Tạo phần random 6 ký tự
     random_part = ''.join(secrets.choice("ABCDEFGHJKLMNPQRSTUVWXYZ23456789") for _ in range(6))
     
-    # Chuẩn hóa các mã thành chữ in hoa
     category_code = category_code.upper()
     color_code = color_code.upper()
     size_code = str(size_code).upper()

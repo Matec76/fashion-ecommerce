@@ -1,12 +1,23 @@
-from typing import Optional
+from typing import Optional, List
+from datetime import date
 from pydantic import BaseModel, EmailStr, Field
+
+
+class TokenUser(BaseModel):
+    user_id: int
+    email: EmailStr
+    full_name: str
+    role_id: int
+    role_name: str
+    permissions: List[str] = []
 
 
 class Token(BaseModel):
     access_token: str
-    refresh_token: str | None = None
     token_type: str = "bearer"
-
+    refresh_token: str
+    user: TokenUser
+    
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -18,7 +29,7 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=8, max_length=40)
     first_name: str = Field(min_length=1, max_length=100)
     last_name: str = Field(min_length=1, max_length=100)
-    phone_number: Optional[str] = Field(default=None, max_length=20)
+    date_of_birth: Optional[date] = None
 
 
 class PasswordResetRequest(BaseModel):
@@ -37,3 +48,11 @@ class PasswordChange(BaseModel):
 
 class EmailVerificationRequest(BaseModel):
     token: str
+
+
+class LogoutRequest(BaseModel):
+    refresh_token: str
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str

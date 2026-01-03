@@ -2,131 +2,157 @@ from enum import Enum
 
 
 class GenderEnum(str, Enum):
-    MALE = "male"
-    FEMALE = "female"
-    OTHER = "other"
+    MALE = "MALE"
+    FEMALE = "FEMALE"
+    OTHER = "OTHER"
 
 
 class AddressTypeEnum(str, Enum):
-    SHIPPING = "shipping"
-    BILLING = "billing"
-    BOTH = "both"
+    SHIPPING = "SHIPPING"
+    BILLING = "BILLING"
+    BOTH = "BOTH"
 
 
 class SizeTypeEnum(str, Enum):
-    SHOES = "shoes"
-    CLOTHING = "clothing"
-    ACCESSORIES = "accessories"
+    SHOES = "SHOES"
+    CLOTHING = "CLOTHING"
+    ACCESSORIES = "ACCESSORIES"
 
 
 class ProductGenderEnum(str, Enum):
-    MEN = "men"
-    WOMEN = "women"
-    UNISEX = "unisex"
-    KIDS = "kids"
+    MEN = "MEN"
+    WOMEN = "WOMEN"
+    UNISEX = "UNISEX"
+    KIDS = "KIDS"
 
 
 class OrderStatusEnum(str, Enum):
-    PENDING = "pending"
-    CONFIRMED = "confirmed"
-    PROCESSING = "processing"
-    SHIPPED = "shipped"
-    DELIVERED = "delivered"
-    CANCELLED = "cancelled"
-    REFUNDED = "refunded"
+    PENDING = "PENDING"
+    CONFIRMED = "CONFIRMED"
+    PROCESSING = "PROCESSING"
+    SHIPPED = "SHIPPED"
+    DELIVERED = "DELIVERED"
+    CANCELLED = "CANCELLED"
+    REFUNDED = "REFUNDED"
+    PARTIAL_REFUNDED = "PARTIAL_REFUNDED"
+    RETURN_REQUESTED = "RETURN_REQUESTED"
+    COMPLETED = "COMPLETED"
 
 
 class PaymentStatusEnum(str, Enum):
-    PENDING = "pending"
-    PAID = "paid"
-    FAILED = "failed"
-    REFUNDED = "refunded"
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    PAID = "PAID"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED" 
+    EXPIRED = "EXPIRED"
+    REFUNDED = "REFUNDED"
+    PARTIAL_REFUNDED = "PARTIAL_REFUNDED"
+
+
+class ProcessingFeeType(str, Enum):
+    FIXED = "FIXED"
+    PERCENTAGE = "PERCENTAGE" 
+
+
+class PaymentMethodType(str, Enum):
+    COD = "COD"          
+    BANK_TRANSFER = "BANK_TRANSFER"
 
 
 class DiscountTypeEnum(str, Enum):
-    PERCENTAGE = "percentage"
-    FIXED_AMOUNT = "fixed_amount"
+    PERCENTAGE = "PERCENTAGE"
+    FIXED_AMOUNT = "FIXED_AMOUNT"
 
 
 class InventoryChangeEnum(str, Enum):
-    IMPORT = "import"
-    SALE = "sale"
-    RETURN = "return"
-    ADJUSTMENT = "adjustment"
-    DAMAGED = "damaged"
+    IMPORT = "IMPORT"
+    SALE = "SALE"
+    RETURN = "RETURN"
+    ADJUSTMENT = "ADJUSTMENT"
+    DAMAGED = "DAMAGED"
+    TRANSFER_OUT = "TRANSFER_OUT"
+    TRANSFER_IN = "TRANSFER_IN"
+
+
+class StockAlertTypeEnum(str, Enum):
+    LOW_STOCK = "LOW_STOCK"
+    OUT_OF_STOCK = "OUT_OF_STOCK"
+    OVERSTOCK = "OVERSTOCK"
+    REORDER_POINT = "REORDER_POINT"
 
 
 class ReturnReasonEnum(str, Enum):
-    DEFECTIVE = "defective"
-    WRONG_ITEM = "wrong_item"
-    SIZE_ISSUE = "size_issue"
-    CHANGED_MIND = "changed_mind"
-    OTHER = "other"
+    DEFECTIVE = "DEFECTIVE"
+    WRONG_ITEM = "WRONG_ITEM"
+    SIZE_ISSUE = "SIZE_ISSUE"
+    CHANGED_MIND = "CHANGED_MIND"
+    OTHER = "OTHER"
 
 
 class ReturnStatusEnum(str, Enum):
-    PENDING = "pending"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-    PROCESSING = "processing"
-    COMPLETED = "completed"
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    PROCESSING = "PROCESSING"
+    COMPLETED = "COMPLETED"
 
 
 class RefundMethodEnum(str, Enum):
-    ORIGINAL_PAYMENT = "original_payment"
-    STORE_CREDIT = "store_credit"
-    BANK_TRANSFER = "bank_transfer"
+    ORIGINAL_PAYMENT = "ORIGINAL_PAYMENT"
+    STORE_CREDIT = "STORE_CREDIT"
+    BANK_TRANSFER = "BANK_TRANSFER"
 
 
 class ItemConditionEnum(str, Enum):
-    UNOPENED = "unopened"
-    USED = "used"
-    DAMAGED = "damaged"
+    UNOPENED = "UNOPENED"
+    USED = "USED"
+    DAMAGED = "DAMAGED"
 
 
 class LoyaltyTransactionEnum(str, Enum):
-    EARN_PURCHASE = "earn_purchase"
-    EARN_REVIEW = "earn_review"
-    EARN_REFERRAL = "earn_referral"
-    REDEEM = "redeem"
-    EXPIRE = "expire"
-    ADJUSTMENT = "adjustment"
+    EARN_PURCHASE = "EARN_PURCHASE"
+    EARN_REVIEW = "EARN_REVIEW"
+    EARN_REFERRAL = "EARN_REFERRAL"
+    REDEEM = "REDEEM"
+    EXPIRE = "EXPIRE"
+    ADJUSTMENT = "ADJUSTMENT"
 
 
 class NotificationTypeEnum(str, Enum):
-    ORDER = "order"
-    PROMOTION = "promotion"
-    SYSTEM = "system"
-    REVIEW = "review"
+    ORDER = "ORDER"
+    PROMOTION = "PROMOTION"
+    SYSTEM = "SYSTEM"
+    REVIEW = "REVIEW"
 
 
 class EmailTypeEnum(str, Enum):
-    WELCOME = "welcome"
-    ORDER_CONFIRMATION = "order_confirmation"
-    SHIPPING = "shipping"
-    PROMOTION = "promotion"
-    PASSWORD_RESET = "password_reset"
-    EMAIL_VERIFICATION = "email_verification"
-    ABANDONED_CART = "abandoned_cart"
+    WELCOME = "WELCOME"
+    ORDER_CONFIRMATION = "ORDER_CONFIRMATION"
+    SHIPPING = "SHIPPING"
+    PROMOTION = "PROMOTION"
+    PASSWORD_RESET = "PASSWORD_RESET"
+    EMAIL_VERIFICATION = "EMAIL_VERIFICATION"
+    ABANDONED_CART = "ABANDONED_CART"
 
 
 class EmailStatusEnum(str, Enum):
-    PENDING = "pending"
-    SENT = "sent"
-    FAILED = "failed"
+    PENDING = "PENDING"
+    SENT = "SENT"
+    FAILED = "FAILED"
 
 
 class SettingTypeEnum(str, Enum):
-    STRING = "string"
-    NUMBER = "number"
-    BOOLEAN = "boolean"
-    JSON = "json"
+    STRING = "STRING"
+    NUMBER = "NUMBER"
+    BOOLEAN = "BOOLEAN"
+    JSON = "JSON"
 
 
 class AdminActionEnum(str, Enum):
-    CREATE = "create"
-    UPDATE = "update"
-    DELETE = "delete"
-    LOGIN = "login"
-    LOGOUT = "logout"
-    EXPORT = "export"
+    CREATE = "CREATE"
+    UPDATE = "UPDATE"
+    DELETE = "DELETE"
+    LOGIN = "LOGIN"
+    LOGOUT = "LOGOUT"
+    EXPORT = "EXPORT"

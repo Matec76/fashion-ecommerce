@@ -1,19 +1,16 @@
 import os
 import uuid
+import asyncio
 from typing import Optional, BinaryIO
-from datetime import datetime
-
+from datetime import datetime, timezone, timedelta
 import boto3
 from botocore.exceptions import ClientError
 from botocore.config import Config
-
 from app.core.config import settings
-
 
 class S3Storage:
     
     _client = None
-    _s3_resource = None
     
     @classmethod
     def get_client(cls):
@@ -36,15 +33,19 @@ class S3Storage:
         unique_id = uuid.uuid4().hex[:12]
         
         if add_timestamp:
-            timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now(timezone(timedelta(hours=7))).strftime("%Y%m%d_%H%M%S")
             new_filename = f"{timestamp}_{unique_id}{ext}"
         else:
             new_filename = f"{unique_id}{ext}"
         
-        date_folder = datetime.utcnow().strftime("%Y/%m")
-        
+        date_folder = datetime.now(timezone(timedelta(hours=7))).strftime("%Y/%m")
         return f"{folder}/{date_folder}/{new_filename}"
-    
+
+    @classmethod
+    def _upload_sync(cls, file: BinaryIO, bucket: str, key: str, extra_args: dict):
+        client = cls.get_client()
+        client.upload_fileobj(file, bucket, key, ExtraArgs=extra_args)
+
     @classmethod
     async def upload_file(
         cls,
@@ -53,29 +54,22 @@ class S3Storage:
         filename: str,
         content_type: Optional[str] = None,
         metadata: Optional[dict] = None,
-        public: bool = False
     ) -> dict:
-        client = cls.get_client()
-        
         file_key = cls.generate_file_key(folder, filename)
         
         extra_args = {}
-        
         if content_type:
             extra_args['ContentType'] = content_type
-        
         if metadata:
             extra_args['Metadata'] = metadata
         
-        if public:
-            extra_args['ACL'] = 'public-read'
-        
         try:
-            client.upload_fileobj(
-                file,
-                settings.AWS_S3_BUCKET,
-                file_key,
-                ExtraArgs=extra_args
+            await asyncio.to_thread(
+                cls._upload_sync, 
+                file, 
+                settings.AWS_S3_BUCKET, 
+                file_key, 
+                extra_args
             )
             
             file_url = f"https://{settings.AWS_S3_BUCKET}.s3.{settings.AWS_REGION}.amazonaws.com/{file_key}"
@@ -93,18 +87,19 @@ class S3Storage:
         
         except ClientError as e:
             raise Exception(f"Upload file len S3 that bai: {str(e)}")
+        except Exception as e:
+             raise Exception(f"Loi khong xac dinh khi upload: {str(e)}")
     
     @classmethod
     async def delete_file(cls, file_key: str) -> bool:
         client = cls.get_client()
-        
         try:
-            client.delete_object(
+            await asyncio.to_thread(
+                client.delete_object,
                 Bucket=settings.AWS_S3_BUCKET,
                 Key=file_key
             )
             return True
-        
         except ClientError as e:
             print(f"Xoa file tu S3 that bai: {str(e)}")
             return False
@@ -112,7 +107,6 @@ class S3Storage:
     @classmethod
     async def get_presigned_url(cls, file_key: str, expiration: int = 3600) -> str:
         client = cls.get_client()
-        
         try:
             url = client.generate_presigned_url(
                 'get_object',
@@ -123,23 +117,20 @@ class S3Storage:
                 ExpiresIn=expiration
             )
             return url
-        
         except ClientError as e:
             raise Exception(f"Tao presigned URL that bai: {str(e)}")
     
     @classmethod
     async def file_exists(cls, file_key: str) -> bool:
         client = cls.get_client()
-        
         try:
-            client.head_object(
+            await asyncio.to_thread(
+                client.head_object,
                 Bucket=settings.AWS_S3_BUCKET,
                 Key=file_key
             )
             return True
-        
         except ClientError:
             return False
-
 
 __all__ = ["S3Storage"]

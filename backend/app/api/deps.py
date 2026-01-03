@@ -1,37 +1,48 @@
-"""
-API Dependencies.
-
-Các dependency functions dùng chung cho API routes:
-- get_db: Database session dependency
-- get_current_user: Lấy current user từ JWT token
-- get_current_active_user: Verify user is active
-- get_current_superuser: Verify user is superuser
-- require_permission: Check user có permission cụ thể
-- get_pagination_params: Pagination parameters
-"""
 from typing import Annotated, Optional
 from collections.abc import AsyncGenerator
+import re
 
 from fastapi import Depends, HTTPException, status, Query, Request
 from fastapi.security import OAuth2PasswordBearer
-from jose import JWTError, jwt
+from jwt.exceptions import InvalidTokenError as JWTError
 from pydantic import ValidationError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.db import get_db as _get_db
 from app.core.security import decode_token
-from app.models.base import TokenPayload
+from app.models.common import TokenPayload
 from app.models.user import User
 from app.crud.user import user as user_crud
 from app.utils.pagination import PaginationParams
 
-# OAuth2 scheme cho JWT token
+
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/auth/login",
-    auto_error=False  # Cho phép optional authentication
+    auto_error=False
 )
 
+async def get_token(
+    request: Request,
+    token: Annotated[str | None, Depends(oauth2_scheme)] = None
+) -> str:
+    """
+    Ưu tiên lấy token từ HttpOnly Cookie. Nếu không có thì mới tìm trong Header.
+    """
+    cookie_token = request.cookies.get("access_token")
+    if cookie_token:
+        if cookie_token.startswith("Bearer "):
+            return cookie_token.split(" ")[1]
+        return cookie_token
+
+    if token:
+        return token
+        
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Not authenticated",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
     """
@@ -44,13 +55,12 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-# Type alias cho DB session dependency
 SessionDep = Annotated[AsyncSession, Depends(get_db)]
 
 
 async def get_current_user(
     db: SessionDep,
-    token: Annotated[str, Depends(oauth2_scheme)]
+    token: Annotated[str, Depends(get_token)]
 ) -> User:
     """
     Lấy current user từ JWT token.
@@ -65,13 +75,6 @@ async def get_current_user(
     Raises:
         HTTPException: 401 nếu token invalid hoặc user không tồn tại
     """
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -79,13 +82,11 @@ async def get_current_user(
     )
     
     try:
-        # Decode JWT token using security function
         payload = decode_token(token)
         
         if payload is None:
             raise credentials_exception
         
-        # Verify token type
         if payload.get("type") != "access":
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -103,7 +104,6 @@ async def get_current_user(
     except (JWTError, ValidationError, ValueError):
         raise credentials_exception
     
-    # Lấy user từ database
     user = await user_crud.get(db=db, id=user_id)
     
     if not user:
@@ -112,13 +112,62 @@ async def get_current_user(
     return user
 
 
-# Type alias cho current user dependency
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
-async def get_current_active_user(
-    current_user: CurrentUser,
-) -> User:
+async def get_optional_user(
+    db: SessionDep,
+    request: Request,
+    token: Annotated[str | None, Depends(oauth2_scheme)] = None
+) -> User | None:
+    """
+    Lấy current user nếu có token, None nếu không (cho public endpoints).
+    
+    Args:
+        db: Database session
+        token: JWT access token (optional)
+        
+    Returns:
+        User instance hoặc None
+    """
+    cookie_token = request.cookies.get("access_token")
+    final_token = None
+    
+    if cookie_token:
+        if cookie_token.startswith("Bearer "):
+            final_token = cookie_token.split(" ")[1]
+        else:
+            final_token = cookie_token
+            
+    if not final_token:
+        final_token = token
+        
+    if not final_token:
+        return None
+    
+    try:
+        payload = decode_token(final_token) 
+        
+        if payload is None or payload.get("type") != "access":
+            return None
+        
+        token_data = TokenPayload(**payload)
+        
+        if token_data.sub is None:
+            return None
+            
+        user_id = int(token_data.sub)
+        user = await user_crud.get(db=db, id=user_id)
+        return user
+        
+    except (JWTError, ValidationError, ValueError):
+        return None
+
+
+OptionalUser = Annotated[User | None, Depends(get_optional_user)]
+
+
+async def get_current_active_user(current_user: CurrentUser) -> User:
     """
     Verify current user is active.
     
@@ -139,13 +188,10 @@ async def get_current_active_user(
     return current_user
 
 
-# Type alias cho active user dependency
 ActiveUser = Annotated[User, Depends(get_current_active_user)]
 
 
-async def get_current_superuser(
-    current_user: CurrentUser,
-) -> User:
+async def get_current_superuser(current_user: CurrentUser) -> User:
     """
     Verify current user is superuser.
     
@@ -161,18 +207,15 @@ async def get_current_superuser(
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Superuser access required."
+            detail="Insufficient permissions. Superuser access required."
         )
     return current_user
 
 
-# Type alias cho superuser dependency
 SuperUser = Annotated[User, Depends(get_current_superuser)]
 
 
-async def get_current_active_superuser(
-    current_user: CurrentUser,
-) -> User:
+async def get_current_active_superuser(current_user: CurrentUser) -> User:
     """
     Verify current user is active superuser.
     
@@ -194,14 +237,66 @@ async def get_current_active_superuser(
     if not current_user.is_superuser:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions. Superuser access required."
+            detail="Insufficient permissions. Superuser access required."
         )
     
     return current_user
 
 
-# Type alias
 ActiveSuperUser = Annotated[User, Depends(get_current_active_superuser)]
+
+
+async def _get_user_permissions(
+    db: SessionDep,
+    current_user: User
+) -> set[str]:
+    """
+    Helper function để lấy tất cả permissions của user.
+    
+    Args:
+        db: Database session
+        current_user: Current user
+        
+    Returns:
+        Set of permission codes
+        
+    Raises:
+        HTTPException: Nếu user inactive hoặc không có role
+    """
+    if current_user.is_superuser:
+        return {"*"}
+    
+    if not current_user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Inactive user"
+        )
+    
+    if not current_user.role_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User has no role assigned"
+        )
+    
+    from app.crud.role import role as role_crud
+    user_role = await role_crud.get_with_permissions(
+        db=db,
+        id=current_user.role_id
+    )
+    
+    if not user_role:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Role not found"
+        )
+    
+    permissions = {
+        rp.permission.permission_code
+        for rp in user_role.role_permissions
+        if rp.permission and rp.permission.permission_code
+    }
+    
+    return permissions
 
 
 def require_permission(permission_code: str):
@@ -226,51 +321,15 @@ def require_permission(permission_code: str):
         db: SessionDep,
         current_user: CurrentUser,
     ) -> User:
-        """Check user có permission hay không"""
-        
-        # Superuser có tất cả permissions
-        if current_user.is_superuser:
+        """Check user có permission cụ thể"""
+        user_permissions = await _get_user_permissions(db, current_user)
+        if "*" in user_permissions:
             return current_user
         
-        # User phải active
-        if not current_user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Inactive user"
-            )
-        
-        # Kiểm tra permission qua role
-        if not current_user.role_id:
+        if permission_code not in user_permissions:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="User has no role assigned"
-            )
-        
-        # Lấy permissions của role
-        from app.crud.role import role as role_crud
-        user_role = await role_crud.get_with_permissions(
-            db=db,
-            id=current_user.role_id
-        )
-        
-        if not user_role:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Role not found"
-            )
-        
-        # Check permission
-        has_permission = False
-        if user_role.role_permissions:
-            for role_perm in user_role.role_permissions:
-                if role_perm.permission and role_perm.permission.permission_code == permission_code:
-                    has_permission = True
-                    break
-        
-        if not has_permission:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Permission denied: {permission_code}"
+                detail=f"Insufficient permissions. Required: {permission_code}"
             )
         
         return current_user
@@ -296,55 +355,28 @@ def require_any_permission(*permission_codes: str):
         ):
             ...
     """
+    if not permission_codes:
+        raise ValueError("At least one permission code is required")
+    
     async def permission_checker(
         db: SessionDep,
         current_user: CurrentUser,
     ) -> User:
         """Check user có ít nhất 1 permission"""
+        user_permissions = await _get_user_permissions(db, current_user)
         
-        # Superuser có tất cả permissions
-        if current_user.is_superuser:
+        if "*" in user_permissions:
             return current_user
         
-        # User phải active
-        if not current_user.is_active:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Inactive user"
-            )
-        
-        # Kiểm tra permission qua role
-        if not current_user.role_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="User has no role assigned"
-            )
-        
-        # Lấy permissions của role
-        from app.crud.role import role as role_crud
-        user_role = await role_crud.get_with_permissions(
-            db=db,
-            id=current_user.role_id
+        has_permission = any(
+            code in user_permissions 
+            for code in permission_codes
         )
-        
-        if not user_role:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Role not found"
-            )
-        
-        # Check ít nhất 1 permission
-        has_permission = False
-        if user_role.role_permissions:
-            for role_perm in user_role.role_permissions:
-                if role_perm.permission and role_perm.permission.permission_code in permission_codes:
-                    has_permission = True
-                    break
         
         if not has_permission:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Permission denied: requires one of {', '.join(permission_codes)}"
+                detail=f"Insufficient permissions. Required one of: {', '.join(permission_codes)}"
             )
         
         return current_user
@@ -352,61 +384,56 @@ def require_any_permission(*permission_codes: str):
     return permission_checker
 
 
-async def get_optional_user(
-    db: SessionDep,
-    token: Annotated[str | None, Depends(oauth2_scheme)] = None
-) -> User | None:
+def require_all_permissions(*permission_codes: str):
     """
-    Lấy current user nếu có token, None nếu không (cho public endpoints).
+    Dependency factory để check user có tất cả các permissions.
     
     Args:
-        db: Database session
-        token: JWT access token (optional)
+        *permission_codes: Danh sách permission codes
         
     Returns:
-        User instance hoặc None
+        Dependency function
+        
+    Example:
+        @router.post("/products/bulk-delete")
+        async def bulk_delete(
+            user: Annotated[User, Depends(require_all_permissions("products:read", "products:delete"))],
+            ...
+        ):
+            ...
     """
-    if not token:
-        return None
+    if not permission_codes:
+        raise ValueError("At least one permission code is required")
     
-    try:
-        payload = decode_token(token)
+    async def permission_checker(
+        db: SessionDep,
+        current_user: CurrentUser,
+    ) -> User:
+        """Check user có tất cả permissions"""
+        user_permissions = await _get_user_permissions(db, current_user)
         
-        if payload is None:
-            return None
+        if "*" in user_permissions:
+            return current_user
         
-        # Verify token type
-        if payload.get("type") != "access":
-            return None
+        missing_permissions = [
+            code for code in permission_codes
+            if code not in user_permissions
+        ]
         
-        token_data = TokenPayload(**payload)
+        if missing_permissions:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Insufficient permissions. Missing: {', '.join(missing_permissions)}"
+            )
         
-        if token_data.sub is None:
-            return None
-            
-        user_id = int(token_data.sub)
-        
-    except (JWTError, ValidationError, ValueError):
-        return None
+        return current_user
     
-    user = await user_crud.get(db=db, id=user_id)
-    return user
-
-
-# Type alias cho optional user dependency
-OptionalUser = Annotated[User | None, Depends(get_optional_user)]
+    return permission_checker
 
 
 async def get_pagination_params(
-    page: Annotated[int, Query(ge=1, description="Page number")] = 1,
-    page_size: Annotated[
-        int, 
-        Query(
-            ge=1, 
-            le=settings.MAX_PAGE_SIZE, 
-            description="Items per page"
-        )
-    ] = settings.DEFAULT_PAGE_SIZE,
+    page: Annotated[int, Query(ge=1, description="Page number (1-indexed)")] = 1,
+    page_size: Annotated[int, Query(ge=1, description="Items per page")] = settings.DEFAULT_PAGE_SIZE,
 ) -> PaginationParams:
     """
     Dependency để lấy pagination parameters.
@@ -417,17 +444,54 @@ async def get_pagination_params(
         
     Returns:
         PaginationParams instance
+        
+    Note:
+        page_size will be automatically capped at MAX_PAGE_SIZE
     """
-    return PaginationParams(page=page, page_size=page_size)
+    validated_page_size = min(page_size, settings.MAX_PAGE_SIZE)
+    
+    if validated_page_size != page_size:
+        import logging
+        logging.warning(
+            f"page_size {page_size} exceeded MAX_PAGE_SIZE {settings.MAX_PAGE_SIZE}, "
+            f"using {validated_page_size} instead"
+        )
+    
+    return PaginationParams(page=page, page_size=validated_page_size)
 
 
-# Type alias cho pagination dependency
 PaginationDep = Annotated[PaginationParams, Depends(get_pagination_params)]
 
 
-def get_session_id(
-    request: Request,
-) -> str | None:
+SESSION_ID_PATTERN = re.compile(
+    r'^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$',
+    re.IGNORECASE
+)
+
+
+def validate_session_id(session_id: str | None) -> str | None:
+    """
+    Validate session ID format.
+    
+    Args:
+        session_id: Session ID to validate
+        
+    Returns:
+        Validated session ID or None if invalid
+    """
+    if not session_id:
+        return None
+    
+    if len(session_id) > 100:
+        return None
+    
+    if not SESSION_ID_PATTERN.match(session_id):
+        return None
+    
+    return session_id
+
+
+def get_session_id(request: Request) -> str | None:
     """
     Lấy session ID từ cookie hoặc header (cho guest users).
     
@@ -435,19 +499,19 @@ def get_session_id(
         request: FastAPI request
         
     Returns:
-        Session ID string hoặc None
+        Validated session ID string hoặc None
+        
+    Note:
+        Session ID must be in UUID v4 format for security
     """
-    # Try to get from cookie first
     session_id = request.cookies.get("session_id")
     
     if not session_id:
-        # Try to get from header
         session_id = request.headers.get("X-Session-ID")
     
-    return session_id
+    return validate_session_id(session_id)
 
 
-# Type alias cho session ID dependency
 SessionID = Annotated[str | None, Depends(get_session_id)]
 
 
@@ -481,26 +545,33 @@ async def verify_email_not_taken(
     return email
 
 
-# ============== EXPORT ==============
-
 __all__ = [
+    # Database
     "get_db",
     "SessionDep",
+    # Authentication
     "get_current_user",
     "CurrentUser",
+    "get_optional_user",
+    "OptionalUser",
+    # Authorization
     "get_current_active_user",
     "ActiveUser",
     "get_current_superuser",
     "SuperUser",
     "get_current_active_superuser",
     "ActiveSuperUser",
+    # Permissions
     "require_permission",
     "require_any_permission",
-    "get_optional_user",
-    "OptionalUser",
+    "require_all_permissions",
+    # Pagination
     "get_pagination_params",
     "PaginationDep",
+    # Session
     "get_session_id",
     "SessionID",
+    "validate_session_id",
+    # Validation
     "verify_email_not_taken",
 ]

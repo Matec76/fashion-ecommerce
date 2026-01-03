@@ -1,20 +1,14 @@
-"""
-CRUD operations cho Order, OrderItem, OrderStatusHistory và ShippingMethod models.
-
-Bao gồm:
-- CRUDOrder: CRUD cho Order với create from cart, update status, analytics
-- CRUDOrderItem: CRUD cho OrderItem
-- CRUDOrderStatusHistory: CRUD cho OrderStatusHistory tracking
-- CRUDShippingMethod: CRUD cho ShippingMethod
-"""
 from typing import List, Optional, Dict, Any
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
-from sqlalchemy import select, func, and_, or_
+from sqlalchemy import select, func, and_, or_, update, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from fastapi import HTTPException
 
+from app.core.config import settings
+from app.crud.system import system_setting
 from app.crud.base import CRUDBase
 from app.models.order import (
     Order,
@@ -28,37 +22,76 @@ from app.models.order import (
     ShippingMethodCreate,
     ShippingMethodUpdate,
 )
-from app.models.enums import OrderStatusEnum
-from app.crud.product import product_variant
-from app.crud.cart import cart as cart_crud, cart_item as cart_item_crud
+from app.models.enums import OrderStatusEnum, PaymentStatusEnum, PaymentMethodType
+from app.crud.product import product_variant, product as product_crud
+from app.crud.cart import cart_item as cart_item_crud
+
+
+VALID_ORDER_STATUS_TRANSITIONS = {
+    OrderStatusEnum.PENDING: [
+        OrderStatusEnum.CONFIRMED,
+        OrderStatusEnum.CANCELLED
+    ],
+    OrderStatusEnum.CONFIRMED: [
+        OrderStatusEnum.PROCESSING,
+        OrderStatusEnum.CANCELLED,
+        OrderStatusEnum.REFUNDED,        
+        OrderStatusEnum.PARTIAL_REFUNDED
+    ],
+    OrderStatusEnum.PROCESSING: [
+        OrderStatusEnum.SHIPPED,
+        OrderStatusEnum.CANCELLED,
+        OrderStatusEnum.REFUNDED,          
+        OrderStatusEnum.PARTIAL_REFUNDED
+    ],
+    OrderStatusEnum.SHIPPED: [
+        OrderStatusEnum.DELIVERED,
+        OrderStatusEnum.CANCELLED,
+        OrderStatusEnum.REFUNDED,          
+        OrderStatusEnum.PARTIAL_REFUNDED
+    ],
+    OrderStatusEnum.DELIVERED: [
+       OrderStatusEnum.RETURN_REQUESTED,
+        OrderStatusEnum.COMPLETED,
+        OrderStatusEnum.REFUNDED,
+        OrderStatusEnum.PARTIAL_REFUNDED
+    ],
+    OrderStatusEnum.RETURN_REQUESTED: [
+        OrderStatusEnum.REFUNDED,
+        OrderStatusEnum.PARTIAL_REFUNDED,
+        OrderStatusEnum.COMPLETED
+    ],
+    OrderStatusEnum.COMPLETED: [],
+    OrderStatusEnum.CANCELLED: [],
+    OrderStatusEnum.REFUNDED: [],
+    OrderStatusEnum.PARTIAL_REFUNDED: [
+        OrderStatusEnum.REFUNDED
+    ]
+}
 
 
 class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
-    """CRUD operations cho Order"""
-
+    
     async def get_with_details(
         self,
         *,
         db: AsyncSession,
         id: int
     ) -> Optional[Order]:
-        """
-        Lấy order kèm items, user, shipping method, status history.
-        
-        Args:
-            db: Database session
-            id: Order ID
-            
-        Returns:
-            Order instance với eager loaded relationships
-        """
+
+        from app.models.coupon import OrderCoupon
+
         statement = (
             select(Order)
             .options(
                 selectinload(Order.items).selectinload(OrderItem.variant),
                 selectinload(Order.user),
+                selectinload(Order.cancelled_user),
                 selectinload(Order.shipping_method),
-                selectinload(Order.status_history)
+                selectinload(Order.status_history),
+                selectinload(Order.payment_method),
+                selectinload(Order.payment_transactions),
+                selectinload(Order.order_coupons).selectinload(OrderCoupon.coupon),
             )
             .where(Order.order_id == id)
         )
@@ -71,16 +104,6 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         db: AsyncSession,
         order_number: str
     ) -> Optional[Order]:
-        """
-        Lấy order theo order number.
-        
-        Args:
-            db: Database session
-            order_number: Order number
-            
-        Returns:
-            Order instance hoặc None
-        """
         statement = select(Order).where(Order.order_number == order_number)
         result = await db.execute(statement)
         return result.scalar_one_or_none()
@@ -94,19 +117,6 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         limit: int = 100,
         status: Optional[OrderStatusEnum] = None
     ) -> List[Order]:
-        """
-        Lấy danh sách orders của user.
-        
-        Args:
-            db: Database session
-            user_id: User ID
-            skip: Offset
-            limit: Limit
-            status: Filter theo status
-            
-        Returns:
-            List Order instances
-        """
         statement = (
             select(Order)
             .options(selectinload(Order.items))
@@ -119,7 +129,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         statement = statement.order_by(Order.created_at.desc()).offset(skip).limit(limit)
         
         result = await db.execute(statement)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def create_from_cart(
         self,
@@ -130,114 +140,264 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         shipping_address_id: int,
         billing_address_id: int,
         shipping_method_id: int,
-        payment_method: str,
+        payment_method_id: int,
         notes: Optional[str] = None,
-        coupon_code: Optional[str] = None
+        coupon_code: Optional[str] = None,
+        order_ip: Optional[str] = None,
+        order_device: Optional[str] = None,
+        commit: bool = True
     ) -> Order:
         """
-        Tạo order từ cart.
-        
-        Args:
-            db: Database session
-            cart_id: Cart ID
-            user_id: User ID
-            shipping_address_id: Shipping address ID
-            billing_address_id: Billing address ID
-            shipping_method_id: Shipping method ID
-            payment_method: Payment method
-            notes: Order notes
-            coupon_code: Coupon code (optional)
-            
-        Returns:
-            Order instance đã tạo
+        Atomic operations for stock, coupon, and order number
         """
-        # Lấy cart items
-        cart = await cart_crud.get(db=db, id=cart_id)
+        from app.crud.user import user as user_crud
+        from app.crud.address import address as address_crud
+        from app.crud.payment_method import payment_method as pm_crud
+        from app.models.coupon import OrderCoupon
+
         cart_items = await cart_item_crud.get_by_cart(db=db, cart_id=cart_id)
-        
         if not cart_items:
-            from fastapi import HTTPException
             raise HTTPException(status_code=400, detail="Cart is empty")
         
-        # Lấy shipping method để tính phí
-        shipping_method = await shipping_method.get(db=db, id=shipping_method_id)
+        user = await user_crud.get(db=db, id=user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
         
-        # Tính tổng giá trị
-        subtotal = sum(float(item.subtotal) for item in cart_items)
-        shipping_fee = float(shipping_method.fee)
+        shipping_addr = await address_crud.get(db=db, id=shipping_address_id)
+        if not shipping_addr:
+            raise HTTPException(status_code=404, detail="Shipping address not found")
         
-        # Áp dụng coupon nếu có
+        billing_addr = await address_crud.get(db=db, id=billing_address_id)
+        if not billing_addr:
+            raise HTTPException(status_code=404, detail="Billing address not found")
+        
+        shipping_method_obj = await shipping_method.get(db=db, id=shipping_method_id)
+        if not shipping_method_obj:
+            raise HTTPException(status_code=404, detail="Shipping method not found")
+        
+        payment_method_obj = await pm_crud.get(db=db, id=payment_method_id)
+        if not payment_method_obj or not payment_method_obj.is_active:
+            raise HTTPException(status_code=400, detail="Invalid payment method")
+        
+        supported_methods = [
+            PaymentMethodType.BANK_TRANSFER.value,
+            PaymentMethodType.COD.value
+        ]
+        if payment_method_obj.method_code not in supported_methods:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Payment method '{payment_method_obj.method_code}' is not supported"
+            )
+        
+        subtotal = Decimal("0.00")
+        validated_items = []
+        
+        for cart_item in cart_items:
+            variant = await product_variant.get_with_details(db=db, id=cart_item.variant_id)
+            
+            if not variant:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Product variant {cart_item.variant_id} not found"
+                )
+            
+            if not variant.is_available:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Product {variant.sku} is not available"
+                )
+            
+            current_price = variant.product.sale_price if variant.product.sale_price else variant.product.base_price
+            item_subtotal = current_price * cart_item.quantity
+            
+            validated_items.append({
+                "cart_item": cart_item,
+                "variant": variant,
+                "unit_price": current_price,
+                "item_subtotal": item_subtotal
+            })
+            
+            subtotal += item_subtotal
+        
+        shipping_fee = shipping_method_obj.base_cost
+        free_shipping_reason = None
+
+        free_ship_threshold = await system_setting.get_value(
+            db=db, 
+            key="free_shipping_threshold", 
+            default="500000"
+        )
+        
+        if subtotal >= Decimal(free_ship_threshold):
+            shipping_fee = Decimal("0.00")
+            free_shipping_reason = "order_threshold"
+
         discount_amount = Decimal("0.00")
+        coupon_obj = None
+        now = datetime.now(timezone(timedelta(hours=7)))
+        
         if coupon_code:
-            from app.crud.coupon import coupon as coupon_crud
-            coupon_obj = await coupon_crud.get_by_code(db=db, code=coupon_code)
-            if coupon_obj and coupon_obj.is_active:
-                # Tính discount (logic đơn giản, có thể mở rộng)
-                if coupon_obj.discount_type == "percentage":
-                    discount_amount = Decimal(str(subtotal)) * coupon_obj.discount_value / 100
-                else:
-                    discount_amount = coupon_obj.discount_value
-                
-                # Giới hạn max discount
-                if coupon_obj.max_discount_amount:
-                    discount_amount = min(discount_amount, coupon_obj.max_discount_amount)
+            from app.crud.coupon import coupon as coupon_crud_obj
+            
+            validation_result = await coupon_crud_obj.validate_coupon(
+                db=db,
+                code=coupon_code,
+                user_id=user_id,
+                order_amount=subtotal
+            )
+
+            if not validation_result.valid:
+                raise HTTPException(
+                    status_code=400,
+                    detail=validation_result.error or "Mã giảm giá không hợp lệ"
+                )
+            
+            discount_amount = validation_result.discount_amount
+            validated_data = validation_result.coupon
+            
+            coupon_obj = await coupon_crud_obj.get(db=db, id=validated_data.coupon_id)
+            
+            if coupon_obj:
+                coupon_obj.used_count += 1
+                db.add(coupon_obj)
+
+                if coupon_obj.free_shipping:
+                    shipping_fee = Decimal("0.00")
+                    free_shipping_reason = "coupon"
         
-        total_amount = Decimal(str(subtotal)) + Decimal(str(shipping_fee)) - discount_amount
+        tax_amount = subtotal * Decimal("0.1")
+        total_amount = subtotal + shipping_fee - discount_amount + tax_amount
+        if total_amount < 0:
+            total_amount = Decimal("0.00")
         
-        # Tạo order number (format: ORD-YYYYMMDD-XXXXX)
+        user_snapshot = {
+            "user_id": user.user_id,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "phone_number": user.phone_number,
+        }
+        
+        shipping_metadata = {
+            "original_fee": float(shipping_method_obj.base_cost),
+            "applied_fee": float(shipping_fee),
+            "free_shipping_applied": shipping_fee == Decimal("0.00"),
+            "free_shipping_reason": free_shipping_reason
+        }
+        
+        shipping_snapshot = {
+            "address_id": shipping_addr.address_id,
+            "recipient_name": shipping_addr.recipient_name,
+            "phone_number": shipping_addr.phone_number,
+            "street_address": shipping_addr.street_address,
+            "ward": shipping_addr.ward,
+            "city": shipping_addr.city,
+            "postal_code": shipping_addr.postal_code,
+            "shipping_metadata": shipping_metadata
+        }
+        
+        billing_snapshot = {
+            "address_id": billing_addr.address_id,
+            "recipient_name": billing_addr.recipient_name,
+            "phone_number": billing_addr.phone_number,
+            "street_address": billing_addr.street_address,
+            "ward": billing_addr.ward,
+            "city": billing_addr.city,
+            "postal_code": billing_addr.postal_code,
+        }
+        
         order_number = await self.generate_order_number(db=db)
         
-        # Tạo order
         order = Order(
             user_id=user_id,
             order_number=order_number,
             order_status=OrderStatusEnum.PENDING,
-            subtotal=Decimal(str(subtotal)),
-            shipping_fee=Decimal(str(shipping_fee)),
+            payment_status=PaymentStatusEnum.PENDING,
+            payment_method_id=payment_method_id,
+            subtotal=subtotal,
+            shipping_fee=shipping_fee,
             discount_amount=discount_amount,
+            tax_amount=tax_amount,
             total_amount=total_amount,
-            shipping_address_id=shipping_address_id,
-            billing_address_id=billing_address_id,
             shipping_method_id=shipping_method_id,
-            payment_method=payment_method,
-            notes=notes
+            user_snapshot=user_snapshot,
+            shipping_snapshot=shipping_snapshot,
+            billing_snapshot=billing_snapshot,
+            notes=notes,
+            order_ip=order_ip,
+            order_device=order_device,
+            created_at=now
         )
         
         db.add(order)
-        await db.flush()  # Flush để lấy order_id
+        await db.flush()
         
-        # Tạo order items
-        for cart_item in cart_items:
+        for item_data in validated_items:
+            cart_item = item_data["cart_item"]
+            variant = item_data["variant"]
+            
             order_item = OrderItem(
                 order_id=order.order_id,
-                variant_id=cart_item.variant_id,
+                variant_id=variant.variant_id,
+                product_name=variant.product.product_name,
+                sku=variant.sku,
+                color=variant.color.color_name if variant.color else None,
+                size=variant.size.size_name if variant.size else None,
                 quantity=cart_item.quantity,
-                unit_price=cart_item.unit_price,
-                subtotal=cart_item.subtotal
+                unit_price=item_data["unit_price"],
+                subtotal=item_data["item_subtotal"]
             )
             db.add(order_item)
-            
-            # Giảm stock
-            await product_variant.update_stock(
+    
+            success = await product_variant.update_stock_with_lock(
                 db=db,
-                variant_id=cart_item.variant_id,
-                quantity_change=-cart_item.quantity,
-                flush=True
+                variant_id=variant.variant_id,
+                quantity=cart_item.quantity,
+                increment=False
             )
+            
+            if not success:
+                await db.rollback()
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Sản phẩm {variant.sku} không đủ số lượng hoặc đã hết hàng trong quá trình thanh toán"
+                )
+            
+            await product_crud.update_sold_count(
+                db=db,
+                product_id=variant.product_id,
+                quantity=cart_item.quantity
+            )
+
+        if coupon_obj:
+            order_coupon = OrderCoupon(
+                order_id=order.order_id,
+                coupon_id=coupon_obj.coupon_id,
+                discount_amount=discount_amount
+            )
+            db.add(order_coupon)
         
-        # Tạo status history
         status_history = OrderStatusHistory(
             order_id=order.order_id,
-            status=OrderStatusEnum.PENDING,
-            note="Order created"
+            old_status=None,
+            new_status=OrderStatusEnum.PENDING,
+            comment="Order created",
+            created_by=user_id,
+            created_at=now
         )
         db.add(status_history)
+    
         
-        # Clear cart
-        await cart_crud.clear_cart(db=db, cart_id=cart_id)
+        if commit:
+            try:
+                await db.commit()
+                await db.refresh(order)
+            except Exception as e:
+                await db.rollback()
+                raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        else:
+            await db.flush()
         
-        await db.commit()
-        await db.refresh(order)
         return order
 
     async def generate_order_number(
@@ -246,28 +406,26 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         db: AsyncSession
     ) -> str:
         """
-        Tạo order number unique.
-        
-        Args:
-            db: Database session
-            
-        Returns:
-            Order number string (ORD-YYYYMMDD-XXXXX)
+        Atomic order number generation using PostgreSQL Sequence
+        Tạo sequence mới mỗi ngày để reset counter
         """
-        today = datetime.utcnow().strftime("%Y%m%d")
-        prefix = f"ORD-{today}-"
+        today = datetime.now(timezone(timedelta(hours=7))).strftime("%Y%m%d")
+        seq_name = f"order_seq_{today}"
         
-        # Đếm số orders hôm nay
-        statement = select(func.count(Order.order_id)).where(
-            Order.order_number.like(f"{prefix}%")
-        )
-        result = await db.execute(statement)
-        count = result.scalar_one()
+        await db.execute(text(f"""
+            CREATE SEQUENCE IF NOT EXISTS {seq_name}
+            START WITH 1
+            INCREMENT BY 1
+            NO MAXVALUE
+            NO CYCLE
+        """))
         
-        # Tạo số thứ tự (5 chữ số)
-        sequence = str(count + 1).zfill(5)
+        result = await db.execute(text(f"SELECT nextval('{seq_name}')"))
+        sequence = result.scalar()
         
-        return f"{prefix}{sequence}"
+        order_number = f"{settings.ORDER_NUMBER_PREFIX}-{today}-{sequence:05d}"
+        
+        return order_number
 
     async def update_status(
         self,
@@ -275,62 +433,104 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         db: AsyncSession,
         order_id: int,
         new_status: OrderStatusEnum,
+        user_id: int,
         note: Optional[str] = None,
-        updated_by: Optional[int] = None
+        expected_status: Optional[OrderStatusEnum] = None
     ) -> Order:
         """
-        Cập nhật trạng thái order và ghi lịch sử.
-        
-        Args:
-            db: Database session
-            order_id: Order ID
-            new_status: Trạng thái mới
-            note: Ghi chú
-            updated_by: User ID thực hiện cập nhật
-            
-        Returns:
-            Order instance đã cập nhật
+        Atomic status update với validation
         """
-        order = await self.get(db=db, id=order_id)
-        old_status = order.order_status
+
+        from app.models.coupon import OrderCoupon
+
+        stmt = (
+            update(Order)
+            .where(Order.order_id == order_id)
+        )
         
-        # Cập nhật status
-        order.order_status = new_status
+        if expected_status:
+            stmt = stmt.where(Order.order_status == expected_status)
+        else:
+            stmt = stmt.where(
+                Order.order_status.notin_([
+                    OrderStatusEnum.DELIVERED,
+                    OrderStatusEnum.CANCELLED
+                ])
+            )
         
-        # Cập nhật timestamps đặc biệt
-        if new_status == OrderStatusEnum.CONFIRMED:
-            order.confirmed_at = datetime.utcnow()
-        elif new_status == OrderStatusEnum.SHIPPED:
-            order.shipped_at = datetime.utcnow()
-        elif new_status == OrderStatusEnum.DELIVERED:
-            order.delivered_at = datetime.utcnow()
-        elif new_status == OrderStatusEnum.CANCELLED:
-            order.cancelled_at = datetime.utcnow()
-            # Hoàn lại stock
-            items = await order_item.get_by_order(db=db, order_id=order_id)
-            for item in items:
-                await product_variant.update_stock(
-                    db=db,
-                    variant_id=item.variant_id,
-                    quantity_change=item.quantity,
-                    flush=True
+        stmt = stmt.where(Order.order_status != new_status)
+        
+        stmt = (
+            stmt
+            .values(
+                order_status=new_status,
+                updated_at=datetime.now(timezone(timedelta(hours=7)))
+            )
+            .returning(Order)
+        )
+        
+        result = await db.execute(stmt)
+        updated_order = result.scalar_one_or_none()
+        
+        if not updated_order:
+            current_order = await self.get(db=db, id=order_id)
+            if not current_order:
+                raise HTTPException(status_code=404, detail="Order not found")
+            
+            if expected_status and current_order.order_status != expected_status:
+                raise HTTPException(
+                    status_code=409,
+                    detail=f"Order status conflict. Expected {expected_status.value}, got {current_order.order_status.value}"
                 )
         
-        db.add(order)
+            return current_order
         
-        # Ghi lịch sử
-        status_history = OrderStatusHistory(
+        history = OrderStatusHistory(
             order_id=order_id,
-            status=new_status,
-            note=note or f"Status changed from {old_status.value} to {new_status.value}",
-            changed_by=updated_by
+            old_status=expected_status,
+            new_status=new_status,
+            comment=note,
+            created_by=user_id,
+            created_at=datetime.now(timezone(timedelta(hours=7)))
         )
-        db.add(status_history)
+        db.add(history)
+        
+        if new_status in [OrderStatusEnum.CANCELLED, OrderStatusEnum.REFUNDED]:
+            items = await order_item.get_by_order(db=db, order_id=order_id)
+            for item in items:
+                if item.variant_id:
+                    await product_variant.update_stock_with_lock(
+                        db=db,
+                        variant_id=item.variant_id,
+                        quantity=item.quantity,
+                        increment=True
+                    )
+
+                if item.variant:
+                        await product_crud.update_sold_count(
+                            db=db,
+                            product_id=item.variant.product_id,
+                            quantity= -item.quantity
+                        )
+            
+            stmt_coupon = (
+                select(OrderCoupon)
+                .options(selectinload(OrderCoupon.coupon))
+                .where(OrderCoupon.order_id == order_id)
+            )
+            result_coupon = await db.execute(stmt_coupon)
+            order_coupons = result_coupon.scalars().all()
+            
+            for oc in order_coupons:
+                if oc.coupon:
+                    oc.coupon.used_count = max(0, oc.coupon.used_count - 1)
+                    db.add(oc.coupon)
+                    await db.delete(oc)
         
         await db.commit()
-        await db.refresh(order)
-        return order
-
+        await db.refresh(updated_order)
+        return updated_order
+    
     async def get_by_status(
         self,
         *,
@@ -339,18 +539,6 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         skip: int = 0,
         limit: int = 100
     ) -> List[Order]:
-        """
-        Lấy orders theo status.
-        
-        Args:
-            db: Database session
-            status: Order status
-            skip: Offset
-            limit: Limit
-            
-        Returns:
-            List Order instances
-        """
         statement = (
             select(Order)
             .where(Order.order_status == status)
@@ -359,7 +547,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
             .limit(limit)
         )
         result = await db.execute(statement)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def get_pending_orders(
         self,
@@ -368,18 +556,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         hours: int = 24,
         limit: int = 100
     ) -> List[Order]:
-        """
-        Lấy orders đang pending quá lâu (cần xử lý).
-        
-        Args:
-            db: Database session
-            hours: Số giờ pending
-            limit: Limit
-            
-        Returns:
-            List Order instances
-        """
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(timezone(timedelta(hours=7))) - timedelta(hours=hours)
         
         statement = (
             select(Order)
@@ -391,7 +568,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
             .limit(limit)
         )
         result = await db.execute(statement)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def get_revenue_by_date_range(
         self,
@@ -400,17 +577,6 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         start_date: datetime,
         end_date: datetime
     ) -> Decimal:
-        """
-        Tính tổng doanh thu trong khoảng thời gian.
-        
-        Args:
-            db: Database session
-            start_date: Ngày bắt đầu
-            end_date: Ngày kết thúc
-            
-        Returns:
-            Tổng doanh thu (Decimal)
-        """
         statement = select(func.sum(Order.total_amount)).where(
             and_(
                 Order.created_at >= start_date,
@@ -435,18 +601,6 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
         skip: int = 0,
         limit: int = 100
     ) -> List[Order]:
-        """
-        Tìm kiếm orders theo order_number, user email, phone.
-        
-        Args:
-            db: Database session
-            query: Search query
-            skip: Offset
-            limit: Limit
-            
-        Returns:
-            List Order instances
-        """
         from app.models.user import User
         
         statement = (
@@ -456,7 +610,7 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
                 or_(
                     Order.order_number.ilike(f"%{query}%"),
                     User.email.ilike(f"%{query}%"),
-                    User.phone.ilike(f"%{query}%")
+                    User.phone_number.ilike(f"%{query}%")
                 )
             )
             .order_by(Order.created_at.desc())
@@ -464,93 +618,119 @@ class CRUDOrder(CRUDBase[Order, OrderCreate, OrderUpdate]):
             .limit(limit)
         )
         result = await db.execute(statement)
-        return result.scalars().all()
+        return list(result.scalars().all())
+    
+    async def count_by_date_range(
+        self,
+        *,
+        db: AsyncSession,
+        start_date: datetime,
+        end_date: datetime
+    ) -> int:
+        """Đếm số đơn hàng trong khoảng thời gian."""
+        statement = select(func.count(Order.order_id)).where(
+            and_(
+                Order.created_at >= start_date,
+                Order.created_at <= end_date,
+                Order.order_status != OrderStatusEnum.CANCELLED
+            )
+        )
+        result = await db.execute(statement)
+        return result.scalar() or 0
+
+    async def get_sales_stats_by_period(
+        self, 
+        *, 
+        db: AsyncSession, 
+        start_date: datetime, 
+        end_date: datetime, 
+        period: str = "day"
+    ) -> List[dict]:
+        """Thống kê biểu đồ doanh thu."""
+        trunc_interval = {
+            "hourly": "hour", "daily": "day", "weekly": "week", "monthly": "month", "yearly": "year"
+        }.get(period, "day")
+
+        date_col = func.date_trunc(trunc_interval, Order.created_at).label("period_date")
+
+        statement = (
+            select(
+                date_col,
+                func.count(Order.order_id).label("total_orders"),
+                func.sum(Order.total_amount).label("revenue")
+            )
+            .where(
+                Order.created_at >= start_date,
+                Order.created_at <= end_date,
+                Order.order_status.in_([
+                    OrderStatusEnum.COMPLETED, 
+                    OrderStatusEnum.DELIVERED,
+                    OrderStatusEnum.SHIPPED
+                ])
+            )
+            .group_by(date_col)
+            .order_by(date_col)
+        )
+
+        result = await db.execute(statement)
+        return [
+            {
+                "date": row.period_date.isoformat(),
+                "total_orders": row.total_orders,
+                "revenue": float(row.revenue or 0)
+            }
+            for row in result.all()
+        ]
 
 
 class CRUDOrderItem(CRUDBase[OrderItem, OrderItemCreate, Dict[str, Any]]):
-    """CRUD operations cho OrderItem"""
-
+    
     async def get_by_order(
         self,
         *,
         db: AsyncSession,
         order_id: int
     ) -> List[OrderItem]:
-        """
-        Lấy tất cả items của order.
-        
-        Args:
-            db: Database session
-            order_id: Order ID
-            
-        Returns:
-            List OrderItem instances
-        """
         statement = (
             select(OrderItem)
-            .options(
-                selectinload(OrderItem.variant).selectinload(product_variant.model.product),
-                selectinload(OrderItem.variant).selectinload(product_variant.model.color),
-                selectinload(OrderItem.variant).selectinload(product_variant.model.size)
-            )
+            .options(selectinload(OrderItem.variant))
             .where(OrderItem.order_id == order_id)
         )
         result = await db.execute(statement)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
 
 class CRUDOrderStatusHistory(CRUDBase[OrderStatusHistory, OrderStatusHistoryCreate, Dict[str, Any]]):
-    """CRUD operations cho OrderStatusHistory"""
-
+    
     async def get_by_order(
         self,
         *,
         db: AsyncSession,
         order_id: int
     ) -> List[OrderStatusHistory]:
-        """
-        Lấy lịch sử thay đổi trạng thái của order.
-        
-        Args:
-            db: Database session
-            order_id: Order ID
-            
-        Returns:
-            List OrderStatusHistory instances
-        """
         statement = (
             select(OrderStatusHistory)
             .where(OrderStatusHistory.order_id == order_id)
-            .order_by(OrderStatusHistory.changed_at.desc())
+            .order_by(OrderStatusHistory.created_at.desc())
         )
         result = await db.execute(statement)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
 
 class CRUDShippingMethod(CRUDBase[ShippingMethod, ShippingMethodCreate, ShippingMethodUpdate]):
-    """CRUD operations cho ShippingMethod"""
-
+    
     async def get_active(
         self,
         *,
         db: AsyncSession
     ) -> List[ShippingMethod]:
-        """
-        Lấy tất cả shipping methods đang active.
-        
-        Args:
-            db: Database session
-            
-        Returns:
-            List ShippingMethod instances
-        """
         statement = (
             select(ShippingMethod)
             .where(ShippingMethod.is_active == True)
-            .order_by(ShippingMethod.fee)
+            .order_by(ShippingMethod.base_cost)
         )
         result = await db.execute(statement)
-        return result.scalars().all()
+        return list(result.scalars().all())
 
     async def get_by_name(
         self,
@@ -558,22 +738,11 @@ class CRUDShippingMethod(CRUDBase[ShippingMethod, ShippingMethodCreate, Shipping
         db: AsyncSession,
         name: str
     ) -> Optional[ShippingMethod]:
-        """
-        Lấy shipping method theo tên.
-        
-        Args:
-            db: Database session
-            name: Method name
-            
-        Returns:
-            ShippingMethod instance hoặc None
-        """
         statement = select(ShippingMethod).where(ShippingMethod.method_name == name)
         result = await db.execute(statement)
         return result.scalar_one_or_none()
 
 
-# Singleton instances
 order = CRUDOrder(Order)
 order_item = CRUDOrderItem(OrderItem)
 order_status_history = CRUDOrderStatusHistory(OrderStatusHistory)

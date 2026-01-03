@@ -4,32 +4,34 @@ import json
 import time
 import logging
 
-from fastapi import APIRouter, Query, status, HTTPException, Request, BackgroundTasks
+from fastapi import APIRouter, Query, status, HTTPException, Request, BackgroundTasks, Depends
 from fastapi_cache.decorator import cache
 from fastapi_cache import FastAPICache
 
 from app.api.deps import (
     SessionDep,
     CurrentUser,
-    SuperUser,
     PaginationDep,
+    require_permission,
 )
 from app.crud.payment import payment_transaction as payment_crud
 from app.crud.payment_method import payment_method as payment_method_crud
 from app.crud.order import order as order_crud
+from app.crud.cart import cart as cart_crud
+from app.crud.product import product_variant, product as product_crud
 from app.models.payment import (
     PaymentTransactionResponse,
     PaymentTransactionsResponse,
-    PaymentRetryResponse,
     PaymentStatistics,
     RefundRequest,
     RefundResponse,
-    PaymentTransactionCreate
 )
 from app.models.payment_method import PaymentMethodResponse
 from app.models.enums import PaymentStatusEnum, OrderStatusEnum
 from app.services.payos_service import PayOSService
 from app.core.config import settings
+from app.models.user import User
+from app.crud.system import system_setting
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -37,6 +39,9 @@ logger = logging.getLogger(__name__)
 _webhook_locks = {}
 
 def user_transactions_key_builder(func, namespace: str = "", *args, **kwargs):
+    """
+    Tạo key cache cho danh sách giao dịch của người dùng hiện tại.
+    """
     prefix = FastAPICache.get_prefix() or ""
     user_id = kwargs.get("current_user").user_id
     pagination = kwargs.get("pagination")
@@ -49,6 +54,9 @@ def user_transactions_key_builder(func, namespace: str = "", *args, **kwargs):
     return f"{prefix}:user:{user_id}:transactions:p{page}:s{page_size}:st{status_filter}:gw{gateway}"
 
 def user_transaction_detail_key_builder(func, namespace: str = "", *args, **kwargs):
+    """
+    Tạo key cache cho thông tin chi tiết của một giao dịch cụ thể.
+    """
     prefix = FastAPICache.get_prefix() or ""
     user_id = kwargs.get("current_user").user_id
     transaction_id = kwargs.get("transaction_id")
@@ -56,22 +64,34 @@ def user_transaction_detail_key_builder(func, namespace: str = "", *args, **kwar
     return f"{prefix}:user:{user_id}:transaction:{transaction_id}"
 
 def order_transactions_key_builder(func, namespace: str = "", *args, **kwargs):
+    """
+    Tạo key cache cho các giao dịch liên quan đến một đơn hàng.
+    """
     prefix = FastAPICache.get_prefix() or ""
     order_id = kwargs.get("order_id")
     
     return f"{prefix}:order:{order_id}:transactions"
 
 def payment_methods_key_builder(func, namespace: str = "", *args, **kwargs):
+    """
+    Tạo key cache cho danh sách các phương thức thanh toán đang hoạt động.
+    """
     prefix = FastAPICache.get_prefix() or ""
     return f"{prefix}:payment:methods:active"
 
 def payment_method_detail_key_builder(func, namespace: str = "", *args, **kwargs):
+    """
+    Tạo key cache cho thông tin chi tiết của một phương thức thanh toán.
+    """
     prefix = FastAPICache.get_prefix() or ""
     method_id = kwargs.get("method_id")
     
     return f"{prefix}:payment:method:{method_id}"
 
 def admin_transactions_key_builder(func, namespace: str = "", *args, **kwargs):
+    """
+    Tạo key cache cho Admin khi truy vấn toàn bộ giao dịch trên hệ thống.
+    """
     prefix = FastAPICache.get_prefix() or ""
     pagination = kwargs.get("pagination")
     status_filter = kwargs.get("status")
@@ -84,6 +104,9 @@ def admin_transactions_key_builder(func, namespace: str = "", *args, **kwargs):
     return f"{prefix}:admin:transactions:p{page}:s{page_size}:st{status_filter}:gw{gateway}:o{order_id}"
 
 def payment_statistics_key_builder(func, namespace: str = "", *args, **kwargs):
+    """
+    Tạo key cache cho các báo cáo thống kê thanh toán.
+    """
     prefix = FastAPICache.get_prefix() or ""
     days = kwargs.get("days", 30)
     
@@ -96,6 +119,9 @@ async def invalidate_payment_caches(
     clear_admin: bool = False,
     clear_stats: bool = False
 ):
+    """
+    Thực hiện xóa cache liên quan đến thanh toán dựa trên các điều kiện xác định.
+    """
     backend = FastAPICache.get_backend()
     prefix = FastAPICache.get_prefix() or ""
     
@@ -138,10 +164,16 @@ async def invalidate_payment_caches(
         logger.error(f"Cache invalidation error: {e}", exc_info=True)
 
 def generate_idempotency_key(order_id: int, attempt: int = 0) -> str:
+    """
+    Tạo khóa idempotency để đảm bảo một yêu cầu thanh toán không bị xử lý trùng lặp.
+    """
     timestamp = int(time.time())
     return f"payment_{order_id}_{timestamp}_{attempt}"
 
 def is_transaction_retryable(transaction, max_age_days: int = None) -> tuple[bool, str]:
+    """
+    Kiểm tra xem một giao dịch thanh toán thất bại có đủ điều kiện để thực hiện lại hay không.
+    """
     if max_age_days is None:
         max_age_days = settings.PAYMENT_MAX_RETRY_AGE_DAYS
 
@@ -149,7 +181,7 @@ def is_transaction_retryable(transaction, max_age_days: int = None) -> tuple[boo
         return False, "Can only retry failed or cancelled transactions"
     
     if transaction.created_at:
-        age = datetime.now(timezone.utc) - transaction.created_at
+        age = datetime.now(timezone(timedelta(hours=7))) - transaction.created_at
         if age.days > max_age_days:
             return False, f"Transaction is too old (max {max_age_days} days)"
     
@@ -163,6 +195,9 @@ async def create_audit_log(
     resource_id: int,
     details: dict = None
 ):
+    """
+    Ghi nhật ký kiểm toán (audit log) cho các hành động thay đổi dữ liệu thanh toán quan trọng.
+    """
     logger.info(
         f"AUDIT: user={user_id} action={action} resource={resource_type}:{resource_id} "
         f"details={json.dumps(details or {})}"
@@ -175,6 +210,9 @@ async def invalidate_caches_task(
     clear_admin: bool = False,
     clear_stats: bool = False
 ):
+    """
+    Task chạy ngầm để thực hiện việc xóa cache thanh toán sau khi dữ liệu được cập nhật.
+    """
     try:
         await invalidate_payment_caches(
             user_id=user_id,
@@ -195,13 +233,16 @@ async def get_my_transactions(
     status: PaymentStatusEnum | None = Query(None, description="Filter by payment status"),
     gateway: str | None = Query(None, description="Filter by payment gateway"),
 ) -> PaymentTransactionsResponse:
+    """
+    Lấy danh sách lịch sử giao dịch thanh toán của người dùng đang đăng nhập.
+    """
     filters = {"order.user_id": current_user.user_id}
     
     if status:
         filters["status"] = status
     
     if gateway:
-        filters["payment_gateway"] = gateway.lower()
+        filters["payment_gateway"] = gateway
     
     transactions = await payment_crud.get_multi_with_orders(
         db=db,
@@ -226,6 +267,9 @@ async def get_my_transaction(
     current_user: CurrentUser,
     transaction_id: int,
 ) -> PaymentTransactionResponse:
+    """
+    Xem thông tin chi tiết về một giao dịch thanh toán cụ thể của người dùng.
+    """
     transaction = await payment_crud.get(db=db, id=transaction_id)
     
     if not transaction:
@@ -250,6 +294,9 @@ async def get_order_transactions(
     current_user: CurrentUser,
     order_id: int,
 ) -> List[PaymentTransactionResponse]:
+    """
+    Lấy toàn bộ các giao dịch thanh toán liên quan đến một đơn hàng cụ thể.
+    """
     order = await order_crud.get(db=db, id=order_id)
     
     if not order:
@@ -268,152 +315,6 @@ async def get_order_transactions(
     
     return transactions
 
-@router.post("/transactions/{transaction_id}/retry", response_model=PaymentRetryResponse)
-async def retry_failed_payment(
-    *,
-    db: SessionDep,
-    current_user: CurrentUser,
-    transaction_id: int,
-    background_tasks: BackgroundTasks,
-) -> PaymentRetryResponse:
-    original_txn = await payment_crud.get(db=db, id=transaction_id)
-    
-    if not original_txn:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Transaction not found"
-        )
-    
-    order = await order_crud.get(db=db, id=original_txn.order_id)
-    if order.user_id != current_user.user_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not authorized to retry this payment"
-        )
-    
-    can_retry, reason = is_transaction_retryable(original_txn)
-    if not can_retry:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=reason
-        )
-    
-    if order.payment_status == PaymentStatusEnum.PAID:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Order is already paid"
-        )
-    
-    if not settings.PAYOS_ENABLED:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Payment gateway is currently unavailable"
-        )
-    
-    idempotency_key = generate_idempotency_key(order.order_id)
-    
-    recent_pending = await payment_crud.get_recent_pending_by_order(
-        db=db,
-        order_id=order.order_id,
-        minutes=settings.PAYMENT_TIMEOUT_MINUTES
-    )
-    
-    if recent_pending:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"A payment is already in progress. Please wait {settings.PAYMENT_TIMEOUT_MINUTES} minutes or use the existing payment link."
-        )
-    
-    payos = PayOSService()
-    
-    new_timestamp = str(int(time.time()))
-    unique_txn_code = f"{order.order_number}_{new_timestamp}"
-    payos_order_code = int(time.time())
-    
-    new_txn_create = PaymentTransactionCreate(
-        order_id=order.order_id,
-        payment_method_id=order.payment_method_id,
-        amount=order.total_amount,
-        currency=settings.CURRENCY_CODE,
-        status=PaymentStatusEnum.PENDING,
-        payment_gateway="payos",
-        transaction_code=unique_txn_code,
-        gateway_transaction_id=str(payos_order_code),
-        metadata={
-            "idempotency_key": idempotency_key,
-            "is_retry": True,
-            "original_transaction_id": original_txn.transaction_id,
-            "retry_attempt": 1
-        }
-    )
-    
-    new_transaction = await payment_crud.create(db=db, obj_in=new_txn_create)
-    
-    try:
-        user_info = order.user_snapshot or {}
-        buyer_name = f"{user_info.get('first_name', '')} {user_info.get('last_name', '')}".strip()
-        
-        payment_data = await payos.create_payment_link(
-            order_id=order.order_id,
-            order_code=payos_order_code,
-            amount=int(order.total_amount),
-            description=f"Retry payment for order {order.order_number}",
-            buyer_name=buyer_name or "Customer",
-            buyer_email=user_info.get('email', 'customer@example.com'),
-            buyer_phone=user_info.get('phone_number', ''),
-            return_url=f"{settings.FRONTEND_HOST}/payment/payos/return",
-            cancel_url=f"{settings.FRONTEND_HOST}/payment/payos/cancel"
-        )
-        
-        await payment_crud.update(
-            db=db,
-            db_obj=new_transaction,
-            obj_in={
-                "payment_url": payment_data.get("checkoutUrl"),
-                "qr_code": payment_data.get("qr_code"),
-                "metadata": {
-                    **new_transaction.metadata,
-                    "payos_order_code": payment_data.get("orderCode"),
-                    "payment_link_created_at": datetime.now(timezone.utc).isoformat()
-                }
-            }
-        )
-        
-        background_tasks.add_task(
-            invalidate_caches_task,
-            user_id=order.user_id,
-            order_id=order.order_id,
-            clear_stats=True
-        )
-        
-        logger.info(
-            f"Payment retry created - user:{current_user.user_id} order:{order.order_id} "
-            f"txn:{new_transaction.transaction_id}"
-        )
-        
-        return PaymentRetryResponse(
-            success=True,
-            message="Payment link created successfully",
-            payment_url=payment_data.get("checkoutUrl"),
-            transaction_id=new_transaction.transaction_id
-        )
-        
-    except Exception as e:
-        logger.error(f"PayOS error during retry: {e}", exc_info=True)
-        
-        await payment_crud.update(
-            db=db,
-            db_obj=new_transaction,
-            obj_in={
-                "status": PaymentStatusEnum.FAILED,
-                "notes": f"Failed to create payment link: {str(e)}"
-            }
-        )
-        
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Failed to create payment link. Please try again later."
-        )
 
 @router.get("/payos/check-status/{transaction_code}")
 async def check_payos_status(
@@ -421,7 +322,11 @@ async def check_payos_status(
     db: SessionDep,
     current_user: CurrentUser,
     transaction_code: str,
+    background_tasks: BackgroundTasks,
 ) -> dict:
+    """
+    Kiểm tra trạng thái thanh toán từ PayOS cho một giao dịch và đồng bộ hóa kết quả vào hệ thống.
+    """
     transaction = await payment_crud.get_by_transaction_code(
         db=db,
         transaction_code=transaction_code
@@ -433,35 +338,75 @@ async def check_payos_status(
             detail="Transaction not found"
         )
     
-    order = await order_crud.get(db=db, id=transaction.order_id)
+    order = await order_crud.get_with_details(db=db, id=transaction.order_id)
     if order.user_id != current_user.user_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to check this transaction"
         )
     
-    metadata = transaction.metadata or {}
-    payos_order_code = metadata.get("payos_order_code")
+    payment_metadata = transaction.payment_metadata or {}
+    payos_order_code = payment_metadata.get("payos_order_code")
     
     if not payos_order_code:
         return {
             "transaction_code": transaction_code,
             "status": transaction.status.value,
-            "error": "PayOS order code not found in transaction metadata"
+            "error": "PayOS order code not found in transaction payment_metadata"
         }
     
     payos = PayOSService()
     try:
         payment_info = await payos.check_payment_status(payos_order_code)
+        payos_status = payment_info.get("status")
+
+        is_synced = False
+        if payos_status == "PAID" and transaction.status != PaymentStatusEnum.PAID:
+            await payment_crud.update(
+                db=db,
+                db_obj=transaction,
+                obj_in={
+                    "status": PaymentStatusEnum.PAID,
+                    "paid_at": datetime.now(timezone(timedelta(hours=7))),
+                    "notes": "Payment synced via check-status API",
+                    "gateway_response": json.dumps(payment_info)
+                }
+            )
+            
+            if order:
+
+                purchased_variant_ids = [item.variant_id for item in order.items]
+                await cart_crud.remove_items_after_checkout(
+                    db=db,
+                    user_id=order.user_id,
+                    variant_ids=purchased_variant_ids
+                )
+                await order_crud.update(
+                    db=db,
+                    db_obj=order,
+                    obj_in={
+                        "payment_status": PaymentStatusEnum.PAID,
+                        "order_status": OrderStatusEnum.CONFIRMED
+                    }
+                )
+                
+                background_tasks.add_task(
+                    invalidate_caches_task,
+                    user_id=order.user_id,
+                    order_id=order.order_id,
+                    transaction_id=transaction.transaction_id,
+                    clear_admin=True,
+                    clear_stats=True
+                )
+            is_synced = True
         
         return {
             "transaction_code": transaction_code,
             "local_status": transaction.status.value,
-            "payos_status": payment_info.get("status"),
+            "payos_status": payos_status, 
             "amount": payment_info.get("amount"),
-            "paid": payment_info.get("status") == "PAID",
-            "synced": (payment_info.get("status") == "PAID" and 
-                      transaction.status == PaymentStatusEnum.PAID)
+            "paid": payos_status == "PAID",          
+            "synced": is_synced             
         }
         
     except Exception as e:
@@ -477,6 +422,9 @@ async def check_payos_status(
 async def get_payment_methods(
     db: SessionDep,
 ) -> List[PaymentMethodResponse]:
+    """
+    Lấy danh sách các phương thức thanh toán đang được hệ thống hỗ trợ.
+    """
     methods = await payment_method_crud.get_active(db=db)
     return methods
 
@@ -486,6 +434,9 @@ async def get_payment_method(
     db: SessionDep,
     method_id: int,
 ) -> PaymentMethodResponse:
+    """
+    Xem thông tin chi tiết cấu hình của một phương thức thanh toán theo ID.
+    """
     method = await payment_method_crud.get(db=db, id=method_id)
     
     if not method:
@@ -500,19 +451,22 @@ async def get_payment_method(
 @cache(expire=60, key_builder=admin_transactions_key_builder)
 async def list_all_transactions(
     db: SessionDep,
-    current_user: SuperUser,
     pagination: PaginationDep,
     status: PaymentStatusEnum | None = Query(None),
     gateway: str | None = Query(None),
     order_id: int | None = Query(None),
+    current_user: User = Depends(require_permission("payment.view")),
 ) -> PaymentTransactionsResponse:
+    """
+    Liệt kê và quản lý toàn bộ các giao dịch thanh toán trên hệ thống (Dành cho Admin).
+    """
     filters = {}
     
     if status:
         filters["status"] = status
     
     if gateway:
-        filters["payment_gateway"] = gateway.lower()
+        filters["payment_gateway"] = gateway
     
     if order_id:
         filters["order_id"] = order_id
@@ -536,9 +490,12 @@ async def list_all_transactions(
 @router.get("/admin/transactions/{transaction_id}", response_model=PaymentTransactionResponse)
 async def get_transaction_admin(
     db: SessionDep,
-    current_user: SuperUser,
     transaction_id: int,
+    current_user: User = Depends(require_permission("payment.view")),
 ) -> PaymentTransactionResponse:
+    """
+    Xem thông tin chi tiết của một giao dịch thanh toán bất kỳ (Dành cho Admin).
+    """
     transaction = await payment_crud.get(db=db, id=transaction_id)
     
     if not transaction:
@@ -552,10 +509,13 @@ async def get_transaction_admin(
 @router.get("/admin/transactions/pending", response_model=List[PaymentTransactionResponse])
 async def get_pending_transactions(
     db: SessionDep,
-    current_user: SuperUser,
     hours: int = Query(24, ge=1, le=168, description="Look back hours"),
     gateway: str | None = Query(None, description="Filter by gateway"),
+    current_user: User = Depends(require_permission("payment.view")),
 ) -> List[PaymentTransactionResponse]:
+    """
+    Lấy danh sách các giao dịch đang ở trạng thái chờ xử lý (Dành cho Admin).
+    """
     transactions = await payment_crud.get_pending_transactions(
         db=db,
         hours=hours,
@@ -568,10 +528,13 @@ async def get_pending_transactions(
 @router.get("/admin/transactions/failed", response_model=List[PaymentTransactionResponse])
 async def get_failed_transactions(
     db: SessionDep,
-    current_user: SuperUser,
     gateway: str | None = Query(None),
     limit: int = Query(50, ge=1, le=500),
+    current_user: User = Depends(require_permission("payment.view")),
 ) -> List[PaymentTransactionResponse]:
+    """
+    Lấy danh sách các giao dịch thanh toán đã bị lỗi hoặc thất bại (Dành cho Admin).
+    """
     transactions = await payment_crud.get_failed_transactions(
         db=db,
         gateway=gateway,
@@ -583,11 +546,14 @@ async def get_failed_transactions(
 @router.get("/admin/transactions/gateway/{gateway}", response_model=List[PaymentTransactionResponse])
 async def get_transactions_by_gateway(
     db: SessionDep,
-    current_user: SuperUser,
     gateway: str,
     status: PaymentStatusEnum | None = Query(None),
     limit: int = Query(100, ge=1, le=500),
+    current_user: User = Depends(require_permission("payment.view")),
 ) -> List[PaymentTransactionResponse]:
+    """
+    Lọc danh sách giao dịch dựa theo cổng thanh toán gateway (Dành cho Admin).
+    """
     transactions = await payment_crud.get_by_gateway(
         db=db,
         gateway=gateway,
@@ -601,12 +567,15 @@ async def get_transactions_by_gateway(
 async def update_transaction_status(
     *,
     db: SessionDep,
-    current_user: SuperUser,
     transaction_id: int,
     new_status: PaymentStatusEnum,
     notes: str | None = None,
     background_tasks: BackgroundTasks,
+    current_user: User = Depends(require_permission("payment.update")),
 ) -> PaymentTransactionResponse:
+    """
+    Cập nhật thủ công trạng thái của một giao dịch thanh toán (Dành cho Admin).
+    """
     transaction = await payment_crud.get(db=db, id=transaction_id)
     
     if not transaction:
@@ -623,7 +592,7 @@ async def update_transaction_status(
     }
     
     if new_status == PaymentStatusEnum.PAID and not transaction.paid_at:
-        update_data["paid_at"] = datetime.now(timezone.utc)
+        update_data["paid_at"] = datetime.now(timezone(timedelta(hours=7)))
     
     updated_transaction = await payment_crud.update(
         db=db,
@@ -674,9 +643,12 @@ async def update_transaction_status(
 @router.get("/admin/search", response_model=List[PaymentTransactionResponse])
 async def search_transactions(
     db: SessionDep,
-    current_user: SuperUser,
     q: str = Query(..., min_length=3, description="Search by transaction code or gateway ID"),
+    current_user: User = Depends(require_permission("payment.view")),
 ) -> List[PaymentTransactionResponse]:
+    """
+    Tìm kiếm nhanh giao dịch theo mã giao dịch nội bộ hoặc mã từ cổng gateway.
+    """
     by_code = await payment_crud.get_by_transaction_code(db=db, transaction_code=q)
     
     by_gateway_id = await payment_crud.get_by_gateway_transaction_id(
@@ -698,15 +670,18 @@ async def search_transactions(
 @cache(expire=300, key_builder=payment_statistics_key_builder)
 async def get_payment_statistics(
     db: SessionDep,
-    current_user: SuperUser,
     days: int = Query(30, ge=1, le=365, description="Number of days for statistics"),
+    current_user: User = Depends(require_permission("analytics.view")),
 ) -> PaymentStatistics:
-    start_date = datetime.now(timezone.utc) - timedelta(days=days)
+    """
+    Lấy dữ liệu báo cáo thống kê tình hình thanh toán trong một khoảng thời gian xác định.
+    """
+    start_date = datetime.now(timezone(timedelta(hours=7))) - timedelta(days=days)
     
     stats = await payment_crud.get_statistics(
         db=db,
         start_date=start_date,
-        end_date=datetime.now(timezone.utc)
+        end_date=datetime.now(timezone(timedelta(hours=7)))
     )
     
     return stats
@@ -715,87 +690,67 @@ async def get_payment_statistics(
 async def request_refund(
     *,
     db: SessionDep,
-    current_user: SuperUser,
     refund_in: RefundRequest,
     background_tasks: BackgroundTasks,
+    current_user: User = Depends(require_permission("payment.refund")),
 ) -> RefundResponse:
+    """
+    Xử lý yêu cầu hoàn tiền cho một giao dịch đã thanh toán thành công (Dành cho Admin).
+    """
     transaction = await payment_crud.get(db=db, id=refund_in.transaction_id)
     
     if not transaction:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Transaction not found"
-        )
+        raise HTTPException(status_code=404, detail="Transaction not found")
     
-    if transaction.status not in [PaymentStatusEnum.PAID, PaymentStatusEnum.PARTIAL_REFUNDED]:
+    allowed_statuses = [PaymentStatusEnum.PAID, PaymentStatusEnum.REFUNDED]
+    if transaction.status not in allowed_statuses:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Can only refund paid or partially refunded transactions"
+            status_code=400,
+            detail="Can only refund transactions that are PAID or previously REFUNDED"
         )
     
     if refund_in.refund_amount <= 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Refund amount must be greater than 0"
-        )
-    
-    if refund_in.refund_amount > transaction.amount:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Refund amount cannot exceed transaction amount"
-        )
-    
+        raise HTTPException(status_code=400, detail="Refund amount must be greater than 0")
+        
     if not current_user.is_superuser and refund_in.refund_amount > settings.PAYMENT_MAX_REFUND_AMOUNT_PER_ADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Refund amount exceeds your limit of {settings.PAYMENT_MAX_REFUND_AMOUNT_PER_ADMIN}"
-        )
-    
-    metadata = transaction.metadata or {}
-    previous_refunds = metadata.get("refunds", [])
+        raise HTTPException(status_code=403, detail="Refund amount exceeds limit")
+
+    payment_metadata = transaction.payment_metadata or {}
+    previous_refunds = payment_metadata.get("refunds", [])
     total_refunded = sum(r.get("amount", 0) for r in previous_refunds)
     
     current_total_refunded = total_refunded + refund_in.refund_amount
     
     if current_total_refunded > transaction.amount:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Total refund amount would exceed transaction amount. Already refunded: {total_refunded}"
+            status_code=400,
+            detail=f"Total refund ({current_total_refunded}) exceeds transaction amount ({transaction.amount})"
         )
     
     is_full_refund = current_total_refunded == transaction.amount
     
-    if is_full_refund:
-        new_status = PaymentStatusEnum.REFUNDED
-    else:
-        new_status = PaymentStatusEnum.PARTIAL_REFUNDED
+    new_payment_status = PaymentStatusEnum.PARTIAL_REFUNDED
     
     refund_record = {
         "refund_id": int(time.time()),
         "amount": float(refund_in.refund_amount),
         "reason": refund_in.reason,
         "refunded_by": current_user.user_id,
-        "refunded_by_email": current_user.email,
-        "refunded_at": datetime.now(timezone.utc).isoformat()
+        "refunded_at": datetime.now(timezone(timedelta(hours=7))).isoformat()
     }
-    
     previous_refunds.append(refund_record)
     
-    notes = transaction.notes or ""
-    refund_note = (
-        f"\n[{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}] "
-        f"Refund: {refund_in.refund_amount} {transaction.currency} "
-        f"by {current_user.email}. Reason: {refund_in.reason}"
-    )
-    
+    refund_note = f"\n[Refunded: {refund_in.refund_amount}] Reason: {refund_in.reason}"
+    notes = (transaction.notes or "") + refund_note
+
     await payment_crud.update(
         db=db,
         db_obj=transaction,
         obj_in={
-            "status": new_status,
-            "notes": notes + refund_note,
-            "metadata": {
-                **metadata,
+            "status": new_payment_status,
+            "notes": notes,
+            "payment_metadata": {
+                **payment_metadata,
                 "refunds": previous_refunds,
                 "total_refunded": float(current_total_refunded),
                 "is_partially_refunded": not is_full_refund
@@ -803,38 +758,37 @@ async def request_refund(
         }
     )
     
+
     order = await order_crud.get(db=db, id=transaction.order_id)
     if order:
         if is_full_refund:
-            await order_crud.update(
+            await order_crud.update_status(
                 db=db,
-                db_obj=order,
-                obj_in={
-                    "payment_status": PaymentStatusEnum.REFUNDED,
-                    "order_status": OrderStatusEnum.CANCELLED
-                }
+                order_id=order.order_id,
+                new_status=OrderStatusEnum.REFUNDED,
+                note=f"Hoàn tiền toàn bộ: {refund_in.reason}",
+                user_id=current_user.user_id
+            )
+            await order_crud.update(
+                db=db, 
+                db_obj=order, 
+                obj_in={"payment_status": PaymentStatusEnum.REFUNDED}
             )
         else:
-             await order_crud.update(
-                db=db,
-                db_obj=order,
-                obj_in={
-                    "payment_status": PaymentStatusEnum.PARTIAL_REFUNDED
-                }
-            )
-    
+            update_data = {
+                "payment_status": PaymentStatusEnum.PARTIAL_REFUNDED,
+                "order_status": OrderStatusEnum.PARTIAL_REFUNDED
+            }
+            await order_crud.update(db=db, db_obj=order, obj_in=update_data)
+   
+
     await create_audit_log(
-        db=db,
-        user_id=current_user.user_id,
-        action="refund_transaction",
-        resource_type="payment_transaction",
+        db=db, 
+        user_id=current_user.user_id, 
+        action="refund_transaction", 
+        resource_type="payment_transaction", 
         resource_id=refund_in.transaction_id,
-        details={
-            "refund_amount": float(refund_in.refund_amount),
-            "reason": refund_in.reason,
-            "is_full_refund": is_full_refund,
-            "total_refunded": float(current_total_refunded)
-        }
+        details={"amount": float(refund_in.refund_amount), "status": new_payment_status}
     )
     
     background_tasks.add_task(
@@ -842,13 +796,8 @@ async def request_refund(
         user_id=order.user_id if order else None,
         order_id=order.order_id if order else None,
         transaction_id=refund_in.transaction_id,
-        clear_admin=True,
+        clear_admin=True, 
         clear_stats=True
-    )
-    
-    logger.info(
-        f"Refund processed - admin:{current_user.user_id} txn:{refund_in.transaction_id} "
-        f"amount:{refund_in.refund_amount} full:{is_full_refund}"
     )
     
     return RefundResponse(
@@ -856,7 +805,7 @@ async def request_refund(
         transaction_id=refund_in.transaction_id,
         refund_amount=refund_in.refund_amount,
         status="completed" if is_full_refund else "partial",
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(timezone(timedelta(hours=7)))
     )
 
 @router.post("/webhooks/payos")
@@ -866,6 +815,9 @@ async def payos_webhook_handler(
     request: Request,
     background_tasks: BackgroundTasks,
 ) -> dict:
+    """
+    Xử lý thông báo tự động (Webhook) từ cổng thanh toán PayOS để cập nhật trạng thái đơn hàng theo thời gian thực.
+    """
     payos = PayOSService()
     
     try:
@@ -877,12 +829,19 @@ async def payos_webhook_handler(
             detail="Invalid request body"
         )
     
-    signature = request.headers.get("x-signature", "")
+    status_code = body.get("code")
+    desc = body.get("desc")
     webhook_data = body.get("data", {})
+    signature = body.get("signature") 
+    if not signature:
+         signature = request.headers.get("x-signature", "")
+
+    logger.info(f"Webhook PayOS received. Code: {status_code}, Desc: {desc}")
     
     is_valid = payos.verify_webhook_signature(webhook_data, signature)
     
     if not is_valid:
+        logger.warning(f"Invalid signature. Desc: {desc}")
         logger.warning(f"Invalid webhook signature: {signature[:20]}...")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -898,11 +857,11 @@ async def payos_webhook_handler(
     
     if lock_key in _webhook_locks:
         lock_time = _webhook_locks[lock_key]
-        if (datetime.now(timezone.utc) - lock_time).seconds < settings.PAYMENT_WEBHOOK_LOCK_TIMEOUT:
+        if (datetime.now(timezone(timedelta(hours=7))) - lock_time).seconds < settings.PAYMENT_WEBHOOK_LOCK_TIMEOUT:
             logger.info(f"Webhook already being processed: {lock_key}")
             return {"message": "Already processing", "processed": False}
     
-    _webhook_locks[lock_key] = datetime.now(timezone.utc)
+    _webhook_locks[lock_key] = datetime.now(timezone(timedelta(hours=7)))
     
     try:
         transaction = await payment_crud.get_by_gateway_transaction_id(
@@ -914,13 +873,13 @@ async def payos_webhook_handler(
             logger.warning(f"Transaction not found for PayOS order: {payos_order_code}")
             return {"message": "Transaction not found", "processed": False}
         
-        order = await order_crud.get(db=db, id=transaction.order_id)
+        order = await order_crud.get_with_details(db=db, id=transaction.order_id)
         if not order:
             logger.error(f"Order not found for transaction: {transaction.transaction_id}")
             return {"message": "Order not found", "processed": False}
         
         if status_code == "00":
-            if transaction.status == PaymentStatusEnum.PAID:
+            if transaction.status == PaymentStatusEnum.PAID and transaction.gateway_transaction_id == reference:
                 logger.info(f"Transaction already marked as paid: {transaction.transaction_id}")
                 return {
                     "message": "Already processed",
@@ -928,23 +887,53 @@ async def payos_webhook_handler(
                     "order_id": order.order_id
                 }
             
+            update_data = {
+                "status": PaymentStatusEnum.PAID,
+                "gateway_transaction_id": reference,
+                "notes": "Payment completed successfully via PayOS webhook",
+                "gateway_response": json.dumps(webhook_data),
+                "payment_metadata": {
+                    **(transaction.payment_metadata or {}),
+                    "counter_account_name": webhook_data.get("counterAccountName"),
+                    "counter_account_number": webhook_data.get("counterAccountNumber"),
+                    "transaction_datetime": transaction_datetime,
+                    "webhook_processed_at": datetime.now(timezone(timedelta(hours=7))).isoformat()
+                }
+            }
+
+            if order:
+                purchased_variant_ids = [item.variant_id for item in order.items]
+                await cart_crud.remove_items_after_checkout(
+                    db=db,
+                    user_id=order.user_id,
+                    variant_ids=purchased_variant_ids
+                )
+
+            if not transaction.paid_at:
+                update_data["paid_at"] = datetime.now(timezone(timedelta(hours=7)))
+
+            
+            if order.order_status == OrderStatusEnum.CANCELLED:
+                logger.warning(f"Payment received for CANCELLED order. OrderID: {order.order_id}, TxnID: {transaction.transaction_id}")
+                
+                update_data["notes"] = "WARNING: Payment received AFTER order was CANCELLED. Manual refund required."
+
+                await payment_crud.update(
+                    db=db,
+                    db_obj=transaction,
+                    obj_in=update_data
+                )
+                return {
+                    "message": "Payment received for cancelled order",
+                    "processed": True,
+                    "order_id": order.order_id,
+                    "warning": "Order was already cancelled"
+                }
+            
             await payment_crud.update(
                 db=db,
                 db_obj=transaction,
-                obj_in={
-                    "status": PaymentStatusEnum.PAID,
-                    "gateway_transaction_id": reference,
-                    "paid_at": datetime.now(timezone.utc),
-                    "notes": "Payment completed successfully via PayOS webhook",
-                    "gateway_response": json.dumps(webhook_data),
-                    "metadata": {
-                        **(transaction.metadata or {}),
-                        "counter_account_name": webhook_data.get("counterAccountName"),
-                        "counter_account_number": webhook_data.get("counterAccountNumber"),
-                        "transaction_datetime": transaction_datetime,
-                        "webhook_processed_at": datetime.now(timezone.utc).isoformat()
-                    }
-                }
+                obj_in=update_data
             )
             
             await order_crud.update(
@@ -994,10 +983,10 @@ async def payos_webhook_handler(
                     "gateway_transaction_id": reference,
                     "notes": f"Payment failed via PayOS webhook. Code: {status_code}",
                     "gateway_response": json.dumps(webhook_data),
-                    "metadata": {
-                        **(transaction.metadata or {}),
+                    "payment_metadata": {
+                        **(transaction.payment_metadata or {}),
                         "failure_code": status_code,
-                        "webhook_processed_at": datetime.now(timezone.utc).isoformat()
+                        "webhook_processed_at": datetime.now(timezone(timedelta(hours=7))).isoformat()
                     }
                 }
             )
@@ -1036,9 +1025,12 @@ async def payos_webhook_handler(
 async def payment_health_check(
     db: SessionDep,
 ) -> dict:
+    """
+    Kiểm tra tình trạng sức khỏe của hệ thống thanh toán, bao gồm kết nối Database và trạng thái hoạt động của cổng PayOS.
+    """
     health_status = {
         "status": "online",
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone(timedelta(hours=7))).isoformat()
     }
     
     try:
@@ -1063,12 +1055,21 @@ async def payment_health_check(
         }
     
     try:
-        if settings.PAYOS_ENABLED:
-            health_status["payos"] = "enabled"
-        else:
-            health_status["payos"] = "disabled"
+        is_config_ready = settings.PAYOS_ENABLED
+
+        is_db_active = await system_setting.get_value(
+            db=db, 
+            key="payment_method_payos_enabled", 
+            default=True
+        )
+
+        health_status["payos"] = {
+            "configured": is_config_ready,
+            "active_mode": is_db_active,
+            "final_status": "ready" if (is_config_ready and is_db_active) else "disabled"
+        }
     except Exception as e:
-        health_status["payos"] = "unknown"
+        health_status["payos"] = {"error": str(e)}
     
     if health_status.get("database") != "healthy":
         health_status["status"] = "degraded"

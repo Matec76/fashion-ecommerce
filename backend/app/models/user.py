@@ -1,4 +1,4 @@
-from datetime import datetime, date, timezone
+from datetime import datetime, date, timezone, timedelta
 from typing import TYPE_CHECKING, Optional, List
 
 from sqlmodel import Field, Relationship, SQLModel, Column, TIMESTAMP, Text
@@ -10,13 +10,10 @@ from app.models.enums import GenderEnum, AddressTypeEnum
 if TYPE_CHECKING:
     from app.models.order import Order
     from app.models.cart import Cart
-    from app.models.review import Review
     from app.models.wishlist import Wishlist
     from app.models.loyalty import LoyaltyPoint, PointTransaction, Referral
     from app.models.notification import Notification
-    from app.models.analytics import ProductView, SearchHistory, UserActivity
     from app.models.review import ProductQuestion
-    from app.models.system import AdminActivityLog
     from app.models.inventory import InventoryTransaction
     from app.models.return_refund import ReturnRequest
 
@@ -29,10 +26,13 @@ class RoleBase(SQLModel):
 
 class Role(RoleBase, table=True):
     __tablename__ = "roles"
-
-    role_id: Optional[int] = Field(default=None, primary_key=True)
+    role_id: Optional[int] = Field(
+        default=None, 
+        primary_key=True,
+        sa_column_kwargs={"autoincrement": False} 
+    )
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
 
@@ -76,7 +76,7 @@ class Permission(PermissionBase, table=True):
 
     permission_id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
 
@@ -118,7 +118,7 @@ class RolePermission(RolePermissionBase, table=True):
 
     role_permission_id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
 
@@ -143,13 +143,14 @@ class UserBase(SQLModel):
     date_of_birth: Optional[date] = None
     gender: Optional[GenderEnum] = Field(
         default=None,
-        sa_column=Column(PgEnum(GenderEnum, name="gender_enum", create_type=False), nullable=True)
+        sa_column=Column(PgEnum(GenderEnum, name="gender_enum", create_type=True), nullable=True)
     )
     avatar_url: Optional[str] = Field(default=None, max_length=500)
     is_active: bool = Field(default=True)
     is_superuser: bool = Field(default=False)
     is_email_verified: bool = Field(default=False)
-    role_id: int = Field(default=3, foreign_key="roles.role_id")
+    role_id: int = Field(default=2176, foreign_key="roles.role_id")
+    referral_code: Optional[str] = Field(default=None, unique=True, index=True, max_length=50)
 
 
 class User(UserBase, table=True):
@@ -157,14 +158,15 @@ class User(UserBase, table=True):
 
     user_id: Optional[int] = Field(default=None, primary_key=True)
     hashed_password: str = Field(max_length=255)
-    email_verified_at: Optional[datetime] = None
-    last_login: Optional[datetime] = None
+    email_verified_at: Optional[datetime] = Field(default=None, sa_column=Column(TIMESTAMP(timezone=True)))
+    last_login: Optional[datetime] = Field(default=None, sa_column=Column(TIMESTAMP(timezone=True)))
+    deleted_at: Optional[datetime] = Field(default=None, sa_column=Column(TIMESTAMP(timezone=True)))
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
     updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))
     )
 
@@ -182,25 +184,25 @@ class User(UserBase, table=True):
     )
 
     carts: List["Cart"] = Relationship(back_populates="user", cascade_delete=True)
-    reviews: List["Review"] = Relationship(back_populates="user", cascade_delete=True)
     wishlists: List["Wishlist"] = Relationship(back_populates="user", cascade_delete=True)
+    
     loyalty_points: Optional["LoyaltyPoint"] = Relationship(back_populates="user")
     point_transactions: List["PointTransaction"] = Relationship(
         back_populates="user",
         cascade_delete=True
     )
+    
     referrals_given: List["Referral"] = Relationship(
         back_populates="referrer",
         sa_relationship_kwargs={"foreign_keys": "[Referral.referrer_id]"}
     )
     referrals_received: List["Referral"] = Relationship(
-        back_populates="referee",
-        sa_relationship_kwargs={"foreign_keys": "[Referral.referee_id]"}
+        back_populates="referred_user",
+        sa_relationship_kwargs={"foreign_keys": "[Referral.referred_user_id]"}
     )
+    
     notifications: List["Notification"] = Relationship(back_populates="user", cascade_delete=True)
-    product_views: List["ProductView"] = Relationship(back_populates="user", cascade_delete=True)
-    search_history: List["SearchHistory"] = Relationship(back_populates="user", cascade_delete=True)
-    user_activities: List["UserActivity"] = Relationship(back_populates="user", cascade_delete=True)
+    
     product_questions: List["ProductQuestion"] = Relationship(
         back_populates="user",
         sa_relationship_kwargs={"foreign_keys": "[ProductQuestion.user_id]"}
@@ -209,7 +211,6 @@ class User(UserBase, table=True):
         back_populates="answerer",
         sa_relationship_kwargs={"foreign_keys": "[ProductQuestion.answered_by]"}
     )
-    admin_logs: List["AdminActivityLog"] = Relationship(back_populates="user", cascade_delete=True)
     inventory_transactions: List["InventoryTransaction"] = Relationship(back_populates="user", cascade_delete=True)
     return_requests: List["ReturnRequest"] = Relationship(
         back_populates="user",
@@ -236,8 +237,9 @@ class UserCreate(SQLModel):
     password: str = Field(min_length=8, max_length=40)
     first_name: Optional[str] = Field(default=None, max_length=100)
     last_name: Optional[str] = Field(default=None, max_length=100)
+    date_of_birth: Optional[date] = None
     phone_number: Optional[str] = Field(default=None, max_length=20)
-    role_id: int = Field(default=3)
+    role_id: int = Field(default=2176)
 
 
 class UserRegister(SQLModel):
@@ -245,6 +247,7 @@ class UserRegister(SQLModel):
     password: str = Field(min_length=8, max_length=40)
     first_name: str = Field(max_length=100)
     last_name: str = Field(max_length=100)
+    date_of_birth: Optional[date] = None
 
 
 class UserUpdate(SQLModel):
@@ -255,6 +258,9 @@ class UserUpdate(SQLModel):
     date_of_birth: Optional[date] = None
     gender: Optional[GenderEnum] = None
     avatar_url: Optional[str] = Field(default=None, max_length=500)
+    role_id: Optional[int] = None
+    is_active: Optional[bool] = None
+    is_superuser: Optional[bool] = None
 
 
 class UserUpdateMe(SQLModel):
@@ -276,32 +282,29 @@ class UsersResponse(SQLModel):
 
 
 class AddressBase(SQLModel):
-    user_id: int = Field(foreign_key="users.user_id")
     address_type: AddressTypeEnum = Field(
         default=AddressTypeEnum.SHIPPING,
-        sa_column=Column(PgEnum(AddressTypeEnum, name="address_type_enum", create_type=False), nullable=False)
+        sa_column=Column(PgEnum(AddressTypeEnum, name="address_type_enum", create_type=True), nullable=False)
     )
     recipient_name: str = Field(max_length=255)
     phone_number: str = Field(max_length=20)
-    address_line1: str = Field(max_length=255)
-    address_line2: Optional[str] = Field(default=None, max_length=255)
+    street_address: str = Field(max_length=255)
+    ward: Optional[str] = Field(default=None, max_length=100)
     city: str = Field(max_length=100)
-    state_province: Optional[str] = Field(default=None, max_length=100)
     postal_code: Optional[str] = Field(default=None, max_length=20)
-    country: str = Field(default="Vietnam", max_length=100)
     is_default: bool = Field(default=False)
 
 
 class Address(AddressBase, table=True):
     __tablename__ = "addresses"
-
     address_id: Optional[int] = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="users.user_id")
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
     updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))
     )
 
@@ -310,6 +313,7 @@ class Address(AddressBase, table=True):
 
 class AddressResponse(AddressBase):
     address_id: int
+    user_id: int
     created_at: datetime
     updated_at: datetime
 
@@ -322,12 +326,10 @@ class AddressUpdate(SQLModel):
     address_type: Optional[AddressTypeEnum] = None
     recipient_name: Optional[str] = Field(default=None, max_length=255)
     phone_number: Optional[str] = Field(default=None, max_length=20)
-    address_line1: Optional[str] = Field(default=None, max_length=255)
-    address_line2: Optional[str] = Field(default=None, max_length=255)
+    street_address: Optional[str] = Field(default=None, max_length=255)
+    ward: Optional[str] = Field(default=None, max_length=100)
     city: Optional[str] = Field(default=None, max_length=100)
-    state_province: Optional[str] = Field(default=None, max_length=100)
     postal_code: Optional[str] = Field(default=None, max_length=20)
-    country: Optional[str] = Field(default=None, max_length=100)
     is_default: Optional[bool] = None
 
 

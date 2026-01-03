@@ -1,11 +1,3 @@
-"""
-CRUD operations cho Role và Permission models.
-
-Bao gồm:
-- CRUDRole: CRUD cho Role với các phương thức quản lý permissions
-- CRUDPermission: CRUD cho Permission
-- CRUDRolePermission: CRUD cho RolePermission (many-to-many)
-"""
 from typing import List, Optional, Dict, Any
 
 from sqlalchemy import select

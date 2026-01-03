@@ -68,7 +68,7 @@ class CRUDAddress(CRUDBase[Address, AddressCreate, AddressUpdate]):
         db_obj = Address(
             user_id=user_id,
             is_default=should_be_default,
-            **obj_in.model_dump(exclude={"is_default"})
+            **obj_in.model_dump(exclude={"is_default", "user_id"})
         )
         
         db.add(db_obj)

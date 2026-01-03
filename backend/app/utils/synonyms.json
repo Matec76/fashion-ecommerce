@@ -1,0 +1,78 @@
+{
+  "__1_BRANDS_ENTITIES__ (THƯƠNG HIỆU & BIẾN THỂ & SAI CHÍNH TẢ)": {
+    "louis_vuitton": ["louis vuitton", "louis vutton", "luis vuiton", "louis vui ton", "lv", "lờ vờ", "eo vi", "el vi", "en vi", "nhà pháp", "hãng l", "louis", "vuiton", "vuitton"],
+    "gucci": ["gucci", "gucchi", "guchi", "gu chì", "gu xì", "gc", "gg", "double g", "nhà gu", "the house of gucci"],
+    "chanel": ["chanel", "channel", "chanen", "coco", "coco chanel", "2c", "hai chữ c", "xà nel", "sha nel", "cha nel", "nhà hoa trà"],
+    "hermes": ["hermes", "hermès", "héc mét", "he mét", "hơ mét", "hm", "nhà cam", "chữ h", "cỗ xe ngựa"],
+    "dior": ["dior", "christian dior", "di or", "cd", "diorr", "đi o", "nhà d", "lady dior"],
+    "burberry": ["burberry", "bbr", "bubery", "burbery", "bờ bơ ri", "kẻ sọc", "kỵ sĩ", "nhà bur"],
+    "balenciaga": ["balenciaga", "balen", "balencia", "ba len", "nhà ba", "bờ len", "giày tất"],
+    "dolce_gabbana": ["dolce & gabbana", "dolce gabbana", "dolce", "d&g", "dg", "đô chê", "đôn chề", "thời trang đôn chề"],
+    "versace": ["versace", "ve sác", "ver", "vơ sác", "medusa", "đầu rắn", "ác quỷ"],
+    "fendi": ["fendi", "fen đi", "ff", "chữ f", "fendy"],
+    "saint_laurent": ["saint laurent", "ysl", "yves saint laurent", "sanh lo răng", "y ét lờ", "nhà ysl"],
+    "prada": ["prada", "pra da", "milano", "tam giác ngược", "tam giác"],
+    "bottega_veneta": ["bottega veneta", "bottega", "bv", "bốt tê ga", "nhà đan", "đan chéo"],
+    "celine": ["celine", "céline", "xê lin", "triomphe", "khải hoàn môn"],
+    "gentle_monster": ["gentle monster", "gm", "gen tờ", "kính chữ v", "gentle", "monster"],
+    "mlb": ["mlb", "ny", "la", "bost", "boston", "yankees", "dodgers", "bóng chày"],
+    "adlv": ["adlv", "acmé de la vie", "áo bé", "áo em bé"],
+    "nike": ["nike", "nai ki", "nai", "dấu phẩy", "swoosh", "jordan", "jd", "air force", "af1"],
+    "adidas": ["adidas", "das", "a đi đát", "3 sọc", "ba sọc", "yeezy", "350", "700"]
+  },
+
+  "__2_PRODUCT_TYPES_NOUNS__ (DANH TỪ SẢN PHẨM CHI TIẾT)": {
+    "ao_tops": ["áo", "top", "áo thun", "t-shirt", "tee", "phông", "áo phông", "sơ mi", "shirt", "chemise", "áo kiểu", "blouse", "croptop", "crop top", "tanktop", "ba lỗ", "sát nách", "hai dây", "trễ vai", "cổ lọ", "hoodie", "sweater", "áo nỉ", "áo len", "cardigan", "áo khoác", "jacket", "bomber", "varsity", "blazer", "vest", "măng tô", "coat", "trench coat", "áo gió", "windbreaker", "áo phao", "puffer", "áo da", "biker", "polo", "áo có cổ"],
+    "quan_bottoms": ["quần", "bottom", "quần dài", "pants", "trousers", "quần âu", "quần tây", "quần vải", "quần kaki", "chino", "quần jean", "jeans", "quần bò", "denim", "skinny", "ống loe", "ống rộng", "baggy", "jogger", "quần nỉ", "legging", "quần đùi", "short", "quần sooc", "quần ngố", "culottes", "quần suông"],
+    "vay_dresses": ["váy", "đầm", "dress", "váy liền", "đầm suông", "đầm body", "đầm ôm", "đầm xòe", "đầm maxi", "đầm dự tiệc", "gown", "đầm dạ hội", "set váy", "jumpsuit", "đồ bay", "yếm", "chân váy", "skirt", "juyp", "chân váy ngắn", "chân váy dài", "xếp ly", "chữ a"],
+    "tui_bags": ["túi", "bag", "túi xách", "handbag", "giỏ", "giỏ xách", "ví", "bóp", "wallet", "purse", "clutch", "cầm tay", "túi đeo chéo", "crossbody", "túi đeo vai", "shoulder bag", "túi kẹp nách", "hobo", "tote", "balo", "backpack", "cặp", "briefcase", "túi du lịch", "duffle", "túi trống", "keepall", "vali", "luggage", "suitcase", "rương", "trunk", "túi bao tử", "belt bag", "bum bag", "fanny pack"],
+    "giay_shoes": ["giày", "shoe", "footwear", "dép", "guốc", "bốt", "boots", "sneaker", "giày thể thao", "bata", "giày vải", "giày da", "giày tây", "loafer", "giày lười", "sục", "mule", "cao gót", "heels", "pump", "sandal", "xăng đan", "tông", "lê", "flip flop", "giày chạy", "running", "training", "giày đế đỏ", "giày đế cói", "espadrilles"],
+    "phu_kien_accessories": ["kính", "mắt kính", "sunglasses", "gọng kính", "thắt lưng", "dây nít", "belt", "đai lưng", "mũ", "nón", "cap", "mũ lưỡi trai", "mũ len", "beanie", "mũ tai bèo", "bucket", "khăn", "scarf", "khăn lụa", "khăn choàng", "cà vạt", "tie", "nơ", "bow", "găng tay", "gloves", "tất", "vớ", "socks"],
+    "trang_suc_jewelry": ["trang sức", "jewelry", "nữ trang", "nhẫn", "ring", "vòng cổ", "dây chuyền", "necklace", "lắc tay", "vòng tay", "bracelet", "bông tai", "khuyên tai", "earrings", "đồng hồ", "watch", "cỗ máy thời gian", "lắc chân", "trâm cài"]
+  },
+
+  "__3_MARKET_SLANG_ADJECTIVES__ (TÍNH TỪ & TỪ LÓNG THỊ TRƯỜNG)": {
+    "chat_luong_tich_cuc": ["đẹp", "xinh", "sang", "xịn", "mịn", "sò", "chất", "ngầu", "đỉnh", "cháy", "khét", "nuột", "ngon", "chanh sả", "sang chảnh", "quý phái", "thanh lịch", "đẳng cấp", "luxury", "hot", "trend", "siêu phẩm", "cực phẩm", "nhức nách", "hết nước chấm", "mê ly", "xuất sắc", "nét căng"],
+    "chat_luong_tieu_cuc": ["xấu", "đểu", "dởm", "lởm", "nhái", "fake", "pha ke", "rách", "cũ", "nát", "tã", "quê", "sến", "lỗi mốt", "out trend", "chợ", "phèn", "lởm khởm"],
+    "do_moi_condition": ["new", "mới", "mới tinh", "nguyên seal", "fullbox", "full tag", "nguyên mac", "like new", "likenew", "99%", "98%", "95%", "siêu lướt", "dùng lướt", "keng", "xà beng", "used", "cũ", "2hand", "secondhand", "đã dùng"],
+    "nguon_goc_origin": ["auth", "authentic", "real", "legit", "chính hãng", "store", "xách tay", "hàng công ty", "xuất dư", "tuồn", "tuồn store", "fake", "fake 1", "f1", "rep", "replica", "1:1", "rep 1:1", "siêu cấp", "best quality", "mirror", "hàng xưởng", "hàng chợ"],
+    "gia_ca_pricing": ["rẻ", "đắt", "mắc", "chát", "mặn", "hạt dẻ", "mềm", "tốt", "hời", "deal hời", "giá yêu thương", "giá công khai", "giá ib", "giá hủy diệt", "giá sập sàn", "giá học sinh", "giá sinh viên", "đau ví", "cháy túi", "viêm màng túi", "chát chúa"]
+  },
+
+  "__4_ACTION_VERBS_INTENTS__ (ĐỘNG TỪ HÀNH ĐỘNG & Ý ĐỊNH)": {
+    "mua_hang": ["mua", "buy", "lấy", "chốt", "đặt", "order", "săn", "vợt", "múc", "hốt", "quất", "xuống tiền", "chuyển khoản", "ck", "bank", "cọc", "thanh toán", "trả tiền", "boom hàng", "vào việc"],
+    "ban_hang": ["bán", "sell", "sale", "xả", "thanh lý", "pass", "đẩy", "tiễn", "gả", "nhượng", "tìm chủ", "giao lưu", "trade", "thu mua", "ký gửi"],
+    "hoi_thong_tin": ["hỏi", "xin", "check", "xem", "tư vấn", "tìm", "kiếm", "soi", "thẩm", "xin giá", "báo giá", "ib", "inbox", "dm", "check legit", "xin ảnh", "xin video", "lên dáng"],
+    "van_chuyen": ["ship", "giao", "gửi", "vận chuyển", "freeship", "free ship", "fs", "cod", "nhận hàng", "kiểm hàng", "khui hàng", "đập hộp", "unboxing", "đồng kiểm"]
+  },
+
+  "__5_UNITS_AND_MEASUREMENTS__ (ĐƠN VỊ & ĐO LƯỜNG)": {
+    "tien_te": ["tiền", "lúa", "thóc", "ngân lượng", "máu", "đạn", "k", "nghìn", "ngàn", "củ", "triệu", "tr", "chai", "lít", "xị", "tỏi", "tỷ", "đồng", "vnd", "usd", "đô"],
+    "size_quan_ao": ["xs", "s", "m", "l", "xl", "xxl", "2xl", "3xl", "big size", "ngoại cỡ", "size đại", "freesize", "one size", "oversize", "form rộng", "form ôm", "slimfit", "regular"],
+    "size_giay": ["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "size tấm", "size cám", "chân 22cm", "chân 23cm"],
+    "size_tui": ["mini", "micro", "nano", "bb", "pm", "mm", "gm", "size 18", "size 20", "size 25", "size 28", "size 30", "size 35"]
+  },
+
+  "__6_COLORS_PALETTE__ (BẢNG MÀU CHI TIẾT)": {
+    "co_ban": ["đen", "black", "trắng", "white", "đỏ", "red", "xanh", "blue", "green", "vàng", "yellow", "tím", "purple", "cam", "orange", "hồng", "pink", "nâu", "brown", "xám", "grey", "ghi"],
+    "nang_cao": ["be", "beige", "kem", "cream", "nude", "rêu", "olive", "bộ đội", "than", "navy", "ngọc", "turquoise", "bích", "cobalt", "da trời", "sky blue", "lá mạ", "cánh sen", "fuchsia", "mắm tôm", "bã trầu", "bordeaux", "lông chuột", "xi măng", "cafe", "bò", "camel", "mận", "huyết dụ", "phấn", "baby blue", "baby pink"],
+    "chat_lieu_mau": ["ánh kim", "metallic", "nhũ", "bạc", "silver", "vàng gold", "đồng", "bronze", "loang", "tie dye", "ombre", "phản quang", "neon"]
+  },
+
+  "__7_MATERIALS_TEXTURES__ (CHẤT LIỆU & HỌA TIẾT)": {
+    "da_leather": ["da", "leather", "da thật", "da bò", "cowhide", "da bê", "calfskin", "da cừu", "lambskin", "da dê", "chevre", "da lộn", "suede", "da bóng", "patent", "da sáp", "da hạt", "da trăn", "python", "da cá sấu", "crocodile", "alligator", "da đà điểu", "ostrich", "da tổng hợp", "simili", "pu", "da nhân tạo", "da vegan"],
+    "vai_fabric": ["vải", "cotton", "thun", "nỉ", "len", "wool", "dạ", "tweed", "kaki", "khaki", "jean", "denim", "nhung", "velvet", "lụa", "silk", "phi bóng", "satin", "voan", "chiffon", "ren", "lace", "lưới", "mesh", "thô", "đũi", "lanh", "linen", "nylon", "dù", "polyester"],
+    "hoa_tiet_pattern": ["trơn", "basic", "kẻ", "sọc", "caro", "check", "chấm bi", "polka dot", "hoa", "floral", "hoa nhí", "rằn ri", "camo", "da báo", "leopard", "logo", "monogram", "chữ", "graphic", "thêu", "đính đá"]
+  },
+
+  "__8_CONVERSATIONAL_CONTEXT__ (NGỮ CẢNH HỘI THOẠI CHATBOT)": {
+    "xung_ho": ["mình", "tớ", "em", "cháu", "con", "anh", "chị", "bác", "cô", "chú", "shop", "tiệm", "bên em", "nhà em", "ad", "admin", "xốp", "bạn ơi", "chế ơi", "tình yêu", "cả nhà"],
+    "tu_dem": ["ạ", "dạ", "vâng", "nhé", "nha", "nhen", "ha", "hả", "hở", "cơ", "mà", "nhỉ", "đâu", "đấy", "thế", "vậy", "rồi", "chưa", "luôn", "ngay"],
+    "cau_hoi_mau": ["giá sao", "bao tiền", "nhiêu", "bn", "còn ko", "sẵn ko", "check ib", "rep ib", "tư vấn giúp", "ship ko", "có mẫu này ko", "cho xem ảnh thật", "có ảnh lên dáng ko", "fix giá ko", "bớt ko", "freeship ko"]
+  },
+
+  "__9_SPECIFIC_ITEMS_FROM_SQL__ (DỮ LIỆU ĐẶC BIỆT TỪ FILE SQL CỦA BẠN)": {
+    "items": ["bàn bi lắc", "babyfoot", "ván trượt", "skateboard", "xe đạp", "bike", "rương", "trunk", "hộp đựng đồng hồ", "watch case", "hộp trang sức", "jewelry box", "nến thơm", "candle", "ghế", "sofa", "bàn", "table", "đèn", "lamp", "thảm", "rug", "gối", "cushion", "chăn", "blanket", "đồ cho chó", "pet accessories"],
+    "collections": ["by the pool", "ski", "yayoi kusama", "x adidas", "hacker project", "dioriviera", "objet nomades"]
+  }
+}

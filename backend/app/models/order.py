@@ -1,9 +1,9 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from decimal import Decimal
 from typing import TYPE_CHECKING, Optional, List, Dict, Any
 
 from sqlmodel import Field, Relationship, SQLModel, Column, TIMESTAMP, Text
-from sqlalchemy import Numeric, text
+from sqlalchemy import Numeric, text, Index
 from sqlalchemy.dialects.postgresql import ENUM as PgEnum, JSONB
 
 from app.models.enums import OrderStatusEnum, PaymentStatusEnum
@@ -32,11 +32,11 @@ class ShippingMethod(ShippingMethodBase, table=True):
 
     shipping_method_id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
     updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))
     )
 
@@ -72,11 +72,11 @@ class OrderBase(SQLModel):
     
     order_status: OrderStatusEnum = Field(
         default=OrderStatusEnum.PENDING,
-        sa_column=Column(PgEnum(OrderStatusEnum, name="order_status_enum", create_type=False), nullable=False)
+        sa_column=Column(PgEnum(OrderStatusEnum, name="order_status_enum", create_type=True), nullable=False)
     )
     payment_status: PaymentStatusEnum = Field(
         default=PaymentStatusEnum.PENDING,
-        sa_column=Column(PgEnum(PaymentStatusEnum, name="payment_status_enum", create_type=False), nullable=False)
+        sa_column=Column(PgEnum(PaymentStatusEnum, name="payment_status_enum", create_type=True), nullable=False)
     )
     payment_method_id: Optional[int] = Field(
         default=None,
@@ -114,12 +114,21 @@ class Order(OrderBase, table=True):
     order_device: Optional[str] = Field(default=None, max_length=255)
     
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
     updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"), onupdate=text("CURRENT_TIMESTAMP"))
+    )
+
+    __table_args__ = (
+        Index('idx_order_user_id', 'user_id'),
+        Index('idx_order_status', 'order_status'),
+        Index('idx_order_payment_status', 'payment_status'),
+        Index('idx_order_created_at', 'created_at'),
+        Index('idx_order_user_status', 'user_id', 'order_status'),
+        Index('idx_order_user_created', 'user_id', 'created_at'),
     )
 
     user: Optional["User"] = Relationship(
@@ -249,7 +258,7 @@ class OrderStatusHistory(OrderStatusHistoryBase, table=True):
 
     history_id: Optional[int] = Field(default=None, primary_key=True)
     created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(timezone(timedelta(hours=7))),
         sa_column=Column(TIMESTAMP(timezone=True), server_default=text("CURRENT_TIMESTAMP"))
     )
 
