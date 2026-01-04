@@ -1,0 +1,265 @@
+/* --- KHUNG TRANG CHÍNH --- */
+.page-container {
+  padding: 24px;
+  background-color: #f3f4f6; /* Màu nền xám nhẹ dịu mắt */
+  min-height: 100vh;
+}
+
+/* --- HEADER --- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.header-actions .btn-primary {
+  background-color: #111827;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.header-actions .btn-primary:hover {
+  background-color: #374151;
+}
+
+/* --- TABS CHUYỂN ĐỔI (QUAN TRỌNG) --- */
+.tabs-container {
+  display: flex;
+  gap: 24px;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 0; /* Sát với mép trên của bảng */
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  padding: 12px 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  margin-bottom: -2px; /* Đè lên đường kẻ dưới */
+  border-bottom: 2px solid transparent;
+}
+
+.tab-btn:hover {
+  color: #111827;
+}
+
+.tab-btn.active {
+  color: #2563eb; /* Màu xanh active */
+  border-bottom-color: #2563eb;
+}
+
+/* --- KHUNG BẢNG --- */
+.table-card {
+  background: white;
+  border-radius: 0 0 8px 8px; /* Bo góc dưới */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border-top: 1px solid #e5e7eb; /* Đường kẻ ngăn cách với tab */
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.data-table th {
+  background-color: #f9fafb;
+  padding: 12px 24px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #6b7280;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.data-table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+  color: #1f2937;
+  vertical-align: middle;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tr:hover {
+  background-color: #f9fafb; /* Hover dòng cho dễ nhìn */
+}
+
+/* --- CÁC THÀNH PHẦN NHỎ (BADGE, STATUS) --- */
+.text-muted { color: #9ca3af; }
+.text-small { font-size: 12px; margin-top: 2px; }
+
+/* Badge Mặc định */
+.badge-default {
+  display: inline-block;
+  background-color: #dbeafe;
+  color: #1e40af;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 8px;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+/* Trạng thái hoạt động */
+.status-pill {
+  display: inline-flex;
+  padding: 2px 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-pill.active { background-color: #d1fae5; color: #065f46; } /* Xanh lá */
+.status-pill.inactive { background-color: #fee2e2; color: #991b1b; } /* Đỏ nhạt */
+
+/* --- LOẠI GIAO DỊCH (IMPORT/EXPORT) --- */
+.trans-type {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.trans-type.import { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+.trans-type.export { background-color: #ffedd5; color: #c2410c; border: 1px solid #fdba74; }
+
+/* Màu số lượng */
+.text-green { color: #16a34a; }
+.text-red { color: #dc2626; }
+.bold { font-weight: 600; }
+
+/* --- NÚT HÀNH ĐỘNG (SỬA/XÓA) --- */
+.action-cell {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: transform 0.2s, background 0.2s;
+  opacity: 0.7;
+}
+
+.btn-icon:hover {
+  opacity: 1;
+  background-color: #f3f4f6;
+  transform: scale(1.1);
+}
+
+.text-blue { color: #2563eb; } /* Nút sao vàng set default */
+.text-red { color: #ef4444; }  /* Nút xóa thùng rác */
+
+/* --- TRẠNG THÁI LOADING/EMPTY --- */
+.loading-state, .empty-state {
+  padding: 48px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* ... Giữ nguyên CSS cũ ở trên ... */
+
+/* --- MODAL STYLES (MỚI) --- */
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Nền tối mờ */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* Đè lên tất cả */
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  background-color: white;
+  width: 500px;
+  max-width: 95%;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease-out;
+}
+
+.modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 { margin: 0; font-size: 18px; color: #111827; }
+.close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #9ca3af; }
+.close-btn:hover { color: #111827; }
+
+.modal-body { padding: 24px; }
+
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 14px; color: #374151; }
+.form-group input[type="text"],
+.form-group input[type="email"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+.form-group input:focus { border-color: #2563eb; box-shadow: 0 0 0 2px rgba(37,99,235,0.1); }
+
+/* Form 2 cột */
+.form-row { display: flex; gap: 16px; }
+.half { flex: 1; }
+
+/* Checkbox */
+.checkbox-group { display: flex; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer; }
+.checkbox-group input { width: 16px; height: 16px; cursor: pointer; }
+.checkbox-group label { margin: 0; cursor: pointer; }
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background-color: #f9fafb;
+  border-radius: 0 0 8px 8px;
+}
+
+/* Animations */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }

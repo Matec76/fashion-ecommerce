@@ -1,0 +1,220 @@
+/* --- LAYOUT CHUNG --- */
+.marketing-page {
+    padding: 30px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    font-family: 'Segoe UI', sans-serif;
+    position: relative;
+}
+
+.page-header {
+    margin-bottom: 25px;
+}
+.title-area h2 { margin: 0; color: #2b2d42; font-size: 22px; }
+.title-area p { margin: 5px 0 0; color: #8d99ae; font-size: 14px; }
+
+/* --- TABS NAVIGATION --- */
+.marketing-tabs {
+    display: flex;
+    gap: 20px;
+    border-bottom: 2px solid #e5e7eb;
+    margin-top: 20px;
+}
+
+.tab-btn {
+    padding: 10px 15px;
+    border: none;
+    background: none;
+    font-size: 15px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+}
+
+.tab-btn:hover { color: #4361ee; }
+
+.tab-btn.active {
+    color: #4361ee;
+    border-bottom-color: #4361ee;
+}
+
+/* --- BUTTONS --- */
+.btn-create {
+    background-color: #4361ee;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(67, 97, 238, 0.3);
+    transition: 0.2s;
+}
+.btn-create:hover { background-color: #3a56d4; transform: translateY(-2px); }
+
+/* --- COUPON GRID & CARD --- */
+.coupon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 20px;
+}
+
+.coupon-card {
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #edf2f4;
+    transition: transform 0.2s;
+    height: 160px; /* Cố định chiều cao cho đều */
+}
+
+.coupon-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+
+.coupon-left {
+    width: 110px;
+    background: linear-gradient(135deg, #4361ee, #4cc9f0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    position: relative;
+    border-right: 2px dashed rgba(255,255,255,0.4);
+    flex-shrink: 0;
+}
+
+.coupon-value {
+    font-size: 22px;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.2;
+}
+.off-label { display: block; font-size: 12px; font-weight: 600; opacity: 0.9; }
+
+.coupon-right {
+    flex: 1;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.coupon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.code-text {
+    font-weight: 700;
+    font-size: 15px;
+    color: #2b2d42;
+    cursor: pointer;
+    border: 1px dashed #ccc;
+    padding: 2px 8px;
+    border-radius: 4px;
+    background: #f8f9fa;
+}
+.code-text:hover { background: #e9ecef; border-color: #4361ee; color: #4361ee; }
+
+.status-tag {
+    font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: 600;
+}
+.status-tag.active { background: #dcfce7; color: #166534; }
+.status-tag.inactive { background: #f1f5f9; color: #64748b; }
+
+.coupon-desc { font-size: 13px; color: #64748b; }
+
+.coupon-footer {
+    display: flex; justify-content: space-between; align-items: flex-end;
+}
+.expiry-date { font-size: 12px; color: #94a3b8; font-weight: 500; }
+.expiry-date.expired { color: #ef4444; font-weight: 700; }
+
+.actions { display: flex; gap: 8px; }
+.btn-icon {
+    width: 30px; height: 30px; border-radius: 50%; border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s;
+}
+.btn-icon.edit { background: #eff6ff; color: #3b82f6; }
+.btn-icon.edit:hover { background: #3b82f6; color: white; }
+.btn-icon.delete { background: #fef2f2; color: #ef4444; }
+.btn-icon.delete:hover { background: #ef4444; color: white; }
+
+.coupon-card.inactive .coupon-left { background: #94a3b8; }
+
+/* --- FLASH SALE STYLES --- */
+.flash-card .coupon-left.flash-left {
+    background: linear-gradient(135deg, #f59e0b, #d97706); /* Cam rực rỡ */
+}
+
+.flash-btn {
+    background-color: #f59e0b !important;
+    color: white !important;
+}
+.flash-btn:hover {
+    background-color: #d97706 !important;
+}
+
+/* --- MODAL POPUP --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.6); 
+    z-index: 9999;
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background: white; width: 600px; max-width: 95%;
+    padding: 30px; border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    animation: slideDown 0.3s ease-out;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@keyframes slideDown { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h4 { margin: 0; font-size: 18px; color: #111827; }
+.close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #9ca3af; }
+
+.form-row { display: flex; gap: 15px; margin-bottom: 15px; }
+.col-1 { flex: 1; }
+.col-2 { flex: 2; }
+
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600; color: #4b5563; }
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;
+}
+.form-group input:focus { border-color: #4361ee; outline: none; box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1); }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px; border-top: 1px solid #f3f4f6; padding-top: 20px; }
+.btn-cancel, .btn-secondary { background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+.btn-submit, .btn-primary { background: #4361ee; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+
+/* Scroll cho danh sách sản phẩm trong Flash Sale */
+.product-list-scroll::-webkit-scrollbar { width: 6px; }
+.product-list-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+
+.btn-icon.view {
+    background: #e0f2fe;
+    color: #0ea5e9;
+}
+.btn-icon.view:hover {
+    background: #0ea5e9;
+    color: white;
+}
+
+/* Style cho bảng trong Modal chi tiết */
+.text-center { text-align: center; }

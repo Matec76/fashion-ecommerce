@@ -1,0 +1,221 @@
+/* --- CSS CHO MODAL FORM SẢN PHẨM --- */
+
+.product-form-modal {
+  width: 800px; /* Rộng vừa phải */
+  max-width: 95%;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh; /* Giới hạn chiều cao */
+  background: #f8f9fa; /* Nền hơi xám nhẹ cho hiện đại */
+}
+
+.product-form-modal .modal-body {
+  padding: 25px;
+  overflow-y: auto;
+  background: #f8f9fa;
+}
+
+/* Các khối Section */
+.form-section {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+  border: 1px solid #eaecf0;
+  margin-bottom: 20px;
+}
+
+.form-section.highlight {
+  border-left: 4px solid #3b82f6; /* Điểm nhấn xanh dương */
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a2035;
+  margin: 0 0 15px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed #eee;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Grid Layout cho Form */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
+}
+
+.span-2 { grid-column: span 2; }
+
+/* Input Styles */
+.form-group { margin-bottom: 15px; }
+
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 6px;
+}
+
+.form-group label .required { color: red; }
+
+.form-group input, 
+.form-group select, 
+.form-group textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: all 0.2s;
+  background: #fff;
+}
+
+.form-group input:focus, 
+.form-group textarea:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  outline: none;
+}
+
+/* Checkbox đẹp */
+.checkbox-group {
+  display: flex;
+  gap: 20px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.checkbox-label input { width: 16px; height: 16px; cursor: pointer; }
+
+/* Image Manager Wrapper */
+.image-manager-box {
+  background: #fdfdfd;
+  border: 2px dashed #e5e7eb;
+  border-radius: 8px;
+  padding: 15px;
+}
+
+/* Footer Buttons */
+.modal-footer {
+  background: white;
+  padding: 15px 25px;
+  border-top: 1px solid #eaecf0;
+  border-radius: 0 0 12px 12px;
+}
+
+.btn-save {
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-save:hover { background-color: #2563eb; }
+
+.btn-cancel {
+  background-color: white;
+  color: #666;
+  border: 1px solid #d1d5db;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 10px;
+}
+.btn-cancel:hover { background-color: #f3f4f6; }
+.badge-success {
+  background-color: #dcfce7; /* Màu nền xanh nhạt */
+  color: #166534;            /* Màu chữ xanh đậm */
+  
+  /* Các thông số khác */
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-block;
+}
+
+/* 2. Màu đỏ (Ngừng kinh doanh) - Em khuyến mãi thêm cho đủ bộ */
+.badge-error {
+  background-color: #fee2e2; /* Nền đỏ nhạt */
+  color: #991b1b;            /* Chữ đỏ đậm */
+  
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-block;
+}
+
+/* --- Style cột Đã bán / Tồn --- */
+.stock-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: 'Consolas', 'Monaco', monospace; /* Dùng font số cho thẳng hàng */
+  font-size: 14px;
+  background: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #edf2f4;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.sold-count {
+  color: #d00000; /* Màu đỏ: Hàng đã đi */
+  font-weight: 700;
+}
+
+.divider {
+  color: #adb5bd;
+  font-weight: 300;
+  font-size: 16px;
+}
+
+.stock-count {
+  color: #2b2d42; /* Màu đậm: Hàng còn */
+  font-weight: 600;
+}
+
+/* Thanh progress bar nhỏ xíu */
+.stock-progress {
+  width: 60px;
+  height: 3px;
+  background: #e9ecef;
+  border-radius: 2px;
+  margin: 6px auto 0;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background-color: #38b000; /* Xanh lá */
+  border-radius: 2px;
+}

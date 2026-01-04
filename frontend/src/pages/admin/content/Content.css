@@ -1,0 +1,63 @@
+.content-page {
+  padding: 25px;
+  background-color: #f5f7fb;
+  min-height: 100vh;
+}
+
+.page-header {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;
+}
+
+.btn-create, .btn-publish {
+  background-color: #111827; /* Màu đen style */
+  color: white; border: none; padding: 10px 20px;
+  border-radius: 6px; font-weight: 600; cursor: pointer;
+}
+.btn-create:hover, .btn-publish:hover { background-color: #374151; }
+
+.btn-back {
+  background: none; border: 1px solid #ccc; padding: 8px 15px; border-radius: 6px; cursor: pointer;
+}
+
+/* Editor Styles */
+.editor-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  max-width: 900px;
+  margin: 0 auto; /* Căn giữa */
+}
+
+.card-header { padding: 20px; border-bottom: 1px solid #eee; }
+.card-header h3 { margin: 0; font-size: 18px; }
+
+.card-body { padding: 25px; }
+
+.form-group { margin-bottom: 20px; }
+.form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: #374151; }
+
+.input-title {
+  width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 16px;
+  outline: none; transition: border-color 0.2s;
+}
+.input-title:focus { border-color: #3b82f6; }
+
+.input-content {
+  width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 6px; font-size: 15px;
+  outline: none; resize: vertical; font-family: inherit; line-height: 1.5;
+}
+.input-content:focus { border-color: #3b82f6; }
+
+.editor-footer {
+  display: flex; justify-content: space-between; align-items: center; margin-top: 10px;
+}
+
+.checkbox-container {
+  display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;
+}
+
+/* Status Badges */
+.status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+.status-badge.active { background-color: #dcfce7; color: #166534; }
+.status-badge.draft { background-color: #f3f4f6; color: #6b7280; }

@@ -1,0 +1,113 @@
+/* Sidebar Container */
+.sidebar {
+  width: 260px;
+  height: 100vh;
+  background-color: #1a2035; /* Màu nền xanh đen chuẩn ảnh */
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  left: 0;
+  top: 0;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+  z-index: 1000;
+}
+
+/* Logo Area */
+.sidebar-logo {
+  height: 70px;
+  display: flex;
+  align-items: center;
+  padding-left: 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-logo h2 {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* Menu List */
+.sidebar-menu {
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px; /* Khoảng cách giữa các mục */
+}
+
+/* Menu Item Styling */
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 25px;
+  text-decoration: none;
+  color: #aeb7c6; /* Màu chữ xám nhạt khi chưa chọn */
+  transition: all 0.3s ease;
+  font-size: 15px;
+  font-weight: 500;
+  border-left: 4px solid transparent; /* Chuẩn bị sẵn viền trái */
+}
+
+.menu-item .icon {
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.menu-item .icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Hover State */
+.menu-item:hover {
+  color: #ffffff;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Active State (Khi đang chọn) */
+.menu-item.active {
+  background-color: #2d3655; /* Màu nền sáng hơn chút khi chọn */
+  color: #ffffff;
+  border-left: 4px solid #3b82f6; /* Viền xanh dương bên trái tạo điểm nhấn */
+}
+
+.menu-item.active .icon svg {
+  stroke-width: 2.5; /* Icon đậm hơn khi chọn */
+}
+.sidebar-footer {
+    margin-top: auto; /* Thần chú để đẩy xuống cuối cùng */
+    padding-bottom: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Vạch ngăn cách */
+}
+
+/* Style riêng cho nút Logout */
+.logout-btn {
+    cursor: pointer; /* Biến con trỏ thành bàn tay */
+    color: #ff6b6b; /* Màu đỏ nhạt mặc định */
+}
+
+.logout-btn:hover {
+    background-color: rgba(255, 107, 107, 0.1);
+    color: #ff4757; /* Đỏ đậm hơn khi hover */
+}
+.sidebar-footer {
+  margin-top: auto;
+  padding-bottom: 20px;
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  color: #f87171;
+}
+
+.logout-btn:hover {
+  background-color: rgba(248, 113, 113, 0.1);
+  color: #ffffff;
+}

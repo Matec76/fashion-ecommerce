@@ -1,0 +1,76 @@
+/* Container cho bảng nhân viên */
+.role-settings-container {
+    margin-top: 10px;
+}
+
+/* Các nhãn chức vụ (Badge) */
+.role-badge {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+    border: 1px solid transparent;
+}
+
+/* Màu sắc theo role_id */
+.badge-super-user { color: #722ed1; background: #f9f0ff; border-color: #d3adf7; } /* Role 1 */
+.badge-admin { color: #2f54eb; background: #f0f5ff; border-color: #adc6ff; }      /* Role 2 */
+.badge-warehouse { color: #fa8c16; background: #fff7e6; border-color: #ffd591; }  /* Role 3 */
+.badge-marketing { color: #eb2f96; background: #fff0f6; border-color: #ffadd2; }  /* Role 4 */
+.badge-cskh { color: #52c41a; background: #f6ffed; border-color: #b7eb8f; }       /* Role 5 */
+
+/* Thông tin nhân viên trong bảng */
+.staff-info-cell {
+    display: flex;
+    flex-direction: column;
+}
+
+.staff-name {
+    font-weight: 600;
+    color: #111827;
+    font-size: 14px;
+}
+
+.staff-id-tag {
+    font-size: 11px;
+    color: #9ca3af;
+    margin-top: 2px;
+}
+
+.staff-contact-info {
+    font-size: 13px;
+    color: #4b5563;
+    line-height: 1.4;
+}
+
+/* Modal Form đặc thù cho Role */
+.role-select-box {
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.role-checkbox-area {
+    background-color: #f8fafc;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px dashed #cbd5e1;
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.role-checkbox-area input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.role-checkbox-area label {
+    cursor: pointer;
+    font-weight: 600 !important;
+    color: #334155;
+    margin-bottom: 0 !important;
+}
+.btn-icon { color:#d32f2f; }

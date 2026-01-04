@@ -1,0 +1,233 @@
+/* --- Customers.css --- */
+:root {
+  --primary-color: #4361ee;
+  --secondary-color: #3f37c9;
+  --bg-color: #f8f9fa;
+  --text-dark: #2b2d42;
+  --text-grey: #8d99ae;
+  --white: #ffffff;
+}
+
+.customers-page {
+  padding: 30px;
+  background-color: var(--bg-color);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Header */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.page-title h2 {
+  font-size: 24px;
+  color: var(--text-dark);
+  margin: 0;
+  font-weight: 700;
+}
+
+.page-title span {
+  font-size: 14px;
+  color: var(--text-grey);
+  font-weight: 400;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.search-box {
+  position: relative;
+}
+
+.search-box input {
+  padding: 10px 15px 10px 40px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  width: 250px;
+  outline: none;
+  transition: all 0.3s;
+}
+
+.search-box input:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.15);
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-grey);
+}
+
+.btn-add {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  box-shadow: 0 4px 10px rgba(67, 97, 238, 0.3);
+}
+
+.btn-add:hover {
+  background-color: var(--secondary-color);
+  transform: translateY(-2px);
+}
+
+/* Table */
+.table-card {
+  background: var(--white);
+  border-radius: 16px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+  border: 1px solid #edf2f4;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead {
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #edf2f4;
+}
+
+th {
+  padding: 18px 24px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-grey);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  padding: 16px 24px;
+  border-bottom: 1px solid #edf2f4;
+  vertical-align: middle;
+  color: var(--text-dark);
+}
+
+tr:hover {
+  background-color: #fbfbfb;
+}
+
+/* User Info Text Only */
+.user-info {
+  display: flex;
+  align-items: center;
+}
+
+/* Badges */
+.role-badge {
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.role-admin { background-color: #e2eafc; color: #4361ee; }
+.role-user { background-color: #f8f9fa; color: #6c757d; border: 1px solid #dee2e6;}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.status-active { background-color: #d8f3dc; color: #1b4332; }
+.status-blocked { background-color: #ffe5d9; color: #9d0208; }
+
+/* Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit { background-color: #e2eafc; color: #4361ee; }
+.btn-edit:hover { background-color: #4361ee; color: white; }
+
+.btn-delete { background-color: #ffe5d9; color: #ef233c; }
+.btn-delete:hover { background-color: #ef233c; color: white; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.animate-pop-in {
+  animation: popIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.user-avatar-placeholder {
+  width: 40px;          /* Tạo độ rộng cố định */
+  height: 40px;         /* Tạo chiều cao cố định */
+  background-color: #e2eafc; /* Màu nền xanh nhạt */
+  color: #4361ee;       /* Màu chữ xanh đậm */
+  border-radius: 50%;   /* Bo tròn thành hình tròn */
+  display: flex;
+  align-items: center;  /* Căn chữ ra giữa theo chiều dọc */
+  justify-content: center; /* Căn chữ ra giữa theo chiều ngang */
+  font-weight: bold;
+  margin-right: 15px;   /* Cách tên ra một đoạn cho thoáng */
+  font-size: 16px;
+  flex-shrink: 0;       /* Chống bị méo hình khi màn hình nhỏ */
+}
+.btn-delete {
+  background-color: #fee2e2; /* Nền đỏ nhạt */
+  color: #ef4444;           /* Icon đỏ */
+  border: 1px solid #fecaca;
+}
+
+.btn-delete:hover {
+  background-color: #ef4444;
+  color: white;
+  border-color: #ef4444;
+}
+
+/* Chỉnh lại action buttons để các nút cách nhau ra */
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px; /* Khoảng cách giữa nút Sửa và Xóa */
+}

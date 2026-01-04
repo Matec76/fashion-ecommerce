@@ -1,0 +1,129 @@
+/* Làm Modal to ra để chứa nhiều thông tin */
+.modal-content.large-modal {
+  width: 800px; /* Rộng hơn */
+  max-width: 95%;
+  height: 90vh; /* Cao 90% màn hình */
+  display: flex;
+  flex-direction: column;
+}
+
+.scrollable-form {
+  overflow-y: auto; /* Cho phép cuộn dọc */
+  padding-right: 10px;
+  flex: 1;
+}
+
+/* Style cho Tiêu đề từng mục (SEO, Giá...) */
+.section-title {
+  margin: 20px 0 10px 0;
+  padding-bottom: 5px;
+  border-bottom: 2px solid #f0f0f0;
+  color: #1a2035;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Các class chia cột cũ */
+.form-row { display: flex; gap: 15px; }
+.form-group.half { flex: 1; }
+.form-group.third { flex: 1; min-width: 120px; }
+
+/* CSS cho cột mới trong bảng */
+.text-center { text-align: center; }
+.badge-stock {
+  background: #eee;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  color: #666;
+}
+.image-manager-container {
+  margin-top: 10px;
+  border: 1px dashed #ccc;
+  padding: 15px;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.upload-btn {
+  background: #1a2035;
+  color: white;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: inline-block;
+  margin-right: 10px;
+  font-size: 13px;
+}
+
+.upload-btn:hover { background: #34495e; }
+
+.image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.image-card {
+  width: 120px;
+  height: 120px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  position: relative;
+  overflow: hidden;
+  background: white;
+}
+
+.image-card.primary {
+  border: 2px solid #e67e22; /* Viền cam cho ảnh chính */
+}
+
+.image-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-actions {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  justify-content: space-between;
+  padding: 5px;
+  box-sizing: border-box;
+}
+
+.btn-delete-img {
+  background: red;
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-set-primary {
+  background: #f1c40f;
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.badge-primary {
+  color: #f39c12;
+  font-size: 10px;
+  font-weight: bold;
+  background: rgba(255,255,255,0.9);
+  padding: 2px 5px;
+  border-radius: 4px;
+}
