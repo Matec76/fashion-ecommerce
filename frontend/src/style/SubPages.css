@@ -1,0 +1,360 @@
+html {
+  font-size: 25%;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  margin: 0;
+  color: gray;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  background-repeat: no-repeat;
+}
+
+/* MAIN */
+.sub1 {
+  margin-top: 25rem;
+}
+
+.help-center {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+  color: black;
+}
+
+.help-center h1 {
+  font-size: 7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 2rem;
+}
+
+.help-center .subtitle {
+  font-size: 4rem;
+  color: var(--text-secondary);
+  margin-bottom: 5rem;
+}
+
+.faq-list {
+  text-align: left;
+  max-width: 900px;
+  margin-top: 8rem;
+  padding-left: 20rem;
+}
+
+.faq-item {
+  margin-bottom: 3rem;
+}
+
+.faq-item+.faq-item {
+  border-top: 1px solid rgb(218, 212, 212);
+}
+
+.faq-item h3 {
+  font-size: 5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.faq-item p {
+  font-size: 4rem;
+  color: gray;
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* FOOTER */
+.site-footer1 {
+  background-color: black;
+  color: white;
+  padding-top: 8rem;
+  padding-bottom: 8rem;
+  margin-top: 60rem;
+  border-top: 2rem solid white;
+}
+
+.container1 {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 8rem;
+  padding-right: 8rem;
+  box-sizing: border-box;
+  /* Đã xóa flex để tránh conflict, dùng flow thường */
+  display: block;
+}
+
+.footer-grid1 {
+  display: flex;
+  flex-direction: column;
+  /* Xếp dọc nội dung */
+  font-size: 3rem;
+  align-items: center;
+  /* Căn giữa */
+  gap: 16px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 4rem;
+}
+
+.footer-links1 {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  /* Cho phép xuống dòng nếu màn hình nhỏ */
+  justify-content: center;
+}
+
+.footer-bottom1 {
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  margin-top: 5rem;
+  padding: 6rem 0 2rem 0;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 2.5rem;
+}
+
+.footer-bottom1 p {
+  margin: 0;
+}
+
+/* --- Media Queries cho Responsive --- */
+/* Đã xóa các đoạn grid-template-columns thừa gây lỗi */
+
+@media (min-width: 1024px) {
+  .container1 {
+    max-width: 1024px;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 640px) {
+  .container1 {
+    max-width: 640px;
+  }
+}
+
+@media (min-width: 768px) {
+  .container1 {
+    max-width: 768px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container1 {
+    max-width: 1280px;
+  }
+}
+
+/* THEO DÕI */
+.sub2 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.follow-container {
+  background-color: #fff;
+  padding: 30px 50px 50px 50px;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  font-weight: 700;
+}
+
+.follow-container h2 {
+  font-size: 6rem;
+  color: black;
+  margin-bottom: 1.5rem;
+}
+
+.follow-container p {
+  color: #6b7280;
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+/* Form Order */
+.form-order {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: left;
+}
+
+.form-order label {
+  display: block;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 6px;
+  font-size: 3rem;
+}
+
+.form-order input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.form-order input:focus::placeholder {
+  color: transparent;
+}
+
+.form-order input::placeholder {
+  color: #9ca3af;
+  opacity: 1;
+}
+
+.form-order input:focus {
+  border-color: #000;
+}
+
+.form-order button {
+  background-color: #000;
+  color: #fff;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 14px;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.form-order button:hover {
+  background-color: #333;
+}
+
+/* HOI VIEN */
+.sub3 {
+  margin: 20rem auto;
+}
+
+.sub3__container {
+  display: flex;
+  gap: 30px;
+  margin: 10rem auto;
+}
+
+.dac_quyen {
+  flex: 1;
+  background-color: #ffffff;
+  padding: 30px;
+  text-align: left;
+  border: 1px solid black;
+  border-radius: 5px;
+}
+
+.dac_quyen h6 {
+  font-size: 18px;
+  font-weight: bold;
+  color: #212529;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.dac_quyen p {
+  font-size: 16px;
+  color: #6c757d;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* form-order1 */
+.form-order1 {
+  margin: 0 auto;
+  background-color: #ffffff;
+  padding: 40px;
+  text-align: left;
+  max-width: 75rem;
+}
+
+.form-order1 label {
+  display: block;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 6px;
+  font-size: 3rem;
+}
+
+.form-order1 input {
+  min-width: 70rem;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  font-size: 14px;
+  color: #111827;
+  outline: none;
+  transition: border-color 0.2s ease;
+  margin-bottom: 5rem;
+}
+
+.form-order1 button {
+  width: 70rem;
+  background-color: #000000;
+  color: #ffffff;
+  border: none;
+  padding: 15px 0;
+  font-size: 12px;
+}
+
+.form-order1 button:hover {
+  background-color: #333;
+}
+
+/* CHINH_SACH */
+.sub4 {
+  margin: 10rem auto 0 auto;
+  color: black;
+  max-width: 200rem;
+}
+
+.sub4 h2 {
+  font-size: 36px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.sub4__update {
+  font-size: 4rem;
+  margin-bottom: 6rem;
+}
+
+.sub4__list {
+  font-size: 4em;
+  padding-left: 5rem;
+}
+
+.sub4__list li {
+  margin-bottom: 3rem;
+}
+
+.sub4__list h4 {
+  margin-bottom: 1px;
+}

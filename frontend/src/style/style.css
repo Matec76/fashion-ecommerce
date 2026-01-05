@@ -1,0 +1,733 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-repeat: no-repeat;
+  flex-direction: column;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  overflow-y: auto;
+}
+
+h1 {
+  text-align: center;
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-top: 20px;
+  margin-bottom: 0px;
+  color: black;
+}
+
+/* ============= GLASS CONTAINER - ĐĂNG KÝ ============= */
+.glass-container {
+  position: relative;
+  width: 400px;
+  padding: 30px;
+  border-radius: 20px;
+  backdrop-filter: blur(110px);
+  border: 1 solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 25px 45px rgba(16, 15, 15, 0.4);
+  z-index: 10;
+  overflow: hidden;
+  margin: 30px 0;
+  height: 550px;
+}
+
+.glass-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  transform: skewX(-15deg);
+  transition: 0.5s;
+  pointer-events: none;
+}
+
+.glass-container:hover::before {
+  left: 120%;
+}
+
+.glass-container h2 {
+  color: black;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 1px;
+  margin-bottom: 40px;
+
+}
+
+.input__group {
+  position: relative;
+  margin-bottom: 30px;
+
+}
+
+.input__group input {
+  width: 100%;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  font-size: 16px;
+  color: black;
+  transition: all .3s ease;
+}
+
+.input__group input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.input__group input:focus {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.input__group label {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  color: black;
+  font-size: 16px;
+  pointer-events: none;
+  transition: all .3s ease;
+}
+
+.input__group input:focus+label,
+.input__group input:valid+label {
+  top: -15px;
+  left: 0;
+  font-size: 14px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: black;
+}
+
+.remember-forget {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: black;
+  margin-bottom: 25px;
+}
+
+.remember-forget label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.remember-forget input {
+  margin-right: 8px;
+  accent-color: black;
+}
+
+.remember-forget a {
+  color: black;
+  text-decoration: none;
+  transition: all .3s ease;
+}
+
+.remember-forget a:hover {
+  text-decoration: underline;
+}
+
+.login-btn {
+  width: 100%;
+  padding: 15px;
+  background: black;
+  border: none;
+  outline: none;
+  border-radius: 35px;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .3s ease;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.login-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(255, 255, 255, 0.2);
+  color: black;
+}
+
+.sign_up {
+  text-align: center;
+  margin-top: 25px;
+  color: black;
+  font-size: 14px;
+}
+
+.sign_up a {
+  color: black;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all .3s ease;
+}
+
+.sign_up a:hover {
+  text-decoration: underline;
+}
+
+/* ============= ĐĂNG KÝ ============= */
+.glass-container1 {
+  position: relative;
+  width: 30rem;
+  padding: 30px;
+  border-radius: 20px;
+  backdrop-filter: blur(110px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1 solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 25px 45px rgba(16, 15, 15, 0.4);
+  z-index: 10;
+  overflow: hidden;
+  margin: 20px 0;
+  height: 45rem;
+
+}
+
+.glass-container1::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  transform: skewX(-15deg);
+  transition: 0.5s;
+  pointer-events: none;
+}
+
+.glass-container1:hover::before {
+  left: 120%;
+}
+
+.glass-container1 h3 {
+  color: black;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 1px;
+  padding-bottom: 2rem;
+}
+
+.container1 {
+  display: flex;
+  gap: 1rem;
+}
+
+.signup-container {
+  margin-bottom: 25px;
+}
+
+.signup-container label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+  color: black;
+}
+
+.birthdate {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.birthdate select {
+  flex: 1;
+  padding: 12px 15px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  font-size: 16px;
+  color: black;
+  transition: all 0.3s ease;
+  appearance: none;
+  text-align: center;
+}
+
+.birthdate select:focus {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.birthdate select::-webkit-scrollbar {
+  display: none;
+}
+
+/* ============= LOGIN PAGE - TRANG ĐĂNG NHẬP ============= */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url('/Gemini_Generated_Image_ly0y6zly0y6zly0y.png');
+  background-repeat: no-repeat;
+  flex-direction: column;
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  overflow-y: auto;
+}
+
+.login-brand-title {
+  text-align: center;
+  font-size: 10rem;
+  font-weight: 900;
+  margin-top: 100px;
+  margin-bottom: 0px;
+  color: black;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.login-glass-container {
+  position: relative;
+  width: 400px;
+  padding: 50px;
+  border-radius: 20px;
+  backdrop-filter: blur(110px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 25px 45px rgba(16, 15, 15, 0.4);
+  z-index: 10;
+  overflow: hidden;
+  margin: 30px 0;
+  min-height: 700px;
+}
+
+.login-glass-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  transform: skewX(-15deg);
+  transition: 0.5s;
+  pointer-events: none;
+}
+
+.login-glass-container:hover::before {
+  left: 120%;
+}
+
+.login-glass-container h2 {
+  color: black;
+  font-size: 28px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 1px;
+  margin-bottom: 40px;
+}
+
+.login-input-group {
+  position: relative;
+  margin-bottom: 30px;
+}
+
+.login-input-group input {
+  width: 100%;
+  padding: 15px 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  font-size: 16px;
+  color: black;
+  transition: all 0.3s ease;
+}
+
+.login-input-group input::placeholder {
+  color: transparent;
+}
+
+.login-input-group input:focus {
+  background: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.login-input-group label {
+  position: absolute;
+  top: 50%;
+  left: 20px;
+  transform: translateY(-50%);
+  color: black;
+  font-size: 16px;
+  pointer-events: none;
+  transition: all 0.3s ease;
+}
+
+.login-input-group input:focus+label,
+.login-input-group input:valid+label {
+  top: -15px;
+  left: 0;
+  font-size: 14px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  color: black;
+}
+
+.login-remember-forget {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: black;
+  margin-bottom: 25px;
+}
+
+.login-remember-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.login-remember-label input {
+  margin-right: 8px;
+  accent-color: black;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.login-remember-forget a {
+  color: black;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.login-remember-forget a:hover {
+  text-decoration: underline;
+}
+
+.login-btn:active {
+  transform: translateY(-1px);
+}
+
+.login-sign-up {
+  text-align: center;
+  margin-top: 25px;
+  color: black;
+  font-size: 16px;
+}
+
+.login-sign-up p {
+  margin: 0;
+}
+
+.login-sign-up a {
+  color: black;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+.login-sign-up a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+
+  .glass-container,
+  .login-glass-container {
+    width: 90%;
+    padding: 20px;
+  }
+
+  h1,
+  .login-brand-title {
+    font-size: 2rem;
+  }
+}
+
+/* ============= VERIFY EMAIL PAGE - TRANG XÁC THỰC EMAIL ============= */
+.verify-email-content {
+  text-align: center;
+  padding: 40px 20px;
+  min-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Loading state */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-top: 4px solid #000;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-state h2 {
+  color: #000;
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.loading-state p {
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Success state */
+.success-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.success-icon {
+  width: 80px;
+  height: 80px;
+  background: #4caf50;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  color: white;
+  animation: scaleIn 0.5s ease-out;
+}
+
+.success-state h2 {
+  color: #4caf50;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.success-state p {
+  color: #000;
+  font-size: 16px;
+  margin: 10px 0;
+  max-width: 400px;
+}
+
+.redirect-notice {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* Error state */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: fadeIn 0.5s ease-in;
+}
+
+.error-icon {
+  width: 80px;
+  height: 80px;
+  background: #f44336;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 50px;
+  color: white;
+  animation: shake 0.5s ease-out;
+}
+
+.error-state h2 {
+  color: #f44336;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.error-state p {
+  color: #000;
+  font-size: 16px;
+  margin: 10px 0;
+  max-width: 400px;
+}
+
+/* Action buttons */
+.action-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.primary-btn,
+.secondary-btn {
+  padding: 12px 30px;
+  border: none;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.primary-btn {
+  background: #000;
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.primary-btn:hover {
+  background: #333;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.secondary-btn {
+  background: rgba(0, 0, 0, 0.1);
+  color: #000;
+  border: 2px solid #000;
+}
+
+.secondary-btn:hover {
+  background: rgba(0, 0, 0, 0.2);
+  transform: translateY(-2px);
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+  }
+
+  50% {
+    transform: scale(1.1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-10px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(10px);
+  }
+}
+
+/* Responsive cho verify email */
+@media (max-width: 480px) {
+  .verify-email-content {
+    padding: 20px 10px;
+  }
+
+  .success-icon,
+  .error-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 40px;
+  }
+
+  .success-state h2,
+  .error-state h2 {
+    font-size: 22px;
+  }
+
+  .success-state p,
+  .error-state p {
+    font-size: 14px;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .primary-btn,
+  .secondary-btn {
+    width: 100%;
+  }
+}

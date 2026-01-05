@@ -1,0 +1,110 @@
+.scroll-date-picker {
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+    margin-bottom: 15px;
+}
+
+.scroll-picker {
+    flex: 1;
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+/* Collapsed state - shows placeholder */
+.scroll-picker.collapsed {
+    height: 50px;
+}
+
+/* Expanded state - shows 3 items */
+.scroll-picker.expanded {
+    height: 120px;
+    /* 3 items × 40px */
+    cursor: default;
+}
+
+.scroll-picker-placeholder-collapsed {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 16px;
+    font-weight: 500;
+    user-select: none;
+}
+
+.scroll-picker-container {
+    height: 100%;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scroll-behavior: smooth;
+    position: relative;
+
+    /* Snap scrolling to items */
+    scroll-snap-type: y mandatory;
+    scroll-padding-top: 40px;
+    /* Align snap to center position */
+}
+
+.scroll-picker-container::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+}
+
+.scroll-picker-item {
+    position: absolute;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: rgba(0, 0, 0, 0.5);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+    scroll-snap-align: start;
+    /* Snap each item to scroll container */
+}
+
+.scroll-picker-item:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.scroll-picker-item.selected {
+    color: #000;
+    font-weight: bold;
+    font-size: 18px;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Highlight center area when expanded - always centered at 40px (middle of 3 items) */
+.scroll-picker.expanded::before {
+    content: '';
+    position: absolute;
+    top: 40px;
+    /* Exact center position for 3-item picker (0-40-80-120) */
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.25);
+    border-top: 2px solid rgba(0, 0, 0, 0.2);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Hover effect for collapsed state */
+.scroll-picker.collapsed:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}

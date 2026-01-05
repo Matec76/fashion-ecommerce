@@ -1,0 +1,260 @@
+/* Voucher Picker Modal Styles */
+
+.voucher-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.voucher-modal-content {
+    background: white;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.voucher-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #eee;
+}
+
+.voucher-modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #1a1a2e;
+}
+
+.voucher-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.voucher-modal-close:hover {
+    background: #f5f5f5;
+    color: #333;
+}
+
+.voucher-modal-body {
+    padding: 16px 24px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.voucher-loading,
+.voucher-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.voucher-empty p {
+    font-size: 16px;
+}
+
+.voucher-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #1a1a2e;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.voucher-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.voucher-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: white;
+}
+
+.voucher-card:hover:not(.disabled) {
+    border-color: #1a1a2e;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+.voucher-card.selected {
+    border-color: #4CAF50;
+    background: #f1f8f4;
+}
+
+.voucher-card.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: #f9f9f9;
+}
+
+.voucher-card-left {
+    display: flex;
+    align-items: flex-start;
+    flex: 1;
+}
+
+.voucher-radio {
+    font-size: 20px;
+    color: #1a1a2e;
+    margin-top: 2px;
+}
+
+.voucher-card.selected .voucher-radio {
+    color: #4CAF50;
+}
+
+.voucher-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.voucher-code {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1a1a2e;
+    font-family: 'Courier New', monospace;
+}
+
+.voucher-description {
+    font-size: 14px;
+    color: #666;
+}
+
+.voucher-min,
+.voucher-max {
+    font-size: 12px;
+    color: #999;
+}
+
+.voucher-card-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.voucher-discount {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e74c3c;
+}
+
+.voucher-disabled-label {
+    font-size: 12px;
+    color: #999;
+    background: #f5f5f5;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.voucher-current-label {
+    font-size: 12px;
+    color: #4CAF50;
+    background: #f1f8f4;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .voucher-modal-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+
+    .voucher-modal-header {
+        padding: 16px 20px;
+    }
+
+    .voucher-modal-header h2 {
+        font-size: 18px;
+    }
+
+    .voucher-modal-body {
+        padding: 12px 20px 20px;
+    }
+
+    .voucher-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .voucher-card-right {
+        align-items: flex-start;
+        width: 100%;
+    }
+}
