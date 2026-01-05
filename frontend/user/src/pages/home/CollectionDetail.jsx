@@ -201,7 +201,7 @@ function CollectionDetail() {
         return (
             <div className="error-container">
                 <p style={{ fontSize: '16px' }}>Không tìm thấy bộ sưu tập này.</p>
-                <Link to="/collections" style={{ color: '#000', marginTop: '1rem', display: 'inline-block' }}>
+                <Link to="/collections" style={{ color: '#000', marginTop: '1rem', display: 'inline-block', fontSize: '14px' }}>
                     ← Quay lại danh sách
                 </Link>
             </div>

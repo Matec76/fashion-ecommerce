@@ -18,18 +18,31 @@ const Cart = () => {
 
     // State for selected items
     const [selectedItems, setSelectedItems] = React.useState(new Set());
+    const [hasInitialized, setHasInitialized] = React.useState(false);
 
     useEffect(() => {
         fetchCart();
     }, [fetchCart]);
 
-    // Auto-select all items when cart loads
+    // Auto-select all items ONLY on initial load
     useEffect(() => {
-        if (cartItems && cartItems.length > 0) {
+        if (cartItems && cartItems.length > 0 && !hasInitialized) {
             const allItemIds = new Set(cartItems.map(item => item.cart_item_id || item.id));
             setSelectedItems(allItemIds);
+            setHasInitialized(true);
+        } else if (cartItems && cartItems.length === 0) {
+            // Reset when cart is empty
+            setSelectedItems(new Set());
+            setHasInitialized(false);
+        } else if (hasInitialized && cartItems && cartItems.length > 0) {
+            // Clean up selectedItems: remove IDs that no longer exist in cart
+            const currentItemIds = new Set(cartItems.map(item => item.cart_item_id || item.id));
+            setSelectedItems(prevSelected => {
+                const cleaned = new Set([...prevSelected].filter(id => currentItemIds.has(id)));
+                return cleaned;
+            });
         }
-    }, [cartItems]);
+    }, [cartItems, hasInitialized]);
 
     // Handle select all toggle
     const handleSelectAll = () => {

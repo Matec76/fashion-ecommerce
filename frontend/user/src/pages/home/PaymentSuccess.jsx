@@ -6,15 +6,13 @@ import '../../style/Payment.css';
 const PaymentSuccess = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { clearCart } = useCart();
+    const { fetchCart } = useCart();
     const { orderId, orderNumber, isCOD } = location.state || {};
 
-    // Clear cart when online payment succeeds (COD already cleared in Checkout)
+    // Backend handles cart clearing, just sync frontend state
     useEffect(() => {
-        if (!isCOD) {
-            clearCart();
-        }
-    }, [isCOD, clearCart]);
+        fetchCart();
+    }, [fetchCart]);
 
     return (
         <div className="payment-result-page">

@@ -12,7 +12,7 @@ import { useCart } from './CartContext';
 const Checkout = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { clearCart } = useCart();
+    const { fetchCart } = useCart();
 
     const { selectedItems = [], selectedTotal = 0 } = location.state || {};
 
@@ -278,20 +278,34 @@ const Checkout = () => {
             const token = localStorage.getItem('authToken');
 
             // Create Order - Backend creates order AND payment transaction together
+            const orderPayload = {
+                shipping_address_id: selectedShippingAddress,
+                billing_address_id: selectedBillingAddress,
+                shipping_method_id: selectedShippingMethod,
+                payment_method_id: selectedPaymentMethod,
+                notes: formData.notes || "",
+                coupon_code: appliedCoupon?.code || null,
+                // Backend expects variant_ids, not cart_item_ids
+                variant_ids: selectedItems.map(item => item.variant?.variant_id || item.variant_id)
+            };
+
+            logger.log('🛒 CHECKOUT DEBUG - Payload:', orderPayload);
+            logger.log('📦 Selected Items:', selectedItems);
+            logger.log('🔢 Variant IDs:', orderPayload.variant_ids);
+            logger.log('📋 Full item details:', selectedItems.map(item => ({
+                cart_item_id: item.cart_item_id,
+                variant_id: item.variant?.variant_id || item.variant_id,
+                quantity: item.quantity,
+                product: item.product?.product_name
+            })));
+
             const orderResponse = await authFetch(API_ENDPOINTS.ORDERS.CREATE, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    shipping_address_id: selectedShippingAddress,
-                    billing_address_id: selectedBillingAddress,
-                    shipping_method_id: selectedShippingMethod,
-                    payment_method_id: selectedPaymentMethod,
-                    notes: formData.notes || "",
-                    coupon_code: appliedCoupon?.code || null
-                })
+                body: JSON.stringify(orderPayload)
             });
 
             if (!orderResponse.ok) {
@@ -349,8 +363,8 @@ const Checkout = () => {
             logger.log('Is COD?', isCOD);
 
             if (isCOD) {
-                // COD: Clear cart and navigate to success page
-                await clearCart();
+                // COD: Backend handles cart clearing, just sync frontend state
+                await fetchCart();
                 navigate('/payment/success', {
                     state: {
                         orderId,

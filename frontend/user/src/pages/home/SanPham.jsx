@@ -181,6 +181,15 @@ function SanPham() {
     return 'all';
   });
   const [priceSort, setPriceSort] = useState('none'); // 'none', 'asc', 'desc'
+  const [selectedPriceRanges, setSelectedPriceRanges] = useState([]);
+
+  // CONSTANT: KHOẢNG GIÁ
+  const PRICE_RANGES = [
+    { id: 'range1', label: '0đ - 10.000.000đ', min: 0, max: 10000000 },
+    { id: 'range2', label: '10.000.000đ - 50.000.000đ', min: 10000000, max: 50000000 },
+    { id: 'range3', label: '50.000.000đ - 100.000.000đ', min: 50000000, max: 100000000 },
+    { id: 'range4', label: 'Trên 100.000.000đ', min: 100000000, max: 500000000 },
+  ];
 
   // 🔍 DEBUG: Track selectedTypes changes
   useEffect(() => {
@@ -428,6 +437,18 @@ function SanPham() {
       return true;
     });
 
+    // Lọc theo Khoảng giá (Filter by Price Range)
+    if (selectedPriceRanges.length > 0) {
+      filtered = filtered.filter(product => {
+        const price = product.salePrice || product.basePrice;
+        // Check if price matches ANY of the selected ranges
+        return selectedPriceRanges.some(rangeId => {
+          const range = PRICE_RANGES.find(r => r.id === rangeId);
+          return range && price >= range.min && price < range.max;
+        });
+      });
+    }
+
     // 3. Sắp xếp theo giá (nếu có)
     if (priceSort === 'asc') {
       filtered = [...filtered].sort((a, b) => {
@@ -444,7 +465,7 @@ function SanPham() {
     }
 
     return filtered;
-  }, [finalData, categories, selectedGenders, selectedTypes, selectedSizes, priceSort, location.search]);
+  }, [finalData, categories, selectedGenders, selectedTypes, selectedSizes, priceSort, location.search, selectedPriceRanges]);
 
   // --- PAGINATION LOGIC ---
   const [currentPage, setCurrentPage] = useState(1);
@@ -569,11 +590,32 @@ function SanPham() {
                 )}
               </div>
             </div>
+
+            {/* Khoảng giá */}
+            <div className="filter-group">
+              <h4>Khoảng giá</h4>
+              {PRICE_RANGES.map(range => (
+                <label key={range.id} className="filter-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedPriceRanges.includes(range.id)}
+                    onChange={() => toggleFilter(selectedPriceRanges, setSelectedPriceRanges, range.id)}
+                  />
+                  <span>{range.label}</span>
+                </label>
+              ))}
+            </div>
+
             {/* Nút xóa */}
-            {(selectedGenders.length > 0 || selectedSizes.length > 0 || selectedTypes.length > 0) && (
+            {(selectedGenders.length > 0 || selectedSizes.length > 0 || selectedTypes.length > 0 || selectedPriceRanges.length > 0) && (
               <button
                 className="clear-filters-btn"
-                onClick={() => { setSelectedGenders([]); setSelectedSizes([]); setSelectedTypes([]); }}
+                onClick={() => {
+                  setSelectedGenders([]);
+                  setSelectedSizes([]);
+                  setSelectedTypes([]);
+                  setSelectedPriceRanges([]);
+                }}
               >
                 Xóa bộ lọc
               </button>
